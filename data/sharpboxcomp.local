@@ -1,0 +1,223 @@
+
+<!DOCTYPE html>
+<head>
+	<meta content="text/html;charset=utf-8" http-equiv="Content-Type">
+	<meta content="utf-8" http-equiv="encoding">
+	<link rel="stylesheet" type="text/css" href="style.css">
+	<script src="pureknob.js"></script>
+	<script src="weather.js"></script>
+	<script src="gauge.min.js"></script>
+</head>
+<body>
+	<header>
+	<h1>The Thing Box Controller</h1>
+	<nav>
+		<a href="edit.html">Upload</a>
+		<a href="connect">Connect</a>
+		<a href="dataLog.csv">dataLog</a>
+
+	</nav>
+</header>
+	<div id="info">
+		<div id="time"> Time: <span id="TIME"></span></div>
+		<div id="temperature"> Temperature <span id="TEMPERATURE"></span> <br> <canvas id="tempGauge" height="60"></canvas><br>
+<div id="textTempGauge">50</div></div>
+		<div id="timer">
+			Timer : <span id="TIMER">0</span><br>
+		</div>
+	</div>
+	<div id="relayControl">
+	<div id="relayButtons"> 
+		<button type="button" onclick="sendData(1,1)">RELAY 1 ON</button> 
+		<button type="button" onclick="sendData(1,0)">RELAY 1 OFF</button><br> 
+		<button type="button" onclick="sendData(2,1)">RELAY 2 ON</button> 
+		<button type="button" onclick="sendData(2,0)">RELAY 2 OFF</button><br>
+	</div>
+	<div id="relayState">
+		RELAY 1 State is : <span id="RELAYState1">NA</span><br>
+		RELAY 2 State is : <span id="RELAYState2">NA</span> <br>
+	</div>
+</div>
+
+<div id="out1">
+	<h3>Outlet 1</h3>
+	<div id="processState">
+		Process State: <span id="STATE"></span>
+	</div>
+	<div id="paneles">
+
+	<div id = "temperatureControl">
+		Temperature Control <input type="checkbox" id="chkTempControl">  <br>
+		grados <input type="number" name = "tempSetting" id="tempSetting" ><br>
+		<span id="tempGaugeSetting"></span><br>
+		Active <select name="upOrDown" id="tempDirection"><option value="Heat">Heat</option><option value="Cool">Cool</option></select><br>
+	</div>
+
+	<div id="timerControl">
+		Countdown Timer <input type="checkbox" name="chkTimer" id="chkCountdownTimer"><br>
+		minutes <input type="number" name = "countdownMinutes" id="countdownMinutes"><br>
+	</div>
+
+	<div id="loggerControl">
+			Data Logger <input type="checkbox" name="chkLogger" id="chkLogger"><br>
+			Log Timer (minutes) <input type="number" name = "loggerMinutes" id="loggerMinutes"><br>
+			Free Memory: <span id="freeMemory" ></span>
+	</div>
+</div>
+
+	<button type = "button" onclick="startTimer()" id="startButton">Start</button>
+
+
+</div>
+
+<canvas id="canvas" height="108"></canvas>
+<span id='testLabel'></span>
+
+<script>
+	Weather.setApiKey("9c16803108df2c6da32138903da4b296");
+	Weather.getCurrent("Kansas City", function(current) {
+  console.log(
+    ["currently:",current.temperature(),"and",current.conditions()].join(" ")
+  );
+  	document.getElementById("tempSetting").innerHTML = current.temperature()+"local";
+
+
+});
+
+	var xPos = 0;
+	var yPrev = 0;
+// 	var tempGauge = pureknob.createKnob(60, 60);
+// 	tempGauge.setProperty('angleStart', -0.75 * Math.PI);
+// tempGauge.setProperty('angleEnd', 0.75 * Math.PI);
+// tempGauge.setProperty('colorFG', '#88ff88');
+// tempGauge.setProperty('trackWidth', 0.4);
+// tempGauge.setProperty('valMin', 0);
+// tempGauge.setProperty('valMax', 100);
+// tempGauge.setProperty('readonly',true);
+
+	var tempGaugeSetting = pureknob.createKnob(60, 60);
+	tempGaugeSetting.setProperty('angleStart', -0.75 * Math.PI);
+tempGaugeSetting.setProperty('angleEnd', 0.75 * Math.PI);
+tempGaugeSetting.setProperty('colorFG', '#88ff88');
+tempGaugeSetting.setProperty('trackWidth', 0.4);
+tempGaugeSetting.setProperty('valMin', 0);
+tempGaugeSetting.setProperty('valMax', 100);
+tempGaugeSetting.setProperty('readonly',false);
+
+
+
+				var node = tempGaugeSetting.node();
+				var elem = document.getElementById('tempGaugeSetting');
+				elem.appendChild(node);
+
+
+var opts = {
+  angle: 0.10, // The span of the gauge arc
+  lineWidth: 0.1, // The line thickness
+  radiusScale: 1, // Relative radius
+  pointer: {
+    length: 0.6, // // Relative to gauge radius
+    strokeWidth: 0.044, // The thickness
+    color: '#555555' // Fill color
+  },
+  limitMax: false,     // If false, max value increases automatically if value > maxValue
+  limitMin: false,     // If true, the min value of the gauge will be fixed
+  colorStart: '#6F6EA0',   // Colors
+  colorStop: '#C0C0DB',    // just experiment with them
+  strokeColor: '#EEEEEE',  // to see which ones work best for you
+  generateGradient: true,
+  highDpiSupport: true,     // High resolution support
+  percentColors: [[0.0, "#a9d70b" ], [0.50, "#f9c802"], [1.0, "#ff0000"]], // cambia color mientras sube
+  staticZones: [
+   {strokeStyle: "#F03E3E", min: 0, max: 5}, // Red from 100 to 130
+   {strokeStyle: "#FFDD00", min: 5, max: 30}, // Yellow
+   {strokeStyle: "#30B32D", min: 30, max: 70}, // Green
+   {strokeStyle: "#FFDD00", min: 70, max: 95}, // Yellow
+   {strokeStyle: "#F03E3E", min: 95, max: 100}  // Red
+],
+
+};
+var target = document.getElementById('tempGauge'); // your canvas element
+var gauge = new Gauge(target).setOptions(opts); // create sexy gauge!
+gauge.maxValue = 100; // set max gauge value
+gauge.setMinValue(0);  // Prefer setter over gauge.minValue = 0
+gauge.animationSpeed = 32; // set animation speed (32 is default value)
+//gauge.staticLabels = true;
+gauge.set(90); // set actual value
+
+	getData();
+	function sendData(relay , state) {
+		var xhttp = new XMLHttpRequest();
+		xhttp.onreadystatechange = function() {
+			if (this.readyState == 4 && this.status == 200) { 
+				document.getElementById("RELAYState1").innerHTML = this.responseText;
+			}     
+		}; 
+		xhttp.open("GET", "set?Relay="+relay+"&State="+state, true);
+		xhttp.send();
+	} 
+
+	getData();
+	setInterval(function() {getData();}, 10000);
+
+	function getData() {
+		var xhttp = new XMLHttpRequest();
+		xhttp.onreadystatechange = function() {
+			if (this.readyState == 4 && this.status == 200) {
+				var args = this.responseText.split(",");
+				document.getElementById("RELAYState1").innerHTML = args[0];
+				document.getElementById("RELAYState2").innerHTML = args[1];
+				document.getElementById("TEMPERATURE").innerHTML = args[2];
+				gauge.set(args[2]); 
+				document.getElementById("textTempGauge").innerHTML = args[2];
+
+				document.getElementById("TIME").innerHTML = args[3] + ":" + args[4];
+				document.getElementById("TIMER").innerHTML = args[5];
+				document.getElementById("STATE").innerHTML = args[6];
+				document.getElementById("countdownMinutes").innerHTML = args[7];
+				if ( args[6].indexOf("Run") >=0  ) tempGaugeSetting.setValue(args[8]);
+				if ( args[9] == "true") document.getElementById("chkLogger").checked = true;
+				if ( args[9] == "false") document.getElementById("chkLogger").checked = false;
+				document.getElementById("loggerMinutes").innerHTML = args[10];
+				document.getElementById("freeMemory").innerHTML = args[11] + " Kb";
+
+				var canvas = document.getElementById("canvas");
+				ctx=canvas.getContext("2d");
+				ctx.strokeStyle = "rgb(0,0,255)"; 
+				ctx.moveTo(xPos*2,canvas.height -yPrev);
+				xPos++;
+				ctx.lineTo(xPos*2,canvas.height -args[2]*2);
+                        //ctx.stroke();
+                        yPrev = args[2]*2;
+                        ctx.strokeStyle = "rgb(255,0,0)"; 
+                        ctx.moveTo(xPos*2,canvas.height - args[0] * 20);
+                        ctx.lineTo(xPos*2+2,canvas.height - args[0]*2+2);
+
+                        ctx.stroke();
+
+                    } 
+                };
+                xhttp.open("GET", "readTimer", true);  xhttp.send();
+            }
+            
+            function startTimer(){
+            	var xhttp = new XMLHttpRequest();
+            	xhttp.onreadystatechange = function() {
+            		if (this.readyState == 4 && this.status == 200) {
+            			document.getElementById("STATE").innerHTML = this.responseText;
+            		} 
+            	};
+            	//tempSetpoint = document.getElementById("tempSetting").value;
+            	tempSetpoint = tempGaugeSetting.getValue();
+            	countdownMinutes = document.getElementById("countdownMinutes").value;
+            	chkTempControl = document.getElementById("chkTempControl").checked;
+            	tempDirection = document.getElementById("tempDirection").value;
+            	chkCountdownTimer = document.getElementById("chkCountdownTimer").checked;
+            	chkLogger = document.getElementById("chkLogger").checked;
+            	loggerMinutes = document.getElementById("loggerMinutes").value;
+
+            	xhttp.open("GET", "start?tempSetpoint="+tempSetpoint+"&countdownMinutes="+countdownMinutes+"&chkTempControl="+chkTempControl+"&tempDirection="+tempDirection+"&chkCountdownTimer="+chkCountdownTimer+"&chkLogger="+chkLogger+"&loggerMinutes="+loggerMinutes, true);  xhttp.send();
+            }
+        </script> 
+    </body>
+    </html>
