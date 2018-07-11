@@ -1,172 +1,34 @@
+
+
 // ########################################
 // CLASES
 // ########################################
 
-class Elements{
+class ElementsHTML{
   public:
   String name;
   String id;
+    String descriptor;
+  String html;
+  String javascript;
+  String postRequest;
   char test[10] = "mimimimim";
-virtual   void postCallBack()=0; // aqui hay que arreglar esto
+virtual   String postCallBack(String postValue)=0; // aqui hay que arreglar esto
 };
 
 
-// ########################################
-//  INPUT
-
-class Input:public Elements {
-
-  public:
-
-  int value;
-  int minValue;
-  int maxValue;
-  //String name;
-  String unit;
-  String descriptor;
-  String html;
-  String javascript;
-  String postRequest;
-
-
-
-    ;
-
-
-    virtual void update() = 0; 
-  };
-
-class Dsb18B20:public Input {
-  int pin;
-
-public:
-
-   Dsb18B20 ( int _pin , String  _name) {
-    pin = _pin;
-    name = _name;
-        minValue = 0;
-        maxValue = 150;
-        unit = "grados";
-        descriptor = "Temperature Sensor";
-        html = "<span>Temperature:" + String(value) + "</span>";
-        javascript = "";
-        postRequest = "";
-    
-  }
-    String getHtml(){
-    return html;
-  }
-  void update(){
-              //tempSensors.requestTemperatures(); // Request the temperature from the sensor (it takes some time to read it)
-        html = "<span>" + name+"  Temperature:" + String(value) + "</span>";
-
-}
-void postCallBack(){}
-
-};
-
-class EditBox: public Input {
-  public:
-  EditBox(String _name){
-    name=_name;
-    html="<span><input type='number' onclick='btnClick(this)'>number</input></span>";
-  }
-      String getHtml(){  return html; }
-  void update(){
-    
-  }
-       void postCallBack() {
-//      this->toogle();
-    }
-};
-
-// ########################################
-//  OUTPUT
-// ########################################
-
-
-  class Output:public Elements {
-
-    
-  public:
-  
-  String stateStr;
-  int value;
-  int minValue;
-  int maxValue;
-  String unit;
-  //String name;
-  String descriptor;
-  String html;
-  String javascript;
-  String postRequest;
-  virtual void update( int newValue)=0;
-   //void postCallBack();
-    };
-
-
-
-  class RelayOutput:public Output {
-    int pin;
-
-  public:
-  
-        RelayOutput ( byte _pin , String _name, String _id ) {
-        pin = _pin;
-        name = _name;
-        minValue = 0;
-        maxValue = 1;
-        unit = "apagado/encendido";
-        descriptor = name;
-        id= _id;
-        pinMode ( pin , OUTPUT );
-        stateStr="OFF";
-    };
-
-      void update( int newValue) {
-      value = newValue;
-      if (  newValue == 1 ) {
-        digitalWrite(pin, HIGH);
-        stateStr = "OFF";
-      }
-      if ( newValue == 0 ) {
-        digitalWrite(pin, LOW);
-        stateStr = "ON";
-      }
-      String temp =  ( value==0?"ON":"OFF" ) ; 
-              html="<span>"+name+" - " + temp   + "<button type='button' name='"+ descriptor + "' id='" + id +"' onclick='btnClick(this)'>Toogle</button></span>";
-
-       }
-      void toogle(){
-        if (value==0){
-          update(1);
-        }
-        else{
-          update(0);
-        }
-      }
-          String getState(){
-        return stateStr;
-      }
-          String getHtml(){
-    return html;
-  }
-    void postCallBack() {
-      toogle();
-    }
-  };
+#include "input.h"
+#include "output.h"
+#include "controls.h"
 
 
 // ########################################
 //  Commands
 // ########################################
 
-class Commands {
+class Commands: public ElementsHTML{
   public:
-  String descriptor;
-  String html;
-  String javascript;
-  String postRequest;
+
   virtual bool run();
 };
 
@@ -185,6 +47,7 @@ public:
   String getHtml(){
     return html;
   }
+  String postCallBack(String postValue){};
 };
 
 
@@ -195,10 +58,10 @@ public:
 class Program {
 public:
 
-  Commands listOfCommands[20];
+  Commands* listOfCommands[20];
    int commandCount = 0;
    int runIndex =  0;
-  void addCommand (Commands com){
+  void addCommand (Commands* com){
     listOfCommands[commandCount] = com;
     commandCount++;
   }
@@ -209,7 +72,7 @@ public:
   }
   void runProgram() {
     if (runIndex>0){
-    if (  listOfCommands[runIndex].run() ) runIndex++;
+    if (  listOfCommands[runIndex]->run() ) runIndex++;
     }
   }
 };
@@ -223,12 +86,12 @@ public:
 class Page {
 public:
 
-   Elements* listOfElements[20];
+   ElementsHTML* listOfElements[20];
 //   Elements listOfElements1[20];
    int elementCount = 0;
 
    //Page(){};
-  void addElement (Elements* el){
+  void addElement (ElementsHTML* el){
     listOfElements[elementCount] = el;
  //   listOfElements1[elementCount] = *el;
     elementCount++;

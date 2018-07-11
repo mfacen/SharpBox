@@ -370,10 +370,10 @@ void handleBtnClick() {                             //////////////   HANDLE BUTT
           if (page.listOfElements[i]->id == buttonName) {
             
             //RelayOutput el =  static_cast<RelayOutput> (page.listOfElements1[i]);
-            page.listOfElements[i]->postCallBack();
+            reply=page.listOfElements[i]->postCallBack(buttonValue);
             //relay1.postCallBack();
             //el->postCallBack();
-            reply = page.listOfElements[i]->name +" relay Flipped";
+            //reply = page.listOfElements[i]->name +" relay Flipped";
           }
       }
       
