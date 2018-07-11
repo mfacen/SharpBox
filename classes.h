@@ -6,7 +6,8 @@ class Elements{
   public:
   String name;
   String id;
-  virtual void postCallBack(){};
+  char test[10] = "mimimimim";
+virtual   void postCallBack()=0; // aqui hay que arreglar esto
 };
 
 
@@ -60,10 +61,24 @@ public:
         html = "<span>" + name+"  Temperature:" + String(value) + "</span>";
 
 }
+void postCallBack(){}
 
 };
 
-
+class EditBox: public Input {
+  public:
+  EditBox(String _name){
+    name=_name;
+    html="<span><input type='number' onclick='btnClick(this)'>number</input></span>";
+  }
+      String getHtml(){  return html; }
+  void update(){
+    
+  }
+       void postCallBack() {
+//      this->toogle();
+    }
+};
 
 // ########################################
 //  OUTPUT
@@ -86,7 +101,7 @@ public:
   String javascript;
   String postRequest;
   virtual void update( int newValue)=0;
-  virtual void postCallBack()=0;
+   //void postCallBack();
     };
 
 
@@ -136,8 +151,8 @@ public:
           String getHtml(){
     return html;
   }
-    void postCallBack(){
-      this->toogle();
+    void postCallBack() {
+      toogle();
     }
   };
 
@@ -208,12 +223,14 @@ public:
 class Page {
 public:
 
-   Elements listOfElements[20];
+   Elements* listOfElements[20];
+//   Elements listOfElements1[20];
    int elementCount = 0;
 
    //Page(){};
-  void addElement (Elements el){
+  void addElement (Elements* el){
     listOfElements[elementCount] = el;
+ //   listOfElements1[elementCount] = *el;
     elementCount++;
   }
   void deleteElement(int index){

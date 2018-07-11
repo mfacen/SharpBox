@@ -86,6 +86,7 @@ unsigned long countdownSetTime = 0;
   RelayOutput   relay1 (RELAY_1_PIN,"Relay 1 110VAC","relay1");
   RelayOutput   relay2 (RELAY_2_PIN,"Relay 2 110VAC","relay2");
   Dsb18B20 tempSensor ( TEMP_SENSOR_PIN ,"Temperature Probe");   // habria que crearlo solo si encontro el sensor
+  EditBox edit1 ("edit1");
 
 ///////////////////////////////////////////////////////////////////////////
 ////                                                               ////////
@@ -94,9 +95,10 @@ unsigned long countdownSetTime = 0;
 ///////////////////////////////////////////////////////////////////////////
 
   void setup() {
-    page.addElement(relay1);
-    page.addElement(relay2);
-    page.addElement(tempSensor);
+    page.addElement(&relay1);
+    page.addElement(&relay2);
+    page.addElement(&tempSensor);
+    page.addElement(&edit1);
   // put your setup code here, to run once:
    // pinMode ( RELAY_1_PIN , OUTPUT );
     //pinMode ( RELAY_2_PIN , OUTPUT );
@@ -184,10 +186,10 @@ void loop() {
   ArduinoOTA.handle();                        // listen for OTA events
 
   tempSensor.update();
-            tempSensors.requestTemperatures(); // Request the temperature from the sensor (it takes some time to read it)
+    //        tempSensors.requestTemperatures(); // Request the temperature from the sensor (it takes some time to read it)
 
-  delay (1000);
-  temperature =  tempSensors.getTempCByIndex(0);
+  //delay (1000);
+  //temperature =  tempSensors.getTempCByIndex(0);
   if ( tempControl == "true" ) {
     if ( tempDirection == "Heat" ){
       if ( temperature > tempSetpoint ) relay1.update(1);
@@ -346,6 +348,7 @@ void handleIndex1() {
   reply+= tempSensor.getHtml()+"<br>";
   reply+= relay1.getHtml()+"<br>";
   reply+= relay2.getHtml()+"<br>";
+  reply+= edit1.getHtml()+"<br>";
     reply+= body.getJavaScript();
 reply+="<span id='errorLabel'></span>";
 reply+= "</body></html>";  
@@ -364,14 +367,22 @@ void handleBtnClick() {                             //////////////   HANDLE BUTT
     buttonValue = server.arg("value");
 
       for (int i=0; i<page.elementCount; i++){
-          if (page.listOfElements[i].id == buttonName) {
-            page.listOfElements[i].postCallBack();
-            reply = page.listOfElements[i].name +" relay Flipped";
+          if (page.listOfElements[i]->id == buttonName) {
+            
+            //RelayOutput el =  static_cast<RelayOutput> (page.listOfElements1[i]);
+            page.listOfElements[i]->postCallBack();
+            //relay1.postCallBack();
+            //el->postCallBack();
+            reply = page.listOfElements[i]->name +" relay Flipped";
           }
+      }
+      
 //    if (buttonName == "relay1") {
-//      relay1.toogle();
-//      reply = "relay fliped";
-    }
+//      page.listOfElements[0]->postCallBack();
+//      reply =  (page.listOfElements[0]->name);//RelayOutputpage.listOfElements[1]->name;//->name ;//+" relay Flipped";
+//    }
+      
+      
         server.send(200, "text/plain", reply );
   }
 }
