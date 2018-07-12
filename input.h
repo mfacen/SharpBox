@@ -10,11 +10,10 @@ class Input:public ElementsHTML {
   int minValue;
   int maxValue;
   String unit;
-  //String name;
-    ;
 
-
-    virtual void update() = 0; 
+    virtual void update(){}; 
+//      virtual String postCallBack(String postValue){};
+ virtual String getHtml(){};
   };
 
 // ########################################
@@ -38,15 +37,16 @@ public:
         postRequest = "";
     
   }
-    String getHtml(){
-    return html;
-  }
+  //~Dsb18B20();
+  
+    String getHtml(){ return html;  }
+    
   void update(){
               //tempSensors.requestTemperatures(); // Request the temperature from the sensor (it takes some time to read it)
         html = "<span>" + name+"  Temperature:" + String(value) + "</span>";
 
 }
-String postCallBack(String postValue){}
+  String postCallBack(String postValue){}
 
 };
 
@@ -61,6 +61,7 @@ class EditBox: public Input {
     id=_name;
     html="<span><input type='number' data-value='qwerty' id='"+id+"' onclick='btnClick(this)'>number</input></span>";
   }
+  
       String getHtml(){  return html; }
   void update(){   
   }

@@ -15,7 +15,8 @@
   String unit;
 
   virtual void update( int newValue)=0;
-   //void postCallBack();
+ // virtual String postCallBack(String postValue);
+  virtual String getHtml(){};
     };
 
 // ########################################
@@ -38,6 +39,8 @@
         id= _id;
         pinMode ( pin , OUTPUT );
         stateStr="OFF";
+                      html="<span>"+name+" - "  + "<button type='button' data-value='toogle' name='"+ descriptor + "' id='" + id +"' onclick='btnClick(this)'>Toogle</button></span>";
+
     };
 
       void update( int newValue) {
@@ -51,7 +54,6 @@
         stateStr = "ON";
       }
       String temp =  ( value==0?"ON":"OFF" ) ; 
-              html="<span>"+name+" - " + temp   + "<button type='button' data-value='toogle' name='"+ descriptor + "' id='" + id +"' onclick='btnClick(this)'>Toogle</button></span>";
 
        }
       void toogle(){
@@ -62,12 +64,8 @@
           update(0);
         }
       }
-          String getState(){
-        return stateStr;
-      }
-          String getHtml(){
-    return html;
-  }
+          String getState(){  return stateStr; }
+    String getHtml(){ return html;  }
     String postCallBack(String postValue) {
       if (postValue=="toogle"){
       toogle();

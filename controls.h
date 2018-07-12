@@ -1,11 +1,23 @@
 
 
-class Controls {
+class ActiveControl:public ElementsHTML {
   public:
   String name;
-  Input* input;
+  Input* inputLeft;
+  Input* inputRight;
   Output* output;
   String op = ">";
-  Controls(String n,Input* in, Output* out):input{in},output{out},name{n}{};
+  ActiveControl(String n,Input* inL, Input* inR, Output* out):inputLeft{inL},inputRight{inR},output{out},name{n}{
+    html="<span>"+name+" Input="+ inputLeft->getHtml() +"  "+ op + inputRight->getHtml()+ "   Output=" + output->getHtml() + " then </span>";
+    javascript="";
+    postRequest = "";
+    };
+    
+  String getHtml(){return html;}
+
+  void update(){
+    
+  }
+  
 };
 

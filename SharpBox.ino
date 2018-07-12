@@ -87,7 +87,9 @@ unsigned long countdownSetTime = 0;
   RelayOutput   relay2 (RELAY_2_PIN,"Relay 2 110VAC","relay2");
   Dsb18B20 tempSensor ( TEMP_SENSOR_PIN ,"Temperature Probe");   // habria que crearlo solo si encontro el sensor
   EditBox edit1 ("edit1");
+  ActiveControl control1 ("Control 1" , &tempSensor , &edit1 , &relay1 );
 
+  
 ///////////////////////////////////////////////////////////////////////////
 ////                                                               ////////
 ///////              SETUP                                          ////////
@@ -99,6 +101,8 @@ unsigned long countdownSetTime = 0;
     page.addElement(&relay2);
     page.addElement(&tempSensor);
     page.addElement(&edit1);
+    page.addElement(&control1);
+    
   // put your setup code here, to run once:
    // pinMode ( RELAY_1_PIN , OUTPUT );
     //pinMode ( RELAY_2_PIN , OUTPUT );
@@ -349,6 +353,8 @@ void handleIndex1() {
   reply+= relay1.getHtml()+"<br>";
   reply+= relay2.getHtml()+"<br>";
   reply+= edit1.getHtml()+"<br>";
+  reply+= control1.getHtml()+"<br>";
+  
     reply+= body.getJavaScript();
 reply+="<span id='errorLabel'></span>";
 reply+= "</body></html>";  

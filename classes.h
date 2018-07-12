@@ -13,7 +13,8 @@ class ElementsHTML{
   String javascript;
   String postRequest;
   char test[10] = "mimimimim";
-virtual   String postCallBack(String postValue)=0; // aqui hay que arreglar esto
+virtual   String postCallBack(String postValue){}; // es virtual, lo tienen que implementar los hijos       ATENCION CUANDO DICE VTABLE ES QUE HE DEJADO UNA FUNCION SIN DEFINIR
+//virtual   String getHtml(){}; // es virtual, lo tienen que implementar los hijos                                  por ej String getHtml()   ---->>>>  falta poner {}
 };
 
 
