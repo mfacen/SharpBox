@@ -87,8 +87,9 @@ unsigned long countdownSetTime = 0;
   RelayOutput   relay2 (RELAY_2_PIN,"Relay 2 110VAC","relay2");
   Dsb18B20 tempSensor ( TEMP_SENSOR_PIN ,"Temperature Probe");   // habria que crearlo solo si encontro el sensor
   EditBox edit1 ("edit1");
-  ActiveControl control1 ("Control 1" , &tempSensor , &edit1 , &relay1 );
-
+  EditBox edit2 ("edit2");
+  ActiveControl control1 ("Control 1" , &tempSensor , &edit1 , &relay1 , &edit2 );
+  Set set1 ("set1",&relay2);
   
 ///////////////////////////////////////////////////////////////////////////
 ////                                                               ////////
@@ -101,7 +102,9 @@ unsigned long countdownSetTime = 0;
     page.addElement(&relay2);
     page.addElement(&tempSensor);
     page.addElement(&edit1);
+    page.addElement(&edit2);
     page.addElement(&control1);
+    page.addElement(&set1);
     
   // put your setup code here, to run once:
    // pinMode ( RELAY_1_PIN , OUTPUT );
@@ -192,7 +195,9 @@ void loop() {
   tempSensor.update();
     //        tempSensors.requestTemperatures(); // Request the temperature from the sensor (it takes some time to read it)
 
-  //delay (1000);
+  delay (100);
+  control1.update();
+  
   //temperature =  tempSensors.getTempCByIndex(0);
   if ( tempControl == "true" ) {
     if ( tempDirection == "Heat" ){
@@ -354,6 +359,7 @@ void handleIndex1() {
   reply+= relay2.getHtml()+"<br>";
   reply+= edit1.getHtml()+"<br>";
   reply+= control1.getHtml()+"<br>";
+  reply+= set1.getHtml()+"<br>";
   
     reply+= body.getJavaScript();
 reply+="<span id='errorLabel'></span>";
@@ -365,18 +371,21 @@ reply+= "</body></html>";
 void handleBtnClick() {                             //////////////   HANDLE BUTTON CLICK
   String buttonName = "undefined";
   String buttonValue = "undefined";
+  String buttonDataValue = "undefined";
   String reply = "Undefined";
 
 
   if (server.hasArg("button")) {
     buttonName = server.arg("button");
     buttonValue = server.arg("value");
+    buttonDataValue = server.arg("datavalue");
 
       for (int i=0; i<page.elementCount; i++){
+        Serial.println(page.listOfElements[i]->id);
           if (page.listOfElements[i]->id == buttonName) {
             
             //RelayOutput el =  static_cast<RelayOutput> (page.listOfElements1[i]);
-            reply=page.listOfElements[i]->postCallBack(buttonValue);
+            reply=page.listOfElements[i]->postCallBack(buttonValue,buttonDataValue);
             //relay1.postCallBack();
             //el->postCallBack();
             //reply = page.listOfElements[i]->name +" relay Flipped";

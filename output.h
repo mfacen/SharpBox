@@ -15,7 +15,6 @@
   String unit;
 
   virtual void update( int newValue)=0;
- // virtual String postCallBack(String postValue);
   virtual String getHtml(){};
     };
 
@@ -29,7 +28,7 @@
 
   public:
   
-        RelayOutput ( byte _pin , String _name, String _id ) {
+        RelayOutput ( byte _pin , String _name, String _id ) {          /// Constructor
         pin = _pin;
         name = _name;
         minValue = 0;
@@ -41,11 +40,12 @@
         stateStr="OFF";
                       html="<span>"+name+" - "  + "<button type='button' data-value='toogle' name='"+ descriptor + "' id='" + id +"' onclick='btnClick(this)'>Toogle</button></span>";
 
-    };
+         };
 
       void update( int newValue) {
       value = newValue;
-      if (  newValue == 1 ) {
+      if (value>1)value=1;
+      if (  newValue != 0 ) {
         digitalWrite(pin, HIGH);
         stateStr = "OFF";
       }
@@ -66,8 +66,8 @@
       }
           String getState(){  return stateStr; }
     String getHtml(){ return html;  }
-    String postCallBack(String postValue) {
-      if (postValue=="toogle"){
+    String postCallBack(String postValue , String postDataValue) {
+      if (postDataValue=="toogle"){
       toogle();
       //return "Toggled "+name;
       return "document.getElementById('"+id+"').innerHTML='"+stateStr+"';";

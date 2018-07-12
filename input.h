@@ -12,7 +12,6 @@ class Input:public ElementsHTML {
   String unit;
 
     virtual void update(){}; 
-//      virtual String postCallBack(String postValue){};
  virtual String getHtml(){};
   };
 
@@ -28,6 +27,7 @@ public:
    Dsb18B20 ( int _pin , String  _name) {
     pin = _pin;
     name = _name;
+    id = _name;
         minValue = 0;
         maxValue = 150;
         unit = "grados";
@@ -46,7 +46,7 @@ public:
         html = "<span>" + name+"  Temperature:" + String(value) + "</span>";
 
 }
-  String postCallBack(String postValue){}
+  String postCallBack(String postValue,String postDataValue){}
 
 };
 
@@ -59,15 +59,33 @@ class EditBox: public Input {
   EditBox(String _name){
     name=_name;
     id=_name;
-    html="<span><input type='number' data-value='qwerty' id='"+id+"' onclick='btnClick(this)'>number</input></span>";
+    html="<span><input type='number' id='"+id+"' onclick='btnClick(this)'></input></span>";
+            javascript = "";
+        postRequest = _name;
+        
   }
   
       String getHtml(){  return html; }
   void update(){   
   }
- String postCallBack(String postValue) {
+ String postCallBack(String postValue, String postDataValue) {
       //return "document.getElementById('"+id+"').innerHTML='"+name+"';";
       value = postValue.toInt();
+      return "";
     }
 };
 
+class Button: public ElementsHTML {
+    public:
+    Button(String n){
+      name = n;
+      id = n;
+      html="<button type='button' id='"+id+"' name='"+name+"' onclick='btnClick(this)'</button>";
+    }
+  
+   String postCallBack(String postValue, String postDataValue){
+    
+    }; // es virtual, lo tienen que implementar los hijos       ATENCION CUANDO DICE VTABLE ES QUE HE DEJADO UNA FUNCION SIN DEFINIR
+      String getHtml(){  return html; }
+
+};

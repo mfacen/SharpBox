@@ -12,8 +12,7 @@ class ElementsHTML{
   String html;
   String javascript;
   String postRequest;
-  char test[10] = "mimimimim";
-virtual   String postCallBack(String postValue){}; // es virtual, lo tienen que implementar los hijos       ATENCION CUANDO DICE VTABLE ES QUE HE DEJADO UNA FUNCION SIN DEFINIR
+virtual   String postCallBack(String postValue, String postDataValue){}; // es virtual, lo tienen que implementar los hijos       ATENCION CUANDO DICE VTABLE ES QUE HE DEJADO UNA FUNCION SIN DEFINIR
 //virtual   String getHtml(){}; // es virtual, lo tienen que implementar los hijos                                  por ej String getHtml()   ---->>>>  falta poner {}
 };
 
@@ -21,35 +20,8 @@ virtual   String postCallBack(String postValue){}; // es virtual, lo tienen que 
 #include "input.h"
 #include "output.h"
 #include "controls.h"
+#include "commands.h"
 
-
-// ########################################
-//  Commands
-// ########################################
-
-class Commands: public ElementsHTML{
-  public:
-
-  virtual bool run();
-};
-
-class Set:Commands {
-public:
-  Output* output;
-  int value;
-  Set(Output* out){
-    output = out;
-      html="<span>"+output->html+"   "+output->stateStr + "</span>";
-  }
-  bool run () {
-    output->update(value);
-    return true;
-  }
-  String getHtml(){
-    return html;
-  }
-  String postCallBack(String postValue){};
-};
 
 
 // ########################################

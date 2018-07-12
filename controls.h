@@ -6,9 +6,11 @@ class ActiveControl:public ElementsHTML {
   Input* inputLeft;
   Input* inputRight;
   Output* output;
+  Input* outputEdit;
   String op = ">";
-  ActiveControl(String n,Input* inL, Input* inR, Output* out):inputLeft{inL},inputRight{inR},output{out},name{n}{
-    html="<span>"+name+" Input="+ inputLeft->getHtml() +"  "+ op + inputRight->getHtml()+ "   Output=" + output->getHtml() + " then </span>";
+  ActiveControl(String n,Input* inL, Input* inR, Output* out,Input* outEdit):inputLeft{inL},inputRight{inR},output{out},outputEdit{outEdit},name{n}{
+    html="<span>"+name+" Input="+ inputLeft->getHtml() +"  "+ op + inputRight->getHtml()+ "  Then   Output=" + output->getHtml() + " =  "+outputEdit->getHtml()+"</span>";
+   
     javascript="";
     postRequest = "";
     };
@@ -16,7 +18,9 @@ class ActiveControl:public ElementsHTML {
   String getHtml(){return html;}
 
   void update(){
-    
+    if (op=">") {
+      ( inputLeft->value > inputRight->value )? output->update(  outputEdit->value): output->update ( !outputEdit->value );
+    }
   }
   
 };
