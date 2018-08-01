@@ -4,9 +4,13 @@
 
 class Commands: public ElementsHTML{
   public:
-
   virtual bool run(){};
+  String getHtml(){};
 };
+
+// ########################################
+//  Command   SET
+// ########################################
 
 class Set:public Commands {
 public:
@@ -20,17 +24,27 @@ public:
     name = _name;
     id = _name;
     editOutput = new EditBox ( "edt"+name);
-    btn = new Button ( "btn"+name);
-      html="<span>"+output->html+"   "+output->stateStr +" "+ editOutput->getHtml()+ btn->getHtml() + "</span>";
+    btn = new Button (name,"qwerty","Action");
+
+            postRequest=id;
+
+      html="<div>"+name+output->html+"   "+output->stateStr +" "+ editOutput->getHtml() + btn->getHtml()+"<?div>";
   }
   bool run () {
-    output->update(value);
+    output->update(editOutput->value);
     return true;
   }
   String getHtml(){
     return html;
   }
-  String postCallBack(String postValue){};
+  String postCallBack(String postValue,String postDatavalue){run();return editOutput->javascript;};
+  String test(String str){};
+
 };
+
+// ########################################
+//  Command Wait for
+// ########################################
+
 
 

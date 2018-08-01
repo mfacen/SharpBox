@@ -14,8 +14,8 @@
   int maxValue;
   String unit;
 
-  virtual void update( int newValue)=0;
-  virtual String getHtml(){};
+  virtual void update( int newValue){};
+  String getHtml(){};
     };
 
 // ########################################
@@ -36,9 +36,10 @@
         unit = "apagado/encendido";
         descriptor = name;
         id= _id;
+        postRequest=id;
         pinMode ( pin , OUTPUT );
         stateStr="OFF";
-                      html="<span>"+name+" - "  + "<button type='button' data-value='toogle' name='"+ descriptor + "' id='" + id +"' onclick='btnClick(this)'>Toogle</button></span>";
+                      html=name+" - "  + "<button type='button' data-value='toogle' name='"+ descriptor + "' id='" + id +"' onclick='btnClick(this)'>Toogle</button>";
 
          };
 
@@ -56,6 +57,7 @@
       String temp =  ( value==0?"ON":"OFF" ) ; 
 
        }
+       
       void toogle(){
         if (value==0){
           update(1);

@@ -11,7 +11,7 @@
 #include <WiFiClient.h>
 #include <Time.h>
 #include <TimeLib.h>
-
+#include <vector>
 #include <TimeAlarms.h>
 #include <FS.h>
 
@@ -88,8 +88,10 @@ unsigned long countdownSetTime = 0;
   Dsb18B20 tempSensor ( TEMP_SENSOR_PIN ,"Temperature Probe");   // habria que crearlo solo si encontro el sensor
   EditBox edit1 ("edit1");
   EditBox edit2 ("edit2");
-  ActiveControl control1 ("Control 1" , &tempSensor , &edit1 , &relay1 , &edit2 );
+  ActiveControl control1 ("Control1" , &tempSensor , &edit1 , &relay1 , &edit2 );
   Set set1 ("set1",&relay2);
+  KeyPad keypad1 ("keypad1");
+  Program program;
   
 ///////////////////////////////////////////////////////////////////////////
 ////                                                               ////////
@@ -105,7 +107,11 @@ unsigned long countdownSetTime = 0;
     page.addElement(&edit2);
     page.addElement(&control1);
     page.addElement(&set1);
+    page.addElement((set1.editOutput));
+    page.addElement(&keypad1);
     
+  program.addCommand(&set1);
+  
   // put your setup code here, to run once:
    // pinMode ( RELAY_1_PIN , OUTPUT );
     //pinMode ( RELAY_2_PIN , OUTPUT );
@@ -148,7 +154,7 @@ unsigned long countdownSetTime = 0;
   startUDP();                  // Start listening for UDP messages to port 123
 
   WiFi.hostByName(ntpServerName, timeServerIP); // Get the IP address of the NTP server
-
+  Serial.print("Local Ip " +WiFi.localIP());
   Serial.print("Time server IP:\t");
   Serial.println(timeServerIP);
 
@@ -193,6 +199,11 @@ void loop() {
   ArduinoOTA.handle();                        // listen for OTA events
 
   tempSensor.update();
+    control1.update();
+
+//program.runProgram();
+
+
     //        tempSensors.requestTemperatures(); // Request the temperature from the sensor (it takes some time to read it)
 
   delay (100);
@@ -350,16 +361,19 @@ void handleNotFound() { // if the requested file or page doesn't exist, return a
 }
 void handleIndex1() {
   String reply = "<html><head>  <link rel='stylesheet' type='text/css' href='style.css'></head>";
-  reply+= btnRelay1.getHtml();
-  reply+= btnRelay2.getHtml();
-  reply+= lbl1.getHtml()+"<br>";
+//  reply+= btnRelay1.getHtml();
+//  reply+= btnRelay2.getHtml();
+//  reply+= lbl1.getHtml()+"<br>";
+//
+//  reply+= tempSensor.getHtml()+"<br>";
+//  reply+= relay1.getHtml()+"<br>";
+//  reply+= relay2.getHtml()+"<br>";
+//  reply+= edit1.getHtml()+"<br>";
+//  reply+= control1.getHtml()+"<br>";
+//  reply+= set1.getHtml()+"<br>";
+//  reply+= keypad1.getHtml()+"<br>";
 
-  reply+= tempSensor.getHtml()+"<br>";
-  reply+= relay1.getHtml()+"<br>";
-  reply+= relay2.getHtml()+"<br>";
-  reply+= edit1.getHtml()+"<br>";
-  reply+= control1.getHtml()+"<br>";
-  reply+= set1.getHtml()+"<br>";
+  reply+= page.getHtml();
   
     reply+= body.getJavaScript();
 reply+="<span id='errorLabel'></span>";
@@ -372,7 +386,7 @@ void handleBtnClick() {                             //////////////   HANDLE BUTT
   String buttonName = "undefined";
   String buttonValue = "undefined";
   String buttonDataValue = "undefined";
-  String reply = "Undefined";
+  String reply = "NoReply";
 
 
   if (server.hasArg("button")) {
@@ -382,7 +396,7 @@ void handleBtnClick() {                             //////////////   HANDLE BUTT
 
       for (int i=0; i<page.elementCount; i++){
         Serial.println(page.listOfElements[i]->id);
-          if (page.listOfElements[i]->id == buttonName) {
+          if (page.listOfElements[i]->postRequest == buttonName) {
             
             //RelayOutput el =  static_cast<RelayOutput> (page.listOfElements1[i]);
             reply=page.listOfElements[i]->postCallBack(buttonValue,buttonDataValue);

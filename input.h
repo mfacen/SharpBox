@@ -12,7 +12,8 @@ class Input:public ElementsHTML {
   String unit;
 
     virtual void update(){}; 
- virtual String getHtml(){};
+ String getHtml(){};
+ 
   };
 
 // ########################################
@@ -34,8 +35,8 @@ public:
         descriptor = "Temperature Sensor";
         html = "<span>Temperature:" + String(value) + "</span>";
         javascript = "";
-        postRequest = "";
-    
+        postRequest=id;
+//      page.addElement(this);
   }
   //~Dsb18B20();
   
@@ -43,7 +44,7 @@ public:
     
   void update(){
               //tempSensors.requestTemperatures(); // Request the temperature from the sensor (it takes some time to read it)
-        html = "<span>" + name+"  Temperature:" + String(value) + "</span>";
+        html =   name+"  Temperature:" + String(value) ;
 
 }
   String postCallBack(String postValue,String postDataValue){}
@@ -56,36 +57,101 @@ public:
 
 class EditBox: public Input {
   public:
+  String text;
   EditBox(String _name){
+    value = 0;
     name=_name;
     id=_name;
-    html="<span><input type='number' id='"+id+"' onclick='btnClick(this)'></input></span>";
+    html="<input type='text' id='"+id+"' width='40' ></input>";
             javascript = "";
-        postRequest = _name;
+        postRequest=id;
         
   }
   
       String getHtml(){  return html; }
-  void update(){   
-  }
+  void update(){    javascript = "document.getElementById('"+name+"').value='"+text+"';";  }
  String postCallBack(String postValue, String postDataValue) {
-      //return "document.getElementById('"+id+"').innerHTML='"+name+"';";
+      return "document.getElementById('"+id+"').innerHTML='"+name+"';";
       value = postValue.toInt();
-      return "";
+      //return "";
     }
+    void appendText (String _text){  text += _text; update(); }
+    void setText (String _text){  text = _text; update(); }
+    void deleteChar (){text=text.substring(0,text.length()-1);update(); }
 };
 
-class Button: public ElementsHTML {
+// ########################################
+//  BUTTON
+// ########################################
+
+class Button: public Input {
     public:
-    Button(String n){
+    Button(String n, String dataValue , String t) {
       name = n;
       id = n;
-      html="<button type='button' id='"+id+"' name='"+name+"' onclick='btnClick(this)'</button>";
+        postRequest=id;
+      //Serial.println (t);
+      html="<button type='button' width='40' id='"+id+"' value ='"+name+"' name='"+name+"' data-value='"+dataValue+"' onclick=\"btnClickText('"+id+"','"+name+"','"+dataValue+"')\" >"+t+"</button>";
     }
-  
+
    String postCallBack(String postValue, String postDataValue){
-    
-    }; // es virtual, lo tienen que implementar los hijos       ATENCION CUANDO DICE VTABLE ES QUE HE DEJADO UNA FUNCION SIN DEFINIR
+    return ("console.log('btn clicked ")+name;} // es virtual, lo tienen que implementar los hijos       ATENCION CUANDO DICE VTABLE ES QUE HE DEJADO UNA FUNCION SIN DEFINIR
       String getHtml(){  return html; }
+      void update(){};
+};
+
+// ########################################
+//  KEYPAD
+// ########################################
+class KeyPad: public Input {
+  public:
+    int value;
+    String state;
+      EditBox *edt;
+      EditBox *edtLabel;
+
+  KeyPad(String n){
+    name = n;
+    id = n;
+    postRequest=n;
+    Button* buttons[11];
+    html+= "<div><h4>"+name+"</h4>";
+              edt = new EditBox("keyPadEdit");
+              edtLabel = new EditBox("keyPadEditLabel");
+
+    for (int i=0; i<10; i++ ) {
+
+      buttons[i] = new Button (name,String(i),String(i));
+      buttons[i]->postRequest = name;   ///   AQUI HE CAMBIADO
+      buttons[i]->datavalue = name;   ///   AQUI HE CAMBIADO
+      html+= buttons[i]->getHtml();
+    }
+    buttons[10] = new Button (name,"delete","del");
+    html+=buttons[10]->getHtml();
+    html+= edt->getHtml();
+    html+= edtLabel->getHtml();
+    html+="</div>";
+        javascript = "document.getElementById('"+edtLabel->name+"').innerHTML='"+state+"';";
+
+  }
+        String getHtml(){  return html; }
+   String postCallBack(String postValue, String postDataValue){
+    if (postDataValue=="delete")edt->deleteChar();
+    else  edt->appendText (postDataValue);
+    update();
+      return javascript+edt->javascript;
+      
+    }; 
+    void update(){ (edt->text == "1234")? value=1:value=0 ; //updateDisplay();
+         !value?state="Locked":state="Unlocked";
+         edtLabel->setText(state);
+          javascript = edtLabel->javascript;//+";document.getElementById('"+edtLabel->name+"').setAttribute('background-color')='red'";
+
+    };
+    void updateDisplay(){
+//      if (value=0) addToJavaQueue(javascript);
+         }
+    
 
 };
+
