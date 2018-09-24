@@ -19,14 +19,15 @@
 #define TEMP_SENSOR_PIN D2
 #define RELAY_1_PIN D5
 #define RELAY_2_PIN D6
+#define RELAY_3_PIN D7
 #include "data/index.h"
-#include <webElements.h>
+//#include <webElements.h>
 #include "/home/michel/Arduino/SharpBox/classes.h"
 
-   Component btnRelay1("btn","btnRelay1","btnRelay1","Relay 1 OFF");
-   Component btnRelay2("btn","btnRelay2","btnRelay2","Relay 2 OFF");
-   Component lbl1("lbl","textLabel","textLabel","Label");
-   Body body(1);
+   //Component btnRelay1("btn","btnRelay1","btnRelay1","Relay 1 OFF");
+   //Component btnRelay2("btn","btnRelay2","btnRelay2","Relay 2 OFF");
+   //Component lbl1("lbl","textLabel","textLabel","Label");
+   //Body body(1);
 //#include "/data/MAIN_page.html"
 
 
@@ -56,8 +57,7 @@ AlarmId logAlarm;
 
 
 
-OneWire oneWire(TEMP_SENSOR_PIN);        // Set up a OneWire instance to communicate with OneWire devices
-DallasTemperature tempSensors(&oneWire); // Create an instance of the temperature sensor class
+
 
 
 
@@ -82,17 +82,36 @@ unsigned long countdownSetTime = 0;
 
 
     Page page;
-
+  //String f[5] = { "uno","dos","tres","cuatro","Cinco" };
+  String f[2] = { "OFF" , "ON" };
+  ComboBox comboBox1 ( "combo1",2,f);
+  ComboBox comboBox2 ( "combo2",2,f);
+  ComboBox comboBox3 ( "combo3",2,f);
+  AnalogIn analogIn1 ( A0,"analog1");
+  DigitalIn digitalIn1 ( D2,"digital1");
+  DigitalOutput digitalOut1 ( D1,"digiOut1","digiout1");
   RelayOutput   relay1 (RELAY_1_PIN,"Relay 1 110VAC","relay1");
   RelayOutput   relay2 (RELAY_2_PIN,"Relay 2 110VAC","relay2");
-  Dsb18B20 tempSensor ( TEMP_SENSOR_PIN ,"Temperature Probe");   // habria que crearlo solo si encontro el sensor
-  EditBox edit1 ("edit1");
-  EditBox edit2 ("edit2");
-  ActiveControl control1 ("Control1" , &tempSensor , &edit1 , &relay1 , &edit2 );
+  RelayOutput   relay3 (RELAY_3_PIN,"Relay 3 110VAC","relay3");
+  Dsb18B20 tempSensor ( TEMP_SENSOR_PIN ,"Temp_Probe");   // habria que crearlo solo si encontro el sensor
+    KeyPad keypad1 ("keypad1");
+ // KeyPadCommand keypadCom("keyPadCom1");
+  EditBox edit1 ("edit1","edit1");
+  EditBox edit2 ("edit2","edit2");
+  Label label1 ("label1","this is Label1");
+  Label label2 ("label2","this is Label2");
+  ActiveControl control1 ("control1" , &digitalIn1 ,"=",  &edit2  , &relay3 , &comboBox1 );
+  ActiveControl control2 ("control2" , &analogIn1 , ">", &edit1 , &relay1 , &edit2 );
+  //ActiveControl control3 ("control3" , &tempSensor , "=", &edit1 , &relay1 , &edit2 );// xq hay problemas en la creacion de esto ?
   Set set1 ("set1",&relay2);
-  KeyPad keypad1 ("keypad1");
-  Program program;
+  //Set set2 ("set2",&relay2);
+  //Set set3 ("set3",&relay2);
+ // KeyPad keypad2 ("keypad2");   //     POR ALGUNA RAZON ESTO LO TRABA Y NO DA NINGUN HTML DE SALIDA
+  Program program1 ("program1");
+  //Program program2 ("program2");
+  Pause pause1 ("pause1",1);
   
+//  IfCommand if1("If numero 1",&keypad1,&edit2);
 ///////////////////////////////////////////////////////////////////////////
 ////                                                               ////////
 ///////              SETUP                                          ////////
@@ -100,17 +119,9 @@ unsigned long countdownSetTime = 0;
 ///////////////////////////////////////////////////////////////////////////
 
   void setup() {
-    page.addElement(&relay1);
-    page.addElement(&relay2);
-    page.addElement(&tempSensor);
-    page.addElement(&edit1);
-    page.addElement(&edit2);
-    page.addElement(&control1);
-    page.addElement(&set1);
-    page.addElement((set1.editOutput));
-    page.addElement(&keypad1);
-    
-  program.addCommand(&set1);
+ 
+  //  if1.getHtml();
+ //page.addElement(&if1);
   
   // put your setup code here, to run once:
    // pinMode ( RELAY_1_PIN , OUTPUT );
@@ -122,13 +133,7 @@ unsigned long countdownSetTime = 0;
   delay(10);
   Serial.println("\r\n");
 
-  tempSensors.setWaitForConversion(false); // Don't block the program while the temperature sensor is reading
-  tempSensors.begin();                     // Start the temperature sensor
-  if (tempSensors.getDeviceCount() == 0) {
-    Serial.print("No DS18x20 temperature sensor found on pin %d. Rebooting.\r\n   pin:"+String( TEMP_SENSOR_PIN));
-    Serial.flush();
-    //ESP.reset();
-  }
+
   
 
 //WiFi.softAP("TestAP", "");
@@ -161,10 +166,35 @@ unsigned long countdownSetTime = 0;
   sendNTPpacket(timeServerIP);
    // setSyncProvider(getTime);
 
+//edit1.appendText("mamamam");
+   
+         program1.addCommand(&set1);
+   //    program1.addCommand(&set2);
+       program1.addCommand(&control1);
+       program1.addCommand(&pause1);
+       program1.addCommand(&control2);
+    //   program1.addCommand(&control3);
+       //pause1.start();
+ //      if1.addCommand(&set2);
+   //   if1.addCommand(&set3);
+ //      program1.addCommand(&if1);    //  esto esta produciendo error
+//       pause1.start();
+  // page.addElement(&comboBox1);
+    page.addElement(&relay1);
+    page.addElement(&relay2);
+    page.addElement(&relay3);
+    page.addElement(&tempSensor);
+    page.addElement(&keypad1);
+    page.addElement(&program1);
+    page.updateElements();
+    label1.update("newValue");
+Serial.println(page.getJavaScript());
+
 }
 
 
 
+unsigned long lastUpdate;
 
 ///////////////////////////////////////////////////////////////////////////
 ////                                                               ////////
@@ -198,47 +228,38 @@ void loop() {
   server.handleClient();                      // run the server
   ArduinoOTA.handle();                        // listen for OTA events
 
-  tempSensor.update();
+  
+if (( currentMillis - lastUpdate ) > 2000 ) {   //  now it updates every 5 seconds
+  Serial.println(String(currentMillis/1000));
+    tempSensor.update();
+    analogIn1.update();
+    digitalIn1.update();
     control1.update();
-
+    program1.run();
+    lastUpdate = currentMillis;
+}
 //program.runProgram();
 
 
     //        tempSensors.requestTemperatures(); // Request the temperature from the sensor (it takes some time to read it)
 
   delay (100);
-  control1.update();
   
-  //temperature =  tempSensors.getTempCByIndex(0);
-  if ( tempControl == "true" ) {
-    if ( tempDirection == "Heat" ){
-      if ( temperature > tempSetpoint ) relay1.update(1);
-      else relay1.update(0);
-    }
-    if ( tempDirection == "Cool" ){
-      if ( temperature < tempSetpoint ) relay1.update(1);
-      else relay1.update(0);
-    }
-  }
 
-  if ( chkCountdownTimer == "true" ) {
-    if ( millis() - countdownSetTime > countdownMinutes * 60000 ) {
-        relay1.update(1); //  (apagado)
-      }
-    }
-    
     
 
   if ( timeUNIX == 0 )  {                                    // If we didn't receive an NTP response yet, send another request
     sendNTPpacket(timeServerIP);
   delay(500);
-
 }
 }
 
 
-// Subrutines
-
+///////////////////////////////////////////////////////////////////////////
+////                                                               ////////
+///////              methods                                         ////////
+////                                                               ////////
+///////////////////////////////////////////////////////////////////////////
 void saveDataLog() {
  File tempLog ;
  uint32_t actualTime = timeUNIX + (millis() - lastNTPResponse) / 1000;
@@ -324,12 +345,9 @@ void startServer() { // Start a HTTP server with a file read handler and an uplo
    
   // server.on("/list", HTTP_GET, handleFileList);
   //  server.on("/delete", HTTP_GET, handleFileDelete);
-   server.on("/connect", handleConnect);
-   server.on("/readTimer", HTTP_GET , handleTimer );
+   server.on("/getData", handleGetData);
    server.on("/btnClick", HTTP_GET , handleBtnClick );
 
-   server.on("/set", HTTP_GET , handleSet);
-   server.on("/start", HTTP_GET , handleStart);
   // server.on("/reset",HTTP_GET , handleReset );
   server.on("/index1", HTTP_GET , handleIndex1);
   server.onNotFound(handleNotFound);          // if someone requests any other file or page, go to function 'handleNotFound'
@@ -360,33 +378,19 @@ void handleNotFound() { // if the requested file or page doesn't exist, return a
   }
 }
 void handleIndex1() {
-  String reply = "<html><head>  <link rel='stylesheet' type='text/css' href='style.css'></head>";
-//  reply+= btnRelay1.getHtml();
-//  reply+= btnRelay2.getHtml();
-//  reply+= lbl1.getHtml()+"<br>";
-//
-//  reply+= tempSensor.getHtml()+"<br>";
-//  reply+= relay1.getHtml()+"<br>";
-//  reply+= relay2.getHtml()+"<br>";
-//  reply+= edit1.getHtml()+"<br>";
-//  reply+= control1.getHtml()+"<br>";
-//  reply+= set1.getHtml()+"<br>";
-//  reply+= keypad1.getHtml()+"<br>";
-
+String reply;
   reply+= page.getHtml();
+  Serial.println( reply);
   
-    reply+= body.getJavaScript();
-reply+="<span id='errorLabel'></span>";
-reply+= "</body></html>";  
   server.send(200,"text/html",reply);
 
 }
 
 void handleBtnClick() {                             //////////////   HANDLE BUTTON CLICK
-  String buttonName = "undefined";
-  String buttonValue = "undefined";
-  String buttonDataValue = "undefined";
-  String reply = "NoReply";
+  String buttonName = "undefinido";
+  String buttonValue = "undefinido";
+  String buttonDataValue = "undefinido";
+  String reply = "console.log('no reply');";
 
 
   if (server.hasArg("button")) {
@@ -395,137 +399,37 @@ void handleBtnClick() {                             //////////////   HANDLE BUTT
     buttonDataValue = server.arg("datavalue");
 
       for (int i=0; i<page.elementCount; i++){
-        Serial.println(page.listOfElements[i]->id);
-          if (page.listOfElements[i]->postRequest == buttonName) {
-            
-            //RelayOutput el =  static_cast<RelayOutput> (page.listOfElements1[i]);
-            reply=page.listOfElements[i]->postCallBack(buttonValue,buttonDataValue);
-            //relay1.postCallBack();
-            //el->postCallBack();
-            //reply = page.listOfElements[i]->name +" relay Flipped";
-          }
+       // Serial.println(page.listOfElements[i]->getIdOwner(buttonName)->id);
+          if (page.listOfElements[i]->id==(buttonName) )  {
+                        reply=page.listOfElements[i]->postCallBack(buttonValue,buttonDataValue);
+           }
       }
-      
-//    if (buttonName == "relay1") {
-//      page.listOfElements[0]->postCallBack();
-//      reply =  (page.listOfElements[0]->name);//RelayOutputpage.listOfElements[1]->name;//->name ;//+" relay Flipped";
-//    }
-      
-      
-        server.send(200, "text/plain", reply );
+  for (int i=0; i<ElementsHTML::allHTMLElements.size(); i++){
+        //Serial.println(ElementsHTML::allHTMLElements[i]->id);
+          if (ElementsHTML::allHTMLElements[i]->id==(buttonName) )  {
+                        Serial.println("sent post call back to: " + buttonName);
+                        reply=ElementsHTML::allHTMLElements[i]->postCallBack(buttonValue,buttonDataValue);
+           }
+           
+  }
+  
+  server.send(200, "text/plain", reply );
+
+  
+
   }
 }
 
 
-void handleSet() {
-  String msg;
-  
-
-  if ( server.hasArg("Relay")) {
-    String t_relay = server.arg("Relay"); //Refer  xhttp.open("GET", "setLED?RELAYstate="+on/off, true);
-
-    if ( t_relay == "1" ) {
-      if ( server.arg("State") == "1" ) {
-        relay1.update(0);
-        Serial.println("Relay 1 on");
-      }
-
-      if ( server.arg("State") == "0") {
-       relay1.update(1);
-       Serial.println("Relay 1 off");
-     }
-   }
-   if ( t_relay == "2" ) {
-    if ( server.arg("State") == "1" ) {
-      relay2.update(0);
-      Serial.println("Relay 2 on");
-    }
-
-    if ( server.arg("State") == "0") {
-     relay2.update(1);
-     Serial.println("Relay 2 off");
-   }
- }
-    server.send(200, "text/plain", t_relay + " " +  (server.arg("State") == "0") ? "OFF" : "ON" ) ; //Send web page
-  }
-
-  // if (msg != "") server.send(200,"text/plain",msg);
-  //else server.send(200,"text/plain","Command not found");
-
+void handleGetData(){
+  String reply=page.getJavaQueue();
+//String   reply = "console.log('getData Reply');";
+  Serial.println ("HandleGetData sub in SharpBox.ino "+reply);
+          server.send(200, "text/plain", reply );
 
 }
 
 
-void handleTimer() {
-  
- FSInfo fs_info;
- SPIFFS.info(fs_info);
-
- float fileTotalKB = (float)fs_info.totalBytes / 1024.0; 
- float fileUsedKB = (float)fs_info.usedBytes / 1024.0; 
-
- 
- server.send(200, "text/plain",  relay1.getState() + "," + relay2.getState() + "," +  String (temperature) + "," + String (hour(now())) + "," + String(minute(now())) +
-   "," +  String (  countdownMinutes - ( millis()-countdownSetTime) / 60000 )   + "," + (processRunning?"Run":"Stop"  ) + "," +
-   String(countdownMinutes) + "," + String (tempSetpoint) + "," + String (loggerRunning) + "," + String ( loggerMinutes ) + "," +
-   String( fileTotalKB - fileUsedKB ) );
-} 
-
-
-
-void handleStart(){
-
-  
-  if ( server.hasArg("tempSetpoint") ){
-    tempSetpoint = server.arg("tempSetpoint").toInt();
-  }
-  if ( server.hasArg("countdownMinutes") ){
-    countdownMinutes = server.arg("countdownMinutes").toInt();
-  }
-  if ( server.hasArg("chkTempControl") ){
-    tempControl = ( server.arg("chkTempControl"));
-  }
-  if ( server.hasArg("tempDirection") ){
-    tempDirection = ( server.arg("tempDirection"));
-  }
-  if ( server.hasArg("chkCountdownTimer") ){
-    chkCountdownTimer = ( server.arg("chkCountdownTimer"));
-    if (chkCountdownTimer == "true" ) countdownSetTime = millis();
-  }
-  if ( server.hasArg("loggerMinutes") ){
-    loggerMinutes = server.arg("loggerMinutes").toInt();
-  }
-  
-  if ( server.hasArg("chkLogger") ){
-    String chkLogger =  server.arg("chkLogger");
-    Serial.println(" logger argument = " + chkLogger);
-    if (chkLogger == "true" ) {
-      if (loggerRunning == false){
-        loggerRunning = true; 
-        Serial.println("loggerRunning = true");
-        saveDataLog();
-        logAlarm  = Alarm.timerRepeat( 10 , saveDataLog );
-      }
-    }
-    else if (chkLogger == "false" ) {
-     Serial.println("loggerRunning = false");
-
-     loggerRunning = false;
-     Alarm.free(logAlarm);
-     
-   }
-
- }
-
-
-      server.send(200, "text/plain", "Running");//   temperature:"+String(tempSetpoint)+"   Minutes: "+ String(countdownMinutes) + " : Temperature Control is: "+ tempControl+" -- Cool/Heat: " + tempDirection+" -  Countdown Timer: " + chkCountdownTimer) ;
-      processRunning = true;
-      
-    }
-
-    void handleConnect () {
-     // wifiManager.startConfigPortal("OnDemandAP");
-    }
 
 bool handleFileRead(String path) { // send the right file to the client (if it exists)
   Serial.println("handleFileRead: " + path);

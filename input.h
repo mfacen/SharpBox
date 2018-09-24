@@ -2,82 +2,18 @@
 //  INPUT
 // ########################################
 
-class Input:public ElementsHTML {
+class Input: public ElementsHTML {
 
   public:
 
-  int value;
-  int minValue;
-  int maxValue;
-  String unit;
+    int value;
+    int minValue;
+    int maxValue;
+    String unit;
+    String text="";
 
-    virtual void update(){}; 
- String getHtml(){};
- 
-  };
+    //String getHtml() {};
 
-// ########################################
-//  DSB 18B20
-// ########################################
-
-class Dsb18B20:public Input {
-  int pin;
-
-public:
-
-   Dsb18B20 ( int _pin , String  _name) {
-    pin = _pin;
-    name = _name;
-    id = _name;
-        minValue = 0;
-        maxValue = 150;
-        unit = "grados";
-        descriptor = "Temperature Sensor";
-        html = "<span>Temperature:" + String(value) + "</span>";
-        javascript = "";
-        postRequest=id;
-//      page.addElement(this);
-  }
-  //~Dsb18B20();
-  
-    String getHtml(){ return html;  }
-    
-  void update(){
-              //tempSensors.requestTemperatures(); // Request the temperature from the sensor (it takes some time to read it)
-        html =   name+"  Temperature:" + String(value) ;
-
-}
-  String postCallBack(String postValue,String postDataValue){}
-
-};
-
-// ########################################
-//  EDIT BOX
-// ########################################
-
-class EditBox: public Input {
-  public:
-  String text;
-  EditBox(String _name){
-    value = 0;
-    name=_name;
-    id=_name;
-    html="<input type='text' id='"+id+"' width='40' ></input>";
-            javascript = "";
-        postRequest=id;
-        
-  }
-  
-      String getHtml(){  return html; }
-  void update(){    javascript = "document.getElementById('"+name+"').value='"+text+"';";  }
- String postCallBack(String postValue, String postDataValue) {
-      return "document.getElementById('"+id+"').innerHTML='"+name+"';";
-      value = postValue.toInt();
-      //return "";
-    }
-    void appendText (String _text){  text += _text; update(); }
-    void setText (String _text){  text = _text; update(); }
-    void deleteChar (){text=text.substring(0,text.length()-1);update(); }
 };
 
 // ########################################
@@ -85,73 +21,287 @@ class EditBox: public Input {
 // ########################################
 
 class Button: public Input {
-    public:
-    Button(String n, String dataValue , String t) {
+  public:
+    Button(String n, String dataValue , String t, ElementsHTML* e = 0  ) {
       name = n;
       id = n;
-        postRequest=id;
-      //Serial.println (t);
-      html="<button type='button' width='40' id='"+id+"' value ='"+name+"' name='"+name+"' data-value='"+dataValue+"' onclick=\"btnClickText('"+id+"','"+name+"','"+dataValue+"')\" >"+t+"</button>";
+      if (e!=0) parent = e;                                                                            //ERROR ERROR ERROR ERROR NO HACER ESTO Serial.println (t);
+      pushElement(this);          // Los elementos basicos se registran solos en el AllHTMLElemens !!
+      html = "<button type='button' width='40' id='" + id + "' value ='" + name + "' name='" + name + "' data-value='" + dataValue + "' onclick=\"btnClickText('" + id + "','" + name + "','" + dataValue + "')\" >" + t + "</button>\n";
     }
 
-   String postCallBack(String postValue, String postDataValue){
-    return ("console.log('btn clicked ")+name;} // es virtual, lo tienen que implementar los hijos       ATENCION CUANDO DICE VTABLE ES QUE HE DEJADO UNA FUNCION SIN DEFINIR
-      String getHtml(){  return html; }
-      void update(){};
+    String postCallBack(String postValue, String postDataValue) {
+      if (parent) return parent->postCallBack(postValue,postDataValue);
+      
+      return ("console.log('postCallBack of " + name+" parent: "+parent->name+"'); ");
+      
+    } 
+    String getHtml() {  return html; }
+    void update() {};
 };
+
+
+// ########################################
+//  Combo Box
+// ########################################
+class ComboBox: public Input {
+  public:
+  String *fields;
+  int selected = 0;
+    ComboBox(String n, int s , String* _fields ,  ElementsHTML* e=0) {
+      name = n;
+      text="";
+      id = n;
+      fields=_fields;
+      html = "<select id='" + id + "' onchange=\"btnClickText('"+id+"', this.value , this.selectedIndex)\">\n";
+          for(int i = 0; i <=s ; i++) {
+              html+="<option value='"+_fields[i]+"'>"+_fields[i]+"</option>";
+          }
+              html+="</select>";
+      value = 0;
+       pushElement(this);          // Los elementos basicos se registran solos en el AllHTMLElemens !!
+       
+      if (e!=0) parent = e;                                                                            //ERROR ERROR ERROR ERROR NO HACER ESTO Serial.println (t);
+      }
+
+   
+    String getHtml() {return  html;}
+    void update() {
+      text = fields[selected];
+      value = selected;
+      javaQueue.add("document.getElementById('" + id + "').selectedIndex='" + String(selected) + "'; console.log('"+name+" update value="+String(value)+"');");
+      
+    }
+    String postCallBack(String postValue, String postDataValue) {
+                  selected = postDataValue.toInt();
+                  update();
+                  if (parent) parent->postCallBack(postValue,postDataValue);
+                  return "";//"document.getElementById('" + id + "').innerHTML='" + text + "';";
+    }
+};
+
+
+
+// ########################################
+//  DSB 18B20
+// ########################################
+
+class Dsb18B20: public Input {
+    public:
+
+    int pin;
+    DallasTemperature* tempSensors;
+    OneWire* oneWire;
+
+    Dsb18B20 ( int _pin , String  _name) {
+      pin = _pin;
+      name = _name;
+      id = _name;
+      minValue = 0;
+      maxValue = 150;
+      unit = "grados";
+      descriptor = "Temperature Sensor  Dsb18B20";
+      html = " <div id='"+id+"'><h4>" + name + "</h4>"+descriptor+"<br>Temperature:" + String(value) + "</div>";
+       pushElement(this);          // Los elementos basicos se registran solos en el AllHTMLElemens !!
+       oneWire = new  OneWire(pin);        // Set up a OneWire instance to communicate with OneWire devices
+       tempSensors = new DallasTemperature (oneWire); // Create an instance of the temperature sensor class
+         tempSensors->setWaitForConversion(true); //  block the program while the temperature sensor is reading
+       tempSensors->begin();
+    }
+    //~Dsb18B20(ElementsHTML::deleteElement(this));
+
+    String getHtml() {
+
+      return html;
+    }
+    
+    void update() {
+      value = tempSensors->getTempCByIndex(0);
+      javaQueue.add( "document.getElementById('" + id + "').innerHtml='Temperature:" + String(value) + "';");
+
+    }
+
+    String postCallBack(String postValue, String postDataValue) {update();}
+
+};
+
+// ########################################
+//  Analog IN
+// ########################################
+//class Label;
+//class Output;
+//Label::getHtml();
+
+class AnalogIn: public Input {
+    public:
+    int pin;
+
+    Label* label;
+    AnalogIn ( int _pin , String  _name) {
+      pin = _pin;
+      name = _name;
+      id = _name;
+      minValue = 0;
+      maxValue = 150;
+      unit = "milliVolts";
+      descriptor = "Ana In ";
+      label = new Label(name+"lbl","",this);
+      html = " <div id='"+id+"'><h4>" + name + "</h4>"+descriptor+"<br>"+ label->getHtml() +  "</div>";
+       pushElement(this);          // Los elementos basicos se registran solos en el AllHTMLElemens !!
+      
+    }
+
+    String getHtml() {
+
+      return html;
+    }
+//    class Label;
+//class Output;
+//Label::getHtml();
+    void update() {
+      value = analogRead(pin);
+      label->update(String(value));
+    }
+
+    String postCallBack(String postValue, String postDataValue) {update();}
+
+};
+
+// ########################################
+//  Digital IN
+// ########################################
+
+class DigitalIn: public Input {
+    public:
+    int pin;
+
+    Label* label;
+    DigitalIn ( int _pin , String  _name) {
+      pin = _pin;
+      name = _name;
+      id = _name;
+      minValue = 0;
+      maxValue = 1;
+      unit = "milliVolts";
+      descriptor = "Digital Pin Input "+String(pin);
+      label = new Label(name+"lbl","",this);
+      html = " <div id='"+id+"'><h4>" + name + "</h4>"+descriptor+"<br>"+ label->getHtml() +  "</div>";
+       pushElement(this);          // Los elementos basicos se registran solos en el AllHTMLElemens !!
+      
+    }
+
+    String getHtml() {return html; }
+
+    void update() {
+      value = digitalRead(pin);
+      label->update(String(value));
+    }
+
+    String postCallBack(String postValue, String postDataValue) {update();}
+
+};
+
+
+// ########################################
+//  EDIT BOX
+// ########################################
+
+class EditBox: public Input {
+  public:
+    EditBox(String n, String t, ElementsHTML* e=0) {
+      name = n;
+      text=t;
+      id = n;
+      html = "<input type='text' id='" + id + "' width='20' onkeyup=\"btnClickText('"+id+"','"+name+"',(this.value))\"></input>\n";
+      value = 0;
+       pushElement(this);          // Los elementos basicos se registran solos en el AllHTMLElemens !!
+       
+      if (e!=0) parent = e;                                                                            //ERROR ERROR ERROR ERROR NO HACER ESTO Serial.println (t);
+
+    }
+
+    String getHtml() {return  html;}
+    void update() {
+      value = text.toInt();
+      javaQueue.add("document.getElementById('" + id + "').value='" + text + "';");
+      
+    }
+    String postCallBack(String postValue, String postDataValue) {
+                  text = postDataValue;
+                  update();
+                  if (parent) parent->postCallBack(postValue,postDataValue);
+                  return "document.getElementById('" + id + "').innerHTML='" + text + "';";
+    }
+    
+    void appendText (String t) {
+      text += t;
+      //Serial.println("EditBox->appendText()");
+      update();
+    }
+    void setText (String t) {
+      text = t;
+      update();
+    }
+    void deleteChar () {
+      text = text.substring(0, text.length() - 1);
+      update();
+    }
+};
+
+
 
 // ########################################
 //  KEYPAD
 // ########################################
-class KeyPad: public Input {
+class KeyPad: public Input {  // Aqui lo he cambiado !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!  Antes era input
   public:
-    int value;
-    String state;
-      EditBox *edt;
-      EditBox *edtLabel;
+    int value=0;
+    String state ="ooo";
+    EditBox *edt;
+    EditBox *edtLabel;
 
-  KeyPad(String n){
-    name = n;
-    id = n;
-    postRequest=n;
-    Button* buttons[11];
-    html+= "<div><h4>"+name+"</h4>";
-              edt = new EditBox("keyPadEdit");
-              edtLabel = new EditBox("keyPadEditLabel");
+    KeyPad(String n) {
+      name = n;
+      id = n;
+      Button* buttons[11];
+      html += "<div><h4>" + name + "</h4>\n\t";
+      edt = new EditBox(name+ "Edit","");
+      edtLabel = new EditBox(name+"Label","");
+//      addChild(edt);addChild(edtLabel);
+      for (int i = 0; i < 10; i++ ) {
 
-    for (int i=0; i<10; i++ ) {
+        buttons[i] = new Button (name+"btn"+String(i), String(i), String(i),this);  // esto indica que tiene pariente 
+//        addChild (buttons[i]);
+        //buttons[i]->datavalue = name;   ///   AQUI HE CAMBIADO
+        html += buttons[i]->getHtml()+"\n";
+        if ((i==2)||(i==5)||(i==8)) html+="<br>";
+      }
+      buttons[10] = new Button (name, "delete", "del",this);
+  //    addChild (buttons[10]);
+      html += buttons[10]->getHtml();
+      html += edt->getHtml();
+      html += edtLabel->getHtml();
+      html += "</div>";
+      javaQueue.add("document.getElementById('" + edtLabel->id + "').innerHTML='" + state + "';");
 
-      buttons[i] = new Button (name,String(i),String(i));
-      buttons[i]->postRequest = name;   ///   AQUI HE CAMBIADO
-      buttons[i]->datavalue = name;   ///   AQUI HE CAMBIADO
-      html+= buttons[i]->getHtml();
     }
-    buttons[10] = new Button (name,"delete","del");
-    html+=buttons[10]->getHtml();
-    html+= edt->getHtml();
-    html+= edtLabel->getHtml();
-    html+="</div>";
-        javascript = "document.getElementById('"+edtLabel->name+"').innerHTML='"+state+"';";
-
-  }
-        String getHtml(){  return html; }
-   String postCallBack(String postValue, String postDataValue){
-    if (postDataValue=="delete")edt->deleteChar();
-    else  edt->appendText (postDataValue);
-    update();
-      return javascript+edt->javascript;
-      
-    }; 
-    void update(){ (edt->text == "1234")? value=1:value=0 ; //updateDisplay();
-         !value?state="Locked":state="Unlocked";
-         edtLabel->setText(state);
-          javascript = edtLabel->javascript;//+";document.getElementById('"+edtLabel->name+"').setAttribute('background-color')='red'";
-
+    String getHtml() {
+      return html;
+    }
+    String postCallBack(String postValue, String postDataValue) {
+      if (postDataValue == "delete")edt->deleteChar();
+      else  edt->appendText (postDataValue);
+      update();
+      return( "console.log('postCallBack of "+name+"'); ");
     };
-    void updateDisplay(){
-//      if (value=0) addToJavaQueue(javascript);
-         }
-    
+    void update() {
+      (edt->text == "1234") ? value = 1 : value = 0 ; //updateDisplay();
+      !value ? state = "Locked" : state = "Unlocked";
+      edtLabel->setText(state);
+    };
+
+   
+
 
 };
 

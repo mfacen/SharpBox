@@ -2,14 +2,13 @@
 //  OUTPUT
 // ########################################
 
-
-  class Output:public ElementsHTML {
+  class Output:public CompositeHTML {
 
     
   public:
   
   String stateStr;
-  int value;
+  int value=0;
   int minValue;
   int maxValue;
   String unit;
@@ -19,28 +18,53 @@
     };
 
 // ########################################
-//  RELAY OUTPUT
+//  LABEL
+// ########################################
+
+class Label: public Output {
+  public:
+  String text="Output::Label";
+    Label ( String n , String t, ElementsHTML* e = 0 ){
+      name = n;
+      id = n;
+      text = t;
+      parent = e;
+      html="<span id='"+id+ "'><h5>"+text+"</h5></span>"; 
+             pushElement(this);          // Los elementos basicos se registran solos en el AllHTMLElemens !!
+
+    }
+    String getHtml(){ return html;  }
+    String postCallBack(String postValue , String postDataValue) { if(parent) return parent->postCallBack(postValue,postDataValue); }
+    void update ( String newValue ) { text= newValue; javaQueue.add("document.getElementById('" + id + "').innerHTML='<h5>"+text+"</h5>';");}
+    void update(){ javaQueue.add("document.getElementById('" + id + "').innerHTML='V: "+text+"';"); } 
+
+};
+
+// ########################################
+//  DIGITAL OUTPUT
 // ########################################
 
 
-  class RelayOutput:public Output {
+  class DigitalOutput:public Output {
     int pin;
-
+    Label* label;
   public:
-  
-        RelayOutput ( byte _pin , String _name, String _id ) {          /// Constructor
+        bool invertedLogic = false;
+        
+        DigitalOutput ( int _pin , String _name, String _id ) {          /// Constructor
         pin = _pin;
-        name = _name;
+        id= _id;
+        name = "Digi Out " + id;
         minValue = 0;
         maxValue = 1;
         unit = "apagado/encendido";
         descriptor = name;
-        id= _id;
-        postRequest=id;
         pinMode ( pin , OUTPUT );
         stateStr="OFF";
-                      html=name+" - "  + "<button type='button' data-value='toogle' name='"+ descriptor + "' id='" + id +"' onclick='btnClick(this)'>Toogle</button>";
-
+        label = new Label ("lbl"+id,stateStr,this);
+        
+        html="<div><h4>"+name+"</h4><br>State: "+label->getHtml()+"</div>";
+        pinMode(pin,OUTPUT);
          };
 
       void update( int newValue) {
@@ -48,14 +72,14 @@
       if (value>1)value=1;
       if (  newValue != 0 ) {
         digitalWrite(pin, HIGH);
-        stateStr = "OFF";
+        invertedLogic?stateStr = "OFF":stateStr = "ON";
       }
       if ( newValue == 0 ) {
         digitalWrite(pin, LOW);
-        stateStr = "ON";
+        invertedLogic?stateStr="ON":stateStr = "OFF";
       }
-      String temp =  ( value==0?"ON":"OFF" ) ; 
-
+            //javaQueue.add("document.getElementById('" + label->id + "').innerHTML='"+stateStr+"';");
+            label->update(stateStr);
        }
        
       void toogle(){
@@ -66,15 +90,22 @@
           update(0);
         }
       }
-          String getState(){  return stateStr; }
+    String getState(){  return stateStr; }
     String getHtml(){ return html;  }
     String postCallBack(String postValue , String postDataValue) {
-      if (postDataValue=="toogle"){
-      toogle();
-      //return "Toggled "+name;
-      return "document.getElementById('"+id+"').innerHTML='"+stateStr+"';";
+   return "";
+      //return "document.getElementById('"+id+"').innerHTML='"+stateStr+"';";
       }
-    }
+    
   };
+
+class RelayOutput: public DigitalOutput {
+  using DigitalOutput::DigitalOutput;       // inherit the constructor
+  bool invertedLogic = true;
+  public:
+
+};
+
+
 
 
