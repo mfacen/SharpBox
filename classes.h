@@ -35,25 +35,15 @@ class ElementsHTML{
  static  JavaQueue javaQueue;
 
  virtual void update(){};
-  virtual   String postCallBack(String postValue, String postDataValue){}; // es virtual, lo tienen que implementar los hijos       ATENCION CUANDO DICE VTABLE ES QUE HE DEJADO UNA FUNCION SIN DEFINIR
+  virtual   String postCallBack(ElementsHTML* e,String postValue, String postDataValue){}; // es virtual, lo tienen que implementar los hijos       ATENCION CUANDO DICE VTABLE ES QUE HE DEJADO UNA FUNCION SIN DEFINIR
   virtual String getHtml(){};
-  ElementsHTML* getIdOwner (String idd){if (this->id=idd) return this;else return nullptr;}
+ // ElementsHTML* getIdOwner (String idd){if (this->id=idd) return this;else return nullptr;}
   static String getJavaQueue(){return javaQueue.get();}
   static std::vector <ElementsHTML*> allHTMLElements;
   static void pushElement(ElementsHTML* e){allHTMLElements.push_back(e); }
   static void deleteElement(ElementsHTML* e){}   //  Todavia no he implementado esto
 };
 
-class CompositeHTML: public ElementsHTML {
-  public:
-  
-    std::vector <ElementsHTML*> childs;
-
-  void addChild (ElementsHTML *ch){
-  childs.push_back(ch);
-  }
-
-};
 
 
 
@@ -82,7 +72,7 @@ String name;
     id = n;
     label = new Label(name+"lbl","0");
     } // MALDITA SEA NO HACER ESTO !!!!!!!!!!!     Serial.println("Created Program "+name);}
-  Commands* listOfCommands[50];
+  Commands* listOfCommands[20];
    int commandCount = 0;
    int runIndex =  0;
    Label* label;
@@ -106,6 +96,10 @@ String name;
     html+= "</div>";
     return html;
   }
+  void update(){}//{    for ( int i=0; i<commandCount; i++) {  listOfCommands[i]->update(); } }
+
+    
+  
 };
 
 
@@ -118,18 +112,18 @@ public:
 
    ElementsHTML* listOfElements[50];
    int elementCount = 0;
-String javaScript;
+   
   void addElement (ElementsHTML* el){
     listOfElements[elementCount] = el;
     elementCount++;
   }
   void deleteElement(int index){
-    for ( int i=index; i<19; i++)
-    listOfElements[i]=listOfElements[i+1];
+    for ( int i=index; i<49; i++)
+      listOfElements[i]=listOfElements[i+1];
     elementCount--;
   }
-  void updateElements(){
-    for ( int i=0; i<elementCount; i++) {  listOfElements[i]->update();}
+  void update(){
+   // for ( int i=0; i<elementCount; i++) {  listOfElements[i]->update();}
   }
    String getJavaQueue(){
         String reply;   //  for ( int i=0; i<elementCount; i++) {   reply+=listOfElements[i]->getJavaQueue(); }
@@ -137,21 +131,24 @@ String javaScript;
        return reply;
    }
    String getHtml(){
-    String html;
-    html+="<html><head> <link rel='stylesheet' type='text/css' href='style1.css'> </head><body>\n";
-    for ( int i=0; i<elementCount; i++) {   html+=listOfElements[i]->getHtml()+"\n"; }
-    html+=getJavaScript();
+    String htmlStr;
+    htmlStr+="<html><head> <link rel='stylesheet' type='text/css' href='style1.css'> </head><body>\n";
+    htmlStr+="<h1>TheThing<h1><h3>The smart controller.</h3><a href='dataLog.csv'>dataLog.csv</a><a href='/delete?file=/dataLog.csv'>Delete Log</a><br>\n";
+    for ( int i=0; i<elementCount; i++) {   htmlStr+=listOfElements[i]->getHtml()+"\n"; }
+    
+   
+    htmlStr+=getJavaScript();
       
-html+="<br><span id='errorLabel'></span><br>\n";
+htmlStr+="<br><span id='errorLabel'></span><br>\n";
 
   FSInfo fs_info;
   SPIFFS.info(fs_info);
   float fileTotalKB = (float)fs_info.totalBytes / 1024.0;
   float fileUsedKB = (float)fs_info.usedBytes / 1024.0;
-html+="Total KB: "+String(fileTotalKB)+"Kb / Used: "+String(fileUsedKB);
+htmlStr+="Total KB: "+String(fileTotalKB)+"Kb / Used: "+String(fileUsedKB);
   
-html+= "</body></html>";    
-    return html;
+htmlStr+= "</body></html>";    
+    return htmlStr;
   }
   String getJavaScript(){
       String str;
@@ -164,12 +161,16 @@ html+= "</body></html>";
     str += " xhttp.onreadystatechange = function()";
     str += " { if (this.readyState == 4 && this.status == 200) {eval(this.responseText);}\n";     
   str += "}; xhttp.open('GET', 'btnClick?button='+ elementName + '&value=' + elementValue +'&datavalue=' + elementdataValue, true);xhttp.send();}\n";
-  str+="setInterval(function() {getData();}, 2000); function getData(){var  xhttp = new XMLHttpRequest(); xhttp.onreadystatechange = function() {if (this.readyState == 4 && this.status == 200) { \n";
-  str+="   eval(this.responseText)}};   xhttp.open('GET', 'getData', true); xhttp.send();};\n";
+ // str+="setInterval(function() {getData();}, 1000); function getData(){ if (connection) connection.send('getData');else {var  xhttp = new XMLHttpRequest(); xhttp.onreadystatechange = function() {if (this.readyState == 4 && this.status == 200) { \n";
+  //str+="   eval(this.responseText)}};   xhttp.open('GET', 'getData', true); xhttp.send(); }};\n";
 
-
-
-  str += "</script>";
+//WEB SOCKETS
+   str+="var connection = new WebSocket('ws://192.168.1.105:81');\n";
+  str+="connection.onopen = function(){ console.log('Connection open!');}\n";
+  str+="connection.onclose = function(){console.log('Connection closed');}\n";
+  str+="connection.onerror = function(error){   console.log('Error detected: ' + error);}\n";
+  str+="connection.onmessage = function(e){   var server_message = e.data;  eval(server_message); }\n";
+  str+= "</script>";
   return str;
   }
   

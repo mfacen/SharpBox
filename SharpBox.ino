@@ -14,13 +14,15 @@
 #include <vector>
 #include <TimeAlarms.h>
 #include <FS.h>
+#include <WebSocketsServer.h>
+#include <Hash.h>
 
 #define ONE_HOUR 3600000UL
 #define TEMP_SENSOR_PIN D2
 #define RELAY_1_PIN D5
 #define RELAY_2_PIN D6
 #define RELAY_3_PIN D7
-#include "data/index.h"
+//#include "data/index.h"
 //#include <webElements.h>
 #include "/home/michel/Arduino/SharpBox/classes.h"
 
@@ -36,6 +38,7 @@ ESP8266WebServer server (80);       // create a web server on port 80
 DNSServer dnsServer;
 WiFiManager wifiManager;
 WiFiUDP UDP;                   // Create an instance of the WiFiUDP class to send and receive UDP messages
+WebSocketsServer webSocket = WebSocketsServer(81);
 
 const char *OTAName = "ESP8266";         // A name and a password for the OTA service
 //const char *OTAPassword = "esp8266";
@@ -86,22 +89,27 @@ unsigned long countdownSetTime = 0;
   String f[2] = { "OFF" , "ON" };
   ComboBox comboBox1 ( "combo1",2,f);
   ComboBox comboBox2 ( "combo2",2,f);
-  ComboBox comboBox3 ( "combo3",2,f);
+  //ComboBox comboBox3 ( "combo3",2,f);
   AnalogIn analogIn1 ( A0,"analog1");
   DigitalIn digitalIn1 ( D2,"digital1");
+  Logger logger1("logger1",&analogIn1);
   DigitalOutput digitalOut1 ( D1,"digiOut1","digiout1");
   RelayOutput   relay1 (RELAY_1_PIN,"Relay 1 110VAC","relay1");
   RelayOutput   relay2 (RELAY_2_PIN,"Relay 2 110VAC","relay2");
   RelayOutput   relay3 (RELAY_3_PIN,"Relay 3 110VAC","relay3");
   Dsb18B20 tempSensor ( TEMP_SENSOR_PIN ,"Temp_Probe");   // habria que crearlo solo si encontro el sensor
-    KeyPad keypad1 ("keypad1");
+  Button button1("btn1","button","btn1");
+   KeyPad keypad1 ("keypad1");
  // KeyPadCommand keypadCom("keyPadCom1");
   EditBox edit1 ("edit1","edit1");
   EditBox edit2 ("edit2","edit2");
   Label label1 ("label1","this is Label1");
   Label label2 ("label2","this is Label2");
-  ActiveControl control1 ("control1" , &digitalIn1 ,"=",  &edit2  , &relay3 , &comboBox1 );
-  ActiveControl control2 ("control2" , &analogIn1 , ">", &edit1 , &relay1 , &edit2 );
+    Graphic graphic1("graphic1");
+
+
+  ActiveControl control1 ("control1" , &digitalIn1 ,"=",  &edit2  , &graphic1 , &analogIn1 );
+  //ActiveControl control2 ("control2" , &analogIn1 , ">", &edit1 , &relay1 , &edit2 );
   //ActiveControl control3 ("control3" , &tempSensor , "=", &edit1 , &relay1 , &edit2 );// xq hay problemas en la creacion de esto ?
   Set set1 ("set1",&relay2);
   //Set set2 ("set2",&relay2);
@@ -109,8 +117,8 @@ unsigned long countdownSetTime = 0;
  // KeyPad keypad2 ("keypad2");   //     POR ALGUNA RAZON ESTO LO TRABA Y NO DA NINGUN HTML DE SALIDA
   Program program1 ("program1");
   //Program program2 ("program2");
-  Pause pause1 ("pause1",1);
-  
+  //Pause pause1 ("pause1",1);
+  LabelFreeHeap lblFreeHeap("lblHeap","");
 //  IfCommand if1("If numero 1",&keypad1,&edit2);
 ///////////////////////////////////////////////////////////////////////////
 ////                                                               ////////
@@ -127,8 +135,8 @@ unsigned long countdownSetTime = 0;
    // pinMode ( RELAY_1_PIN , OUTPUT );
     //pinMode ( RELAY_2_PIN , OUTPUT );
     pinMode ( TEMP_SENSOR_PIN , INPUT_PULLUP );
-    relay1.update(1);
-    relay2.update(1);
+   // relay1.update(1);
+  //  relay2.update(1);
   Serial.begin(115200);        // Start the Serial communication to send messages to the computer
   delay(10);
   Serial.println("\r\n");
@@ -163,33 +171,41 @@ unsigned long countdownSetTime = 0;
   Serial.print("Time server IP:\t");
   Serial.println(timeServerIP);
 
-  sendNTPpacket(timeServerIP);
+  //sendNTPpacket(timeServerIP);
    // setSyncProvider(getTime);
 
 //edit1.appendText("mamamam");
    
          program1.addCommand(&set1);
-   //    program1.addCommand(&set2);
+//       program1.addCommand(&set2);
        program1.addCommand(&control1);
-       program1.addCommand(&pause1);
-       program1.addCommand(&control2);
-    //   program1.addCommand(&control3);
+//       program1.addCommand(&logger1);
+   //    program1.addCommand(&control2);
+    //   program1.addCommand(&logger1);
        //pause1.start();
  //      if1.addCommand(&set2);
    //   if1.addCommand(&set3);
  //      program1.addCommand(&if1);    //  esto esta produciendo error
 //       pause1.start();
   // page.addElement(&comboBox1);
+ //   page.addElement(&control1);
+ //       page.addElement(&keypad1);        // Parece que el Keypad da problemas, numero de elementos ????  El Keypad tambien tiene problemas !!!
+    page.addElement(&program1);       // El program es el que esta haciendo randoms problems
+    page.addElement(&lblFreeHeap);
     page.addElement(&relay1);
     page.addElement(&relay2);
     page.addElement(&relay3);
-    page.addElement(&tempSensor);
-    page.addElement(&keypad1);
-    page.addElement(&program1);
-    page.updateElements();
-    label1.update("newValue");
-Serial.println(page.getJavaScript());
+    page.addElement(&graphic1);
+//    page.addElement(&tempSensor);
+//    page.addElement(&analogIn1);
+//    page.addElement(&digitalIn1);
+//    page.addElement(&set1);
+    //page.updateElements();
+    //label1.update("newValue");
 
+    webSocket.begin();
+    webSocket.onEvent(webSocketEvent);
+    
 }
 
 
@@ -205,53 +221,28 @@ unsigned long lastUpdate;
 void loop() {
   unsigned long currentMillis = millis();
 
-  if (currentMillis - prevNTP > intervalNTP) { // Request the time from the time server every hour
-    Serial.print ( String(currentMillis - prevNTP ) + "-- " + String (intervalNTP ));
-    prevNTP = currentMillis;
-    sendNTPpacket(timeServerIP);
-  }
-  uint32_t timeNtp = getTime();                   // Check if the time server has responded, if so, get the UNIX time
-  if (timeNtp) {
-    timeUNIX = timeNtp;
-    //setTime(timeUNIX);
-    Serial.print("NTP response:\t");
-    Serial.println(timeUNIX);
-    lastNTPResponse = millis();
-    setTime(timeUNIX);
-    Serial.println(day()+"-"+hour());
-  } else if ((millis() - lastNTPResponse) > 24UL * ONE_HOUR) {
-    Serial.println("More than 24 hours since last NTP response. Rebooting.");
-    Serial.flush();
-    ESP.reset();
-  }
-
+ 
   server.handleClient();                      // run the server
   ArduinoOTA.handle();                        // listen for OTA events
 
   
-if (( currentMillis - lastUpdate ) > 2000 ) {   //  now it updates every 5 seconds
-  Serial.println(String(currentMillis/1000));
-    tempSensor.update();
-    analogIn1.update();
-    digitalIn1.update();
-    control1.update();
+if (( currentMillis - lastUpdate ) > 300 ) {   //  now it updates every 5 seconds
+  Serial.println("Time: "+String(currentMillis/1000));
+    //tempSensor.update();
+    //analogIn1.update();
+    //digitalIn1.update();
+    lblFreeHeap.update();
+    //control1.update();
     program1.run();
     lastUpdate = currentMillis;
-}
-//program.runProgram();
-
-
-    //        tempSensors.requestTemperatures(); // Request the temperature from the sensor (it takes some time to read it)
-
-  delay (100);
-  
-
+     Serial.println("Heap Left: "+String(ESP.getFreeHeap(),DEC));
+     String ss= page.getJavaQueue();            // Get the JavaScript Queue from page
+     Serial.println(ss);
+     if (ss!="") webSocket.broadcastTXT(ss);   //  WebSoket necesita una variable, no puedo poner page.getJavaQueue directamente
     
-
-  if ( timeUNIX == 0 )  {                                    // If we didn't receive an NTP response yet, send another request
-    sendNTPpacket(timeServerIP);
-  delay(500);
 }
+    webSocket.loop();
+yield();
 }
 
 
@@ -260,24 +251,7 @@ if (( currentMillis - lastUpdate ) > 2000 ) {   //  now it updates every 5 secon
 ///////              methods                                         ////////
 ////                                                               ////////
 ///////////////////////////////////////////////////////////////////////////
-void saveDataLog() {
- File tempLog ;
- uint32_t actualTime = timeUNIX + (millis() - lastNTPResponse) / 1000;
 
-      tempLog = SPIFFS.open("/dataLog.csv", "a"); // Write the time and the temperature to the csv file
-      tempLog.print(actualTime);
-      tempLog.print(',');
-      tempLog.print(temperature);
-      tempLog.print(',');
-      tempLog.print(relay1.getState());
-      tempLog.print(',');
-      tempLog.print(relay2.getState());
-      tempLog.print(',');
-      tempLog.println( String (  countdownMinutes - ( millis()-countdownSetTime) / 60000 ) ); // output goes from 20 ( 0 ) to 38 ( 180 )
-      
-      tempLog.close();
-      Serial.println("Logging data");
-    }
 
 void startOTA() { // Start the OTA service
   ArduinoOTA.setHostname(OTAName);
@@ -344,7 +318,7 @@ void startServer() { // Start a HTTP server with a file read handler and an uplo
   }, handleFileUpload); 
    
   // server.on("/list", HTTP_GET, handleFileList);
-  //  server.on("/delete", HTTP_GET, handleFileDelete);
+    server.on("/delete", HTTP_GET, handleFileDelete);
    server.on("/getData", handleGetData);
    server.on("/btnClick", HTTP_GET , handleBtnClick );
 
@@ -401,18 +375,18 @@ void handleBtnClick() {                             //////////////   HANDLE BUTT
       for (int i=0; i<page.elementCount; i++){
        // Serial.println(page.listOfElements[i]->getIdOwner(buttonName)->id);
           if (page.listOfElements[i]->id==(buttonName) )  {
-                        reply=page.listOfElements[i]->postCallBack(buttonValue,buttonDataValue);
+                        reply=page.listOfElements[i]->postCallBack(page.listOfElements[i],buttonValue,buttonDataValue);
            }
       }
   for (int i=0; i<ElementsHTML::allHTMLElements.size(); i++){
         //Serial.println(ElementsHTML::allHTMLElements[i]->id);
           if (ElementsHTML::allHTMLElements[i]->id==(buttonName) )  {
                         Serial.println("sent post call back to: " + buttonName);
-                        reply=ElementsHTML::allHTMLElements[i]->postCallBack(buttonValue,buttonDataValue);
+                        reply=ElementsHTML::allHTMLElements[i]->postCallBack(ElementsHTML::allHTMLElements[i],buttonValue,buttonDataValue);
            }
            
   }
-  
+  reply="console.log('fake handleBtnClick reply');";
   server.send(200, "text/plain", reply );
 
   
@@ -423,6 +397,7 @@ void handleBtnClick() {                             //////////////   HANDLE BUTT
 
 void handleGetData(){
   String reply=page.getJavaQueue();
+  reply = "";
 //String   reply = "console.log('getData Reply');";
   Serial.println ("HandleGetData sub in SharpBox.ino "+reply);
           server.send(200, "text/plain", reply );
@@ -477,6 +452,62 @@ void handleFileUpload() { // upload a new file to the SPIFFS
     }
   }
 }
+
+void handleFileDelete() {                     // Usage   192.168.1.13/delete?file=temp.csv
+  if (!server.hasArg("file")) {
+    server.send(500, "text/plain", "BAD ARGS");
+    return;
+  }
+  String path = server.arg("file");
+  Serial.println("handleFileDelete: " + path);
+  if (path == "/")
+    return server.send(500, "text/plain", "BAD PATH");
+  if (!SPIFFS.exists(path))
+    return server.send(404, "text/plain", "FileNotFound");
+
+  SPIFFS.remove(path);
+  server.send(200, "text/plain", "deleted" + path);
+}
+
+//////////////////////////////////////////////////////////////////
+///////////////  Web Socket Event
+//////////////////////////////////////////////////////////////////
+void webSocketEvent(uint8_t num, WStype_t type, uint8_t * payload, size_t length) {
+    String ss;
+    switch(type) {
+        case WStype_DISCONNECTED:
+            Serial.printf("[%u] Disconnected!\n", num);
+            break;
+        case WStype_CONNECTED:
+            {
+                IPAddress ip = webSocket.remoteIP(num);
+                Serial.printf("[%u] Connected from %d.%d.%d.%d url: %s\n", num, ip[0], ip[1], ip[2], ip[3], payload);
+        
+        // send message to client
+        webSocket.sendTXT(num, "console.log('Connected');");
+            }
+            break;
+        case WStype_TEXT:
+            Serial.printf("[%u] get Text: %s\n", num, payload);
+
+            // send message to client
+            ss = page.getJavaQueue();
+            webSocket.sendTXT(num, ss );
+
+            // send data to all connected clients
+            // webSocket.broadcastTXT("message here");
+            break;
+        case WStype_BIN:
+            Serial.printf("[%u] get binary length: %u\n", num, length);
+            hexdump(payload, length);
+
+            // send message to client
+            // webSocket.sendBIN(num, payload, length);
+            break;
+    }
+
+}
+
 
 
 /*__________________________________________________________HELPER_FUNCTIONS__________________________________________________________*/

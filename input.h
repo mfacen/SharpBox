@@ -6,7 +6,7 @@ class Input: public ElementsHTML {
 
   public:
 
-    int value;
+    float value;
     int minValue;
     int maxValue;
     String unit;
@@ -30,11 +30,11 @@ class Button: public Input {
       html = "<button type='button' width='40' id='" + id + "' value ='" + name + "' name='" + name + "' data-value='" + dataValue + "' onclick=\"btnClickText('" + id + "','" + name + "','" + dataValue + "')\" >" + t + "</button>\n";
     }
 
-    String postCallBack(String postValue, String postDataValue) {
-      if (parent) return parent->postCallBack(postValue,postDataValue);
+    String postCallBack(ElementsHTML* e,String postValue, String postDataValue) {
+      if (parent) return parent->postCallBack(this,postValue,postDataValue);
       
-      return ("console.log('postCallBack of " + name+" parent: "+parent->name+"'); ");
-      
+      //return ("console.log('postCallBack of " + name+" parent: "+parent->name+"'); ");
+      return "";
     } 
     String getHtml() {  return html; }
     void update() {};
@@ -72,10 +72,10 @@ class ComboBox: public Input {
       javaQueue.add("document.getElementById('" + id + "').selectedIndex='" + String(selected) + "'; console.log('"+name+" update value="+String(value)+"');");
       
     }
-    String postCallBack(String postValue, String postDataValue) {
+    String postCallBack(ElementsHTML* e,String postValue, String postDataValue) {
                   selected = postDataValue.toInt();
                   update();
-                  if (parent) parent->postCallBack(postValue,postDataValue);
+                  if (parent) parent->postCallBack(this,postValue,postDataValue);
                   return "";//"document.getElementById('" + id + "').innerHTML='" + text + "';";
     }
 };
@@ -105,7 +105,7 @@ class Dsb18B20: public Input {
        pushElement(this);          // Los elementos basicos se registran solos en el AllHTMLElemens !!
        oneWire = new  OneWire(pin);        // Set up a OneWire instance to communicate with OneWire devices
        tempSensors = new DallasTemperature (oneWire); // Create an instance of the temperature sensor class
-         tempSensors->setWaitForConversion(true); //  block the program while the temperature sensor is reading
+         tempSensors->setWaitForConversion(false); //  block the program while the temperature sensor is reading
        tempSensors->begin();
     }
     //~Dsb18B20(ElementsHTML::deleteElement(this));
@@ -116,13 +116,25 @@ class Dsb18B20: public Input {
     }
     
     void update() {
-      value = tempSensors->getTempCByIndex(0);
+      if  (!tempRequested)  {
+        tempSensors->requestTemperatures(); // Request the temperature from the sensor (it takes some time to read it)
+        tempRequested=true;
+        lastTemperatureRequest = millis();
+      }
+      if ( ( millis() - lastTemperatureRequest > intervalTemperature ) && tempRequested ) {
+        value = tempSensors->getTempCByIndex(0); // Get the temperature from the sensor
+        tempRequested=false;
+      }
+      //value = tempSensors->getTempCByIndex(0);
       javaQueue.add( "document.getElementById('" + id + "').innerHtml='Temperature:" + String(value) + "';");
 
     }
 
-    String postCallBack(String postValue, String postDataValue) {update();}
-
+    String postCallBack(ElementsHTML* e,String postValue, String postDataValue) {update();}
+  private:
+  bool tempRequested = false;
+  unsigned long lastTemperatureRequest;
+  int intervalTemperature = 1500;
 };
 
 // ########################################
@@ -163,7 +175,7 @@ class AnalogIn: public Input {
       label->update(String(value));
     }
 
-    String postCallBack(String postValue, String postDataValue) {update();}
+    String postCallBack(ElementsHTML* e,String postValue, String postDataValue) {update();}
 
 };
 
@@ -183,7 +195,7 @@ class DigitalIn: public Input {
       minValue = 0;
       maxValue = 1;
       unit = "milliVolts";
-      descriptor = "Digital Pin Input "+String(pin);
+      descriptor = "D In "+String(pin);
       label = new Label(name+"lbl","",this);
       html = " <div id='"+id+"'><h4>" + name + "</h4>"+descriptor+"<br>"+ label->getHtml() +  "</div>";
        pushElement(this);          // Los elementos basicos se registran solos en el AllHTMLElemens !!
@@ -197,7 +209,7 @@ class DigitalIn: public Input {
       label->update(String(value));
     }
 
-    String postCallBack(String postValue, String postDataValue) {update();}
+    String postCallBack(ElementsHTML* e,String postValue, String postDataValue) {update();}
 
 };
 
@@ -226,10 +238,10 @@ class EditBox: public Input {
       javaQueue.add("document.getElementById('" + id + "').value='" + text + "';");
       
     }
-    String postCallBack(String postValue, String postDataValue) {
+    String postCallBack(ElementsHTML* e,String postValue, String postDataValue) {
                   text = postDataValue;
                   update();
-                  if (parent) parent->postCallBack(postValue,postDataValue);
+                  if (parent) parent->postCallBack(this,postValue,postDataValue);
                   return "document.getElementById('" + id + "').innerHTML='" + text + "';";
     }
     
@@ -259,11 +271,12 @@ class KeyPad: public Input {  // Aqui lo he cambiado !!!!!!!!!!!!!!!!!!!!!!!!!!!
     String state ="ooo";
     EditBox *edt;
     EditBox *edtLabel;
+          Button* buttons[11];
 
+    String html;
     KeyPad(String n) {
       name = n;
       id = n;
-      Button* buttons[11];
       html += "<div><h4>" + name + "</h4>\n\t";
       edt = new EditBox(name+ "Edit","");
       edtLabel = new EditBox(name+"Label","");
@@ -272,7 +285,7 @@ class KeyPad: public Input {  // Aqui lo he cambiado !!!!!!!!!!!!!!!!!!!!!!!!!!!
 
         buttons[i] = new Button (name+"btn"+String(i), String(i), String(i),this);  // esto indica que tiene pariente 
 //        addChild (buttons[i]);
-        //buttons[i]->datavalue = name;   ///   AQUI HE CAMBIADO
+        buttons[i]->datavalue = name;   ///   AQUI HE CAMBIADO
         html += buttons[i]->getHtml()+"\n";
         if ((i==2)||(i==5)||(i==8)) html+="<br>";
       }
@@ -282,17 +295,17 @@ class KeyPad: public Input {  // Aqui lo he cambiado !!!!!!!!!!!!!!!!!!!!!!!!!!!
       html += edt->getHtml();
       html += edtLabel->getHtml();
       html += "</div>";
-      javaQueue.add("document.getElementById('" + edtLabel->id + "').innerHTML='" + state + "';");
+      //javaQueue.add("document.getElementById('" + edtLabel->id + "').innerHTML='" + state + "';");
 
     }
     String getHtml() {
       return html;
     }
-    String postCallBack(String postValue, String postDataValue) {
+    String postCallBack(ElementsHTML* e,String postValue, String postDataValue) {
       if (postDataValue == "delete")edt->deleteChar();
       else  edt->appendText (postDataValue);
       update();
-      return( "console.log('postCallBack of "+name+"'); ");
+      return "";//( "console.log('postCallBack of "+name+"'); ");
     };
     void update() {
       (edt->text == "1234") ? value = 1 : value = 0 ; //updateDisplay();

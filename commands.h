@@ -17,10 +17,10 @@ class Commands: public ElementsHTML{
 class Set:public Commands {
 public:
   Output* output;
-  String f[5] = { "OFF" , "ON" };
+  String f[2] = { "OFF" , "ON" };
   ComboBox* comboBox1; 
   //EditBox* editOutput;
-  Button* btn;
+ // Button* btn;
   int value;
   Set(String n, Output* out){
     output = out;
@@ -30,8 +30,8 @@ public:
     
    comboBox1 = new ComboBox ( name+"combo",2,f);
    
-    btn = new Button ("btn"+name,"btnAction","Action",this);
-      html="<div><h4>"+name+"</h4>"+output->name+":"+output->stateStr +" "+ comboBox1->getHtml() + btn->getHtml()+"</div>";
+ //   btn = new Button ("btn"+name,"btnAction","Action",this);
+      html="<div><h4>"+name+"</h4>"+output->name+"  "+ comboBox1->getHtml() +"</div>";
   }
   bool run () {
     output->update(comboBox1->value);
@@ -40,14 +40,15 @@ public:
   String getHtml(){
     return html;
   }
-  String postCallBack(String postValue,String postDatavalue){ if (postValue == "btnAction") output->update(comboBox1->value);};
-
+  String postCallBack(ElementsHTML* e,String postValue,String postDatavalue){ if (postValue == "btnAction") output->update(comboBox1->value);};
+  void update(){output->update(comboBox1->value);}
+  
 };
 
 
 // #######################################
 //  Command   PAUSE
-// ########################################
+// ########################################             // Pause No tenia PostCallBack !!!!!!!!!  Era ese el problema ????
 class Pause: public Commands {
     public:
     int value;
@@ -64,16 +65,12 @@ class Pause: public Commands {
    }
   bool run(){  
       if (firstRun){firstRun=false; start();}
-    
-                if  (  (lastTimeCheck - millis()  ) > 1000 ) { lastTimeCheck = millis (); value = value - 1; update(); }
-                if (( millis()-lastUpdate ) > interval*1000 ) {firstRun=true;return true;} else return false;
-            
-            };
+      if  (  (lastTimeCheck - millis()  ) > 1000 ) { lastTimeCheck = millis (); value = value - 1; update(); }
+      if (( millis()-lastUpdate ) > interval*1000 ) {firstRun=true;return true;} else return false;
+  };
+  String postCallBack(ElementsHTML* e,String postValue,String postDatavalue){};
   void start( ) { lastUpdate  = millis();}
-  void update(){
-                //javaQueue.add("document.getElementById('" + editTime->id + "').setAttribute('innerHTML', '"+String(value)+"');");
-
-  }
+  void update(){} //javaQueue.add("document.getElementById('" + editTime->id + "').setAttribute('innerHTML', '"+String(value)+"');");    }
   private:
     unsigned long lastUpdate;
     int interval;
@@ -82,6 +79,33 @@ class Pause: public Commands {
         EditBox* editTime;
 
 };
+
+// ########################################
+//  Command Logger
+// ########################################
+class Logger: public Commands {
+  public:
+    Logger ( String s , Input* in) {id=s;name=s;input=in;html="<div><h4>Logger "+name+"</h4>Input: "+input->name+"</div>";}
+    bool run(){return logData(input);}
+    void update(){input->update();}
+    bool logData( Input* i){
+      File tempLog ;
+      tempLog = SPIFFS.open("/dataLog.csv", "a"); // Write the time and the temperature to the csv file
+      bool r=tempLog;
+      tempLog.println(i->name+": "+String(i->value));
+      tempLog.close();
+      return r;
+    }
+      String getHtml(){return html;}      //              Atencion si falta una de los metodos static se produce un Error que no se detecta y no hay HTML
+  String postCallBack(ElementsHTML* e,String postValue,String postDatavalue){};
+
+  private:
+    Input* input;
+    
+};
+
+
+
 
 
 class CommandsComposite: public Commands {
@@ -103,8 +127,6 @@ class CommandsComposite: public Commands {
 // ########################################
 class IfCommand: public CommandsComposite {
   public:
-  Input* inL;
-  Input* inR;
   IfCommand(String s, Input* inLL, Input* inRR ){name=s;id=s;inR=inRR;inL=inLL; }//   ERROR ERROR ERROR ERROR ERROR  Serial.print("Created IfCommand "+name); };
   bool run(){
     for ( int i=0; i<command_count; i++) {
@@ -118,6 +140,11 @@ class IfCommand: public CommandsComposite {
     }
   }
   void addCommand( Commands* c) {commands [ command_count ] = c; command_count++; }
+    String postCallBack(ElementsHTML* e,String postValue,String postDatavalue){};
+ void update(){};
+  private:
+  Input* inL;
+  Input* inR;
 };
 
 
@@ -146,16 +173,16 @@ class ActiveControl:public Commands {
   String getHtml(){return html;}
 
   void update(){
-    
-    if (op=">") {
+    inputEdit->update();
+    if (op==">") {
       if ( inputLeft->value > inputRight->value ) {
                   //javaQueue.add("console.log('greater');");
           output->update(  inputEdit->value );
       }
     }
-        if (op="=") {
+        if (op=="=") {
       if ( inputLeft->value == inputRight->value ) {
-          //javaQueue.add("console.log('equal');");
+          javaQueue.add("console.log('equal');");
           output->update(  inputEdit->value );
       }
     }
@@ -164,10 +191,11 @@ class ActiveControl:public Commands {
     update();
     return true;
   }
-   String postCallBack(String postValue, String postDataValue) {
-   return "";
-    }
+   String postCallBack(ElementsHTML* e,String postValue, String postDataValue) {   return "";  }
 };
+
+
+
 
 class ActivePause: public ActiveControl {
 public:
@@ -183,41 +211,46 @@ int value=0;
 //    inputEdit->parent=this;
 //    
 //    };
-//      void update(){
-//    value=0;
-//    if (op=">") {
-//      if ( inputLeft->value > inputRight->value ) {
-//          value=1;
-//      }
-//    }
-//        if (op="=") {
-//      if ( inputLeft->value == inputRight->value ) {
-//          value=1;
-//      }
-//    }
-//    
-//  }
+      void update(){
+    value=0;
+    if (op=">") {
+      if ( inputLeft->value > inputRight->value ) {
+          value=1;
+      }
+    }
+        if (op="=") {
+      if ( inputLeft->value == inputRight->value ) {
+          value=1;
+      }
+    }
+    
+  }
   bool run(){
     update();
     if (value==0) return false; else return true;
   }
+    String postCallBack(ElementsHTML* e,String postValue,String postDatavalue){};
+
 };
 
 // ########################################
 //  Command Keypad Control
 // ########################################
-class KeyPadCommand: public Commands {
-  public:
-  KeyPad* keypad;
-   KeyPadCommand( String n ){
-    name = n;
-    id = n;
-    keypad = new KeyPad(name+"kpd");
-   }
-   String getHtml(){ return "<div><h4>"+name+"</h4>"+keypad->getHtml()+"</div>"; }
-     bool run(){
-    //update();
-    if (keypad->value==0) return false; else return true;
-  }
-};
+//class KeyPadCommand: public Commands {
+//  public:
+//  KeyPad* keypad;
+//   KeyPadCommand( String n ){
+//    name = n;
+//    id = n;
+//    keypad = new KeyPad(name+"kpd");
+//   }
+//   String getHtml(){ return "<div><h4>"+name+"</h4>"+keypad->getHtml()+"</div>"; }
+//     bool run(){
+//    //update();
+//    if (keypad->value==0) return false; else return true;
+//  }
+//    String postCallBack(ElementsHTML* e,String postValue,String postDatavalue){};
+//void update(){};
+//
+//};
 
