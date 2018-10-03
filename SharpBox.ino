@@ -98,7 +98,7 @@ unsigned long countdownSetTime = 0;
   RelayOutput   relay2 (RELAY_2_PIN,"Relay 2 110VAC","relay2");
   RelayOutput   relay3 (RELAY_3_PIN,"Relay 3 110VAC","relay3");
   Dsb18B20 tempSensor ( TEMP_SENSOR_PIN ,"Temp_Probe");   // habria que crearlo solo si encontro el sensor
-  Button button1("btn1","button","btn1");
+  Button button1("btn1","button1");
    KeyPad keypad1 ("keypad1");
  // KeyPadCommand keypadCom("keyPadCom1");
   EditBox edit1 ("edit1","edit1");
@@ -106,13 +106,13 @@ unsigned long countdownSetTime = 0;
   Label label1 ("label1","this is Label1");
   Label label2 ("label2","this is Label2");
     Graphic graphic1("graphic1");
-
+KeypadControl keypadControl1("keyPadCtrl1");
 
   ActiveControl control1 ("control1" , &digitalIn1 ,"=",  &edit2  , &graphic1 , &analogIn1 );
-  //ActiveControl control2 ("control2" , &analogIn1 , ">", &edit1 , &relay1 , &edit2 );
+  ActiveControl control2 ("control2" , &analogIn1 , ">", &edit1 , &relay1 , &edit2 );
   //ActiveControl control3 ("control3" , &tempSensor , "=", &edit1 , &relay1 , &edit2 );// xq hay problemas en la creacion de esto ?
   Set set1 ("set1",&relay2);
-  //Set set2 ("set2",&relay2);
+  Set set2 ("set2",&relay2);
   //Set set3 ("set3",&relay2);
  // KeyPad keypad2 ("keypad2");   //     POR ALGUNA RAZON ESTO LO TRABA Y NO DA NINGUN HTML DE SALIDA
   Program program1 ("program1");
@@ -177,25 +177,29 @@ unsigned long countdownSetTime = 0;
 //edit1.appendText("mamamam");
    
          program1.addCommand(&set1);
-//       program1.addCommand(&set2);
+       program1.addCommand(&set2);
+              program1.addCommand(&keypadControl1);
+
        program1.addCommand(&control1);
-//       program1.addCommand(&logger1);
-   //    program1.addCommand(&control2);
-    //   program1.addCommand(&logger1);
+       program1.addCommand(&logger1);
+       program1.addCommand(&control2);
        //pause1.start();
  //      if1.addCommand(&set2);
    //   if1.addCommand(&set3);
  //      program1.addCommand(&if1);    //  esto esta produciendo error
 //       pause1.start();
-  // page.addElement(&comboBox1);
+ //  page.addElement(&comboBox1);
+
  //   page.addElement(&control1);
-        page.addElement(&keypad1);        // Parece que el Keypad da problemas, numero de elementos ????  El Keypad tambien tiene problemas !!!
-    page.addElement(&program1);       // El program es el que esta haciendo randoms problems
-    page.addElement(&lblFreeHeap);
-    page.addElement(&relay1);
+      //  page.addElement(&keypad1);        // Parece que el Keypad da problemas, numero de elementos ????  El Keypad tambien tiene problemas !!!
+     page.addElement(&relay1);
     page.addElement(&relay2);
     page.addElement(&relay3);
-    page.addElement(&graphic1);
+           page.addElement(&graphic1);
+    page.addElement(&lblFreeHeap);
+
+    page.addElement(&program1);       // El program es el que esta haciendo randoms problems
+
 //    page.addElement(&tempSensor);
 //    page.addElement(&analogIn1);
 //    page.addElement(&digitalIn1);
@@ -226,7 +230,7 @@ void loop() {
   ArduinoOTA.handle();                        // listen for OTA events
 
   
-if (( currentMillis - lastUpdate ) > 300 ) {   //  now it updates every 5 seconds
+if (( currentMillis - lastUpdate ) > 1000 ) {   //  now it updates every 5 seconds
   Serial.println("Time: "+String(currentMillis/1000));
     //tempSensor.update();
     //analogIn1.update();
@@ -237,7 +241,7 @@ if (( currentMillis - lastUpdate ) > 300 ) {   //  now it updates every 5 second
     lastUpdate = currentMillis;
      Serial.println("Heap Left: "+String(ESP.getFreeHeap(),DEC));//+" :Frag: " +String(ESP.getHeapFragmentation(),DEC)+"   Max-SIze = "+ String(ESP.getMaxFreeBlockSize()));
      String ss= page.getJavaQueue();            // Get the JavaScript Queue from page
-     Serial.println(ss);
+     //Serial.println(ss);
      if (ss!="") webSocket.broadcastTXT(ss);   //  WebSoket necesita una variable, no puedo poner page.getJavaQueue directamente
     
 }

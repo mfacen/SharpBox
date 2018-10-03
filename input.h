@@ -2,7 +2,7 @@
 //  INPUT
 // ########################################
 
-class Input: public ElementsHTML {
+class Input : public CompositeHtml {
 
   public:
 
@@ -11,7 +11,7 @@ class Input: public ElementsHTML {
     int maxValue;
     String unit;
     String text="";
-
+    
     //String getHtml() {};
 
 };
@@ -22,21 +22,20 @@ class Input: public ElementsHTML {
 
 class Button: public Input {
   public:
-    Button(String n, String dataValue , String t, ElementsHTML* e = 0  ) {
+    Button(String n , String t, ElementsHTML* e = 0  ) {
       name = n;
       id = n;
       parent = e;  
       text = t;     //ERROR ERROR ERROR ERROR NO HACER ESTO Serial.println (t);
       pushElement(this);          // Los elementos basicos se registran solos en el AllHTMLElemens !!
     }
-
     String postCallBack(ElementsHTML* e,String postValue) {
       if (parent) return parent->postCallBack(this,postValue);
       
       //return ("console.log('postCallBack of " + name+" parent: "+parent->name+"'); ");
       return "";
     } 
-    String getHtml() {  return "<button type='button' width='40' id='" + id + "' value ='" + name + "' name='" + name  + "' onclick=\"btnClickText('" + id + "','" + name + "',' xxx ')\" >" + text + "</button>\n";; }
+    String getHtml() {  return "<button type='button' width='40' id='" + id + "' value ='" + name + "' name='" + name  + "' onclick=\"btnClickText('" + id + "','"+text+"')\" >" + text + "</button>\n";; }
     void update() {};
 };
 
@@ -48,16 +47,12 @@ class ComboBox: public Input {
   public:
   String *fields;
   int selected = 0;
-    ComboBox(String n, int s , String* _fields ,  ElementsHTML* e=0) {
+    ComboBox(String n, int s , String _fields[] ,  ElementsHTML* e=0) {
       name = n;
       text="";
       id = n;
       fields=_fields;
-      html = "<select id='" + id + "' onchange=\"btnClickText('"+id+"', this.value , this.selectedIndex)\">\n";
-          for(int i = 0; i <=s ; i++) {
-              html+="<option value='"+_fields[i]+"'>"+_fields[i]+"</option>";
-          }
-              html+="</select>";
+      fieldsCount = s;
       value = 0;
        pushElement(this);          // Los elementos basicos se registran solos en el AllHTMLElemens !!
        
@@ -65,7 +60,11 @@ class ComboBox: public Input {
       }
 
    
-    String getHtml() {return  html;}
+    String getHtml() {String html = "<select id='" + id + "' onchange=\"btnClickText('"+id+"', this.selectedIndex)\">\n";
+          for(int i = 0; i <= fieldsCount ; i++) {
+              html+="<option value='"+fields[i]+"'>"+fields[i]+"</option>";
+          }
+              html+="</select>";return  html;}
     void update() {
       text = fields[selected];
       value = selected;
@@ -78,6 +77,8 @@ class ComboBox: public Input {
                   if (parent) parent->postCallBack(this,postValue);
                   return "";//"document.getElementById('" + id + "').innerHTML='" + text + "';";
     }
+    private:
+      int fieldsCount;
 };
 
 
@@ -101,7 +102,7 @@ class Dsb18B20: public Input {
       maxValue = 150;
       unit = "grados";
       descriptor = "Temperature Sensor  Dsb18B20";
-      html = " <div id='"+id+"'><h4>" + name + "</h4>"+descriptor+"<br>Temperature:" + String(value) + "</div>";
+     // html = " <div id='"+id+"'><h4>" + name + "</h4>"+descriptor+"<br>Temperature:" + String(value) + "</div>";
        pushElement(this);          // Los elementos basicos se registran solos en el AllHTMLElemens !!
        oneWire = new  OneWire(pin);        // Set up a OneWire instance to communicate with OneWire devices
        tempSensors = new DallasTemperature (oneWire); // Create an instance of the temperature sensor class
@@ -110,10 +111,7 @@ class Dsb18B20: public Input {
     }
     //~Dsb18B20(ElementsHTML::deleteElement(this));
 
-    String getHtml() {
-
-      return html;
-    }
+    String getHtml() { return " <div id='"+id+"'><h4>" + name + "</h4>"+descriptor+"<br>Temperature:" + String(value) + "</div>";  }
     
     void update() {
       if  (!tempRequested)  {
@@ -158,14 +156,11 @@ class AnalogIn: public Input {
       unit = "milliVolts";
       descriptor = "Ana In ";
       label = new Label(name+"lbl","",this);
-      html = " <div id='"+id+"'><h4>" + name + "</h4>"+descriptor+"<br>"+ label->getHtml() +  "</div>";
        pushElement(this);          // Los elementos basicos se registran solos en el AllHTMLElemens !!
       
     }
 
-    String getHtml() {
-
-      return html;
+    String getHtml() {  return " <div id='"+id+"'><h4>" + name + "</h4>"+descriptor+"<br>"+ label->getHtml() +  "</div>";
     }
 //    class Label;
 //class Output;
@@ -195,14 +190,12 @@ class DigitalIn: public Input {
       minValue = 0;
       maxValue = 1;
       unit = "milliVolts";
-      descriptor = "D In "+String(pin);
-      label = new Label(name+"lbl","",this);
-      html = " <div id='"+id+"'><h4>" + name + "</h4>"+descriptor+"<br>"+ label->getHtml() +  "</div>";
+      label = new Label(name+"lbl","",this); addChild(label);
        pushElement(this);          // Los elementos basicos se registran solos en el AllHTMLElemens !!
       
     }
 
-    String getHtml() {return html; }
+    String getHtml() {return " <div id='"+id+"'><h4>" + name + "</h4>"+descriptor+"<br>"+ label->getHtml() +  "</div>"; }
 
     void update() {
       value = digitalRead(pin);
@@ -224,7 +217,6 @@ class EditBox: public Input {
       name = n;
       text=t;
       id = n;
-      html = "<input type='text' id='" + id + "' width='20' onkeyup=\"btnClickText('"+id+"','"+name+"',(this.value))\"></input>\n";
       value = 0;
        pushElement(this);          // Los elementos basicos se registran solos en el AllHTMLElemens !!
        
@@ -232,7 +224,7 @@ class EditBox: public Input {
 
     }
 
-    String getHtml() {return  html;}
+    String getHtml() {return  "<input type='text' id='" + id + "' width='20' onkeyup=\"btnClickText('"+id+"',(this.value))\"></input>\n";}
     void update() {
       value = text.toInt();
       javaQueue.add("document.getElementById('" + id + "').value='" + text + "';");
@@ -265,7 +257,7 @@ class EditBox: public Input {
 // ########################################
 //  KEYPAD
 // ########################################
-class KeyPad: public Input {  // Aqui lo he cambiado !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!  Antes era input
+class KeyPad: public Input  {  // Aqui lo he cambiado !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!  Antes era input
   public:
     int value=0;
     String state ="ooo";
@@ -273,33 +265,29 @@ class KeyPad: public Input {  // Aqui lo he cambiado !!!!!!!!!!!!!!!!!!!!!!!!!!!
     EditBox *edtLabel;
           Button* buttons[11];
 
-    String html;
     KeyPad(String n) {
       name = n;
       id = n;
-      html += "<div><h4>" + name + "</h4>\n\t";
       edt = new EditBox(name+ "Edit","");
       edtLabel = new EditBox(name+"Label","");
 //      addChild(edt);addChild(edtLabel);
       for (int i = 0; i < 10; i++ ) {
 
-        buttons[i] = new Button (name+"btn"+String(i), String(i), String(i),this);  // esto indica que tiene pariente 
+        buttons[i] = new Button (name+"btn"+String(i), String(i),this);  // esto indica que tiene pariente 
 //        addChild (buttons[i]);
 //yield();
-        html += buttons[i]->getHtml()+"\n";
-        if ((i==2)||(i==5)||(i==8)) html+="<br>";
       }
-      buttons[10] = new Button (name, "delete", "del",this);
-  //    addChild (buttons[10]);
-      html += buttons[10]->getHtml();
-      html += edt->getHtml();
-      html += edtLabel->getHtml();
-      html += "</div>";
-      //javaQueue.add("document.getElementById('" + edtLabel->id + "').innerHTML='" + state + "';");
+      buttons[10] = new Button (name, "delete",this);
 
     }
     String getHtml() {
-      return html;
+      String h="<div><h4>" + name + "</h4>\n\t";
+            for (int i = 0; i < 11; i++ ) {
+              h+= buttons[i]->getHtml(); 
+              if ((i==2)||(i==5)||(i==8)) h+="<br>";
+            }
+            h+=edt->getHtml()+edtLabel->getHtml()+"</div>"; 
+            return h;
     }
     String postCallBack(ElementsHTML* e,String postValue) {
       if (postValue == "delete")edt->deleteChar();

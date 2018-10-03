@@ -29,8 +29,14 @@ class ElementsHTML{
   String name;
   String id;
   String descriptor;
-  String html;
+  //String html;
   ElementsHTML* parent = 0;
+
+      String getName(){return name;}
+    String getId(){return id;}
+    void setId(String i){id=i;}
+    void setName(String n){name=n;}
+    
  static  JavaQueue javaQueue;
 
  virtual void update(){};
@@ -43,7 +49,13 @@ class ElementsHTML{
   static void deleteElement(ElementsHTML* e){}   //  Todavia no he implementado esto
 };
 
-
+class CompositeHtml: public ElementsHTML {
+  public:
+    void addChild(ElementsHTML* e) { childs.push_back(e);}
+    String getHtml() {for (int i = 0; i<childs.size(); i++) { }  }  // iterate through the childs
+  private:
+    std::vector <ElementsHTML*> childs;
+};
 
 
 
@@ -154,19 +166,19 @@ htmlStr+= "</body></html>";
   String getJavaScript(){
       String str;
     str += "<script> \n function btnClick(btn){ \t var xhttp = new XMLHttpRequest(); \n";
-    str += " \t elementName=btn.id;elementdataValue=btn.getAttribute('data-value');elementValue=btn.value;xhttp.onreadystatechange = function()\n";
+    str += " \t elementName=btn.id;elementValue=btn.value;xhttp.onreadystatechange = function()\n";
     str += " { if (this.readyState == 4 && this.status == 200) {console.log(this.responseText);eval(this.responseText)}\n";    //eval(this.responseText); 
   str += "}; xhttp.open('GET', 'btnClick?button='+ elementName + '&value=' + elementValue +'&datavalue=' + elementdataValue, true);xhttp.send();};\n";
 
-      str += "function btnClickText(elementName,elementValue,elementdataValue){var xhttp = new XMLHttpRequest();\n";
+      str += "function btnClickText(elementName,elementValue){var xhttp = new XMLHttpRequest();\n";
     str += " xhttp.onreadystatechange = function()";
     str += " { if (this.readyState == 4 && this.status == 200) {eval(this.responseText);}\n";     
-  str += "}; xhttp.open('GET', 'btnClick?button='+ elementName + '&value=' + elementValue +'&datavalue=' + elementdataValue, true);xhttp.send();}\n";
+  str += "}; xhttp.open('GET', 'btnClick?button='+ elementName + '&value='+ elementValue +'', true);xhttp.send();}\n";
  // str+="setInterval(function() {getData();}, 1000); function getData(){ if (connection) connection.send('getData');else {var  xhttp = new XMLHttpRequest(); xhttp.onreadystatechange = function() {if (this.readyState == 4 && this.status == 200) { \n";
   //str+="   eval(this.responseText)}};   xhttp.open('GET', 'getData', true); xhttp.send(); }};\n";
 
 //WEB SOCKETS
-   str+="var connection = new WebSocket('ws://192.168.1.105:81');\n";
+   str+="var connection = new WebSocket('ws://192.168.1.100:81');\n";
   str+="connection.onopen = function(){ console.log('Connection open!');}\n";
   str+="connection.onclose = function(){console.log('Connection closed');}\n";
   str+="connection.onerror = function(error){   console.log('Error detected: ' + error);}\n";

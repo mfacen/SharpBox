@@ -29,11 +29,10 @@ class Label: public Output {
       id = n;
       text = t;
       parent = e;
-      html="<span id='"+id+ "'><h5>"+text+"</h5></span>"; 
              pushElement(this);          // Los elementos basicos se registran solos en el AllHTMLElemens !!
 
     }
-    String getHtml(){ return html;  }
+    String getHtml(){ return "<span id='"+id+ "'><h5>"+text+"</h5></span>";  }
     String postCallBack(ElementsHTML* e,String postValue) { if(parent) return parent->postCallBack(this,postValue); }
     void update ( String newValue ) { text= newValue; javaQueue.add("document.getElementById('" + id + "').innerHTML='<h5>"+text+"</h5>';");}
     void update(){ javaQueue.add("document.getElementById('" + id + "').innerHTML='V: "+text+"';"); } 
@@ -57,10 +56,9 @@ class Image: public Output {
       id = n;
       url = t;
       parent = e;
-      html="<img id='"+id+ "' src='"+t+"'>"; 
       pushElement(this);          // Los elementos basicos se registran solos en el AllHTMLElemens !!
     }
-    String getHtml(){ return html;  }
+    String getHtml(){ return "<img id='"+id+ "' src='"+url+"'>";  }
     String postCallBack(ElementsHTML* e,String postValue ) { if(parent) return parent->postCallBack(this,postValue); }
     void update ( String newValue ) { url= newValue; javaQueue.add("document.getElementById('" + id + "').src='"+url+"';");}
     void update(int){ } 
@@ -75,8 +73,8 @@ class Image: public Output {
 
 class Graphic: public Output {
   public:
-    Graphic(String s, ElementsHTML* e=0){ name=s;id=s;parent=e; html="<canvas id='"+id+"' heigth='130'></canvas><script>var xPos=0;</script>";}
-    String getHtml(){ return html;  }
+    Graphic(String s, ElementsHTML* e=0){ name=s;id=s;parent=e;}
+    String getHtml(){ return "<canvas id='"+id+"' heigth='130'></canvas><script>var xPos=0;</script>";  }
     String postCallBack(ElementsHTML* e,String postValue ) { if(parent) return parent->postCallBack(this,postValue); }
     void update ( int newValue ) {
           String str;
@@ -124,7 +122,6 @@ class Graphic: public Output {
         stateStr="OFF";
         label = new Label ("lbl"+id,stateStr,this);
         img = new Image ("img"+id,"LampOn.bmp",this);
-        html="<div><h4>"+name+"</h4>"+label->getHtml()+img->getHtml()+"</div>";
         pinMode(pin,OUTPUT);
          };
       void update(){};
@@ -154,7 +151,7 @@ class Graphic: public Output {
         }
       }
     String getState(){  return stateStr; }
-    String getHtml(){ return html;  }
+    String getHtml(){ return "<div><h4>"+name+"</h4>"+label->getHtml()+img->getHtml()+"</div>";  }
     String postCallBack(ElementsHTML* e,String postValue ) {  return "";      }
     private:
       int pin;

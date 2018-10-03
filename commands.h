@@ -31,15 +31,12 @@ public:
    comboBox1 = new ComboBox ( name+"combo",2,f);
    
  //   btn = new Button ("btn"+name,"btnAction","Action",this);
-      html="<div><h4>"+name+"</h4>"+output->name+"  "+ comboBox1->getHtml() +"</div>";
   }
   bool run () {
     output->update(comboBox1->value);
     return true;
   }
-  String getHtml(){
-    return html;
-  }
+  String getHtml(){  return "<div><h4>"+name+"</h4>"+output->name+"  "+ comboBox1->getHtml() +"</div>";  }
   String postCallBack(ElementsHTML* e,String postValue){ if (postValue == "btnAction") output->update(comboBox1->value);};
   void update(){output->update(comboBox1->value);}
   
@@ -85,18 +82,18 @@ class Pause: public Commands {
 // ########################################
 class Logger: public Commands {
   public:
-    Logger ( String s , Input* in) {id=s;name=s;input=in;html="<div><h4>Logger "+name+"</h4>Input: "+input->name+"</div>";}
+    Logger ( String s , Input* in) {id=s;name=s;input=in;}
     bool run(){return logData(input);}
     void update(){input->update();}
     bool logData( Input* i){
       File tempLog ;
       tempLog = SPIFFS.open("/dataLog.csv", "a"); // Write the time and the temperature to the csv file
       bool r=tempLog;
-      tempLog.println(i->name+": "+String(i->value));
+      tempLog.println(i->getName()+": "+String(i->value));
       tempLog.close();
       return r;
     }
-      String getHtml(){return html;}      //              Atencion si falta una de los metodos static se produce un Error que no se detecta y no hay HTML
+      String getHtml(){return "<div><h4>Logger "+name+"</h4>Input: "+input->getName()+"</div>";}      //              Atencion si falta una de los metodos static se produce un Error que no se detecta y no hay HTML
   String postCallBack(ElementsHTML* e,String postValue){};
 
   private:
@@ -134,10 +131,11 @@ class IfCommand: public CommandsComposite {
     }
   }
   String getHtml(){
-    html = "<div><h4>"+name+"</h4>"+inL->getHtml()+"  > " + inR->getHtml()+"<br>";
+    String html = "<div><h4>"+name+"</h4>"+inL->getHtml()+"  > " + inR->getHtml()+"<br>";
     for ( int i=0; i<command_count; i++) {
       html+=commands[i]->getHtml();
     }
+    return html;
   }
   void addCommand( Commands* c) {commands [ command_count ] = c; command_count++; }
     String postCallBack(ElementsHTML* e,String postValue){};
@@ -165,24 +163,26 @@ class ActiveControl:public Commands {
        name = n;
           id=name; 
           
-    html="<div id='"+id+"'><h4>"+name+"</h4> If "+ inputLeft->getHtml() +"  "+ op + "  " + inputRight->getHtml()+ "  Then  " + output->name + " =  "+inputEdit->getHtml()+"</div>";
     inputEdit->parent=this;
     
     };
     
-  String getHtml(){return html;}
+  String getHtml(){return "<div id='"+id+"'><h4>"+name+"</h4> If "+ inputLeft->getHtml() +"  "+ op + "  " + inputRight->getHtml()+ "  Then  " + output->name + " =  "+inputEdit->getHtml()+"</div>";}
 
   void update(){
     inputEdit->update();
     if (op==">") {
       if ( inputLeft->value > inputRight->value ) {
-                  //javaQueue.add("console.log('greater');");
           output->update(  inputEdit->value );
       }
     }
         if (op=="=") {
       if ( inputLeft->value == inputRight->value ) {
-          javaQueue.add("console.log('equal');");
+          output->update(  inputEdit->value );
+      }
+    }
+    if (op=="<") {
+      if ( inputLeft->value < inputRight->value ) {
           output->update(  inputEdit->value );
       }
     }
@@ -236,21 +236,21 @@ int value=0;
 // ########################################
 //  Command Keypad Control
 // ########################################
-//class KeyPadCommand: public Commands {
-//  public:
-//  KeyPad* keypad;
-//   KeyPadCommand( String n ){
-//    name = n;
-//    id = n;
-//    keypad = new KeyPad(name+"kpd");
-//   }
-//   String getHtml(){ return "<div><h4>"+name+"</h4>"+keypad->getHtml()+"</div>"; }
-//     bool run(){
-//    //update();
-//    if (keypad->value==0) return false; else return true;
-//  }
-//    String postCallBack(ElementsHTML* e,String postValue,String postDatavalue){};
-//void update(){};
-//
-//};
+class KeypadControl: public Commands {
+  public:
+  KeyPad* keypad;
+   KeypadControl( String n ){
+    name = n;
+    id = n;
+    keypad = new KeyPad(name+"kpd");
+   }
+   String getHtml(){ return "<div><h4>"+name+"</h4>"+keypad->getHtml()+"</div>"; }
+     bool run(){
+    //update();
+    if (keypad->value==0) return false; else return true;
+  }
+    String postCallBack(ElementsHTML* e,String postValue){};
+void update(){};
+
+};
 
