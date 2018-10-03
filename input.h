@@ -25,7 +25,7 @@ class Button: public Input {
     Button(String n, String dataValue , String t, ElementsHTML* e = 0  ) {
       name = n;
       id = n;
-      if (e!=0) parent = e;                                                                            //ERROR ERROR ERROR ERROR NO HACER ESTO Serial.println (t);
+      parent = e;                                                                            //ERROR ERROR ERROR ERROR NO HACER ESTO Serial.println (t);
       pushElement(this);          // Los elementos basicos se registran solos en el AllHTMLElemens !!
       html = "<button type='button' width='40' id='" + id + "' value ='" + name + "' name='" + name + "' data-value='" + dataValue + "' onclick=\"btnClickText('" + id + "','" + name + "','" + dataValue + "')\" >" + t + "</button>\n";
     }
@@ -285,6 +285,7 @@ class KeyPad: public Input {  // Aqui lo he cambiado !!!!!!!!!!!!!!!!!!!!!!!!!!!
 
         buttons[i] = new Button (name+"btn"+String(i), String(i), String(i),this);  // esto indica que tiene pariente 
 //        addChild (buttons[i]);
+//yield();
         buttons[i]->datavalue = name;   ///   AQUI HE CAMBIADO
         html += buttons[i]->getHtml()+"\n";
         if ((i==2)||(i==5)||(i==8)) html+="<br>";

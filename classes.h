@@ -89,6 +89,7 @@ String name;
     if (runIndex>=commandCount) runIndex=0;
     javaQueue.add("document.getElementById('" + label->id + "').innerHTML='" + String(runIndex) +"  current: "+listOfCommands[runIndex]->name+ "';");
   }
+  
   String getHtml(){
     String html;
     html+="<div id='"+id+"'><h4>"+name+"</h4> CommandCount = " + label->getHtml()+"<br>";
@@ -133,10 +134,10 @@ public:
    String getHtml(){
     String htmlStr;
     htmlStr+="<html><head> <link rel='stylesheet' type='text/css' href='style1.css'> </head><body>\n";
-    htmlStr+="<h1>TheThing<h1><h3>The smart controller.</h3><a href='dataLog.csv'>dataLog.csv</a><a href='/delete?file=/dataLog.csv'>Delete Log</a><br>\n";
+    htmlStr+="<h1>TheThing</h1><h3>The smart controller.</h3><a href='dataLog.csv'>dataLog.csv</a><a href='/delete?file=/dataLog.csv'>Delete Log</a><br>\n";
     for ( int i=0; i<elementCount; i++) {   htmlStr+=listOfElements[i]->getHtml()+"\n"; }
-    
-   
+       Serial.println(listOfElements[0]->getHtml());  // Atencion no usar Serial en Constructor !!!
+
     htmlStr+=getJavaScript();
       
 htmlStr+="<br><span id='errorLabel'></span><br>\n";
@@ -148,6 +149,7 @@ htmlStr+="<br><span id='errorLabel'></span><br>\n";
 htmlStr+="Total KB: "+String(fileTotalKB)+"Kb / Used: "+String(fileUsedKB);
   
 htmlStr+= "</body></html>";    
+
     return htmlStr;
   }
   String getJavaScript(){

@@ -189,7 +189,7 @@ unsigned long countdownSetTime = 0;
 //       pause1.start();
   // page.addElement(&comboBox1);
  //   page.addElement(&control1);
- //       page.addElement(&keypad1);        // Parece que el Keypad da problemas, numero de elementos ????  El Keypad tambien tiene problemas !!!
+        page.addElement(&keypad1);        // Parece que el Keypad da problemas, numero de elementos ????  El Keypad tambien tiene problemas !!!
     page.addElement(&program1);       // El program es el que esta haciendo randoms problems
     page.addElement(&lblFreeHeap);
     page.addElement(&relay1);
@@ -235,7 +235,7 @@ if (( currentMillis - lastUpdate ) > 300 ) {   //  now it updates every 5 second
     //control1.update();
     program1.run();
     lastUpdate = currentMillis;
-     Serial.println("Heap Left: "+String(ESP.getFreeHeap(),DEC));
+     Serial.println("Heap Left: "+String(ESP.getFreeHeap(),DEC));//+" :Frag: " +String(ESP.getHeapFragmentation(),DEC)+"   Max-SIze = "+ String(ESP.getMaxFreeBlockSize()));
      String ss= page.getJavaQueue();            // Get the JavaScript Queue from page
      Serial.println(ss);
      if (ss!="") webSocket.broadcastTXT(ss);   //  WebSoket necesita una variable, no puedo poner page.getJavaQueue directamente
