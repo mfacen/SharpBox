@@ -40,7 +40,7 @@ public:
   String getHtml(){
     return html;
   }
-  String postCallBack(ElementsHTML* e,String postValue,String postDatavalue){ if (postValue == "btnAction") output->update(comboBox1->value);};
+  String postCallBack(ElementsHTML* e,String postValue){ if (postValue == "btnAction") output->update(comboBox1->value);};
   void update(){output->update(comboBox1->value);}
   
 };
@@ -68,7 +68,7 @@ class Pause: public Commands {
       if  (  (lastTimeCheck - millis()  ) > 1000 ) { lastTimeCheck = millis (); value = value - 1; update(); }
       if (( millis()-lastUpdate ) > interval*1000 ) {firstRun=true;return true;} else return false;
   };
-  String postCallBack(ElementsHTML* e,String postValue,String postDatavalue){};
+  String postCallBack(ElementsHTML* e,String postValue){};
   void start( ) { lastUpdate  = millis();}
   void update(){} //javaQueue.add("document.getElementById('" + editTime->id + "').setAttribute('innerHTML', '"+String(value)+"');");    }
   private:
@@ -97,7 +97,7 @@ class Logger: public Commands {
       return r;
     }
       String getHtml(){return html;}      //              Atencion si falta una de los metodos static se produce un Error que no se detecta y no hay HTML
-  String postCallBack(ElementsHTML* e,String postValue,String postDatavalue){};
+  String postCallBack(ElementsHTML* e,String postValue){};
 
   private:
     Input* input;
@@ -140,7 +140,7 @@ class IfCommand: public CommandsComposite {
     }
   }
   void addCommand( Commands* c) {commands [ command_count ] = c; command_count++; }
-    String postCallBack(ElementsHTML* e,String postValue,String postDatavalue){};
+    String postCallBack(ElementsHTML* e,String postValue){};
  void update(){};
   private:
   Input* inL;
@@ -191,7 +191,7 @@ class ActiveControl:public Commands {
     update();
     return true;
   }
-   String postCallBack(ElementsHTML* e,String postValue, String postDataValue) {   return "";  }
+   String postCallBack(ElementsHTML* e,String postValue) {   return "";  }
 };
 
 
@@ -229,7 +229,7 @@ int value=0;
     update();
     if (value==0) return false; else return true;
   }
-    String postCallBack(ElementsHTML* e,String postValue,String postDatavalue){};
+    String postCallBack(ElementsHTML* e,String postValue){};
 
 };
 

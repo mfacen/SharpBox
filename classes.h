@@ -30,12 +30,11 @@ class ElementsHTML{
   String id;
   String descriptor;
   String html;
-  String datavalue;
   ElementsHTML* parent = 0;
  static  JavaQueue javaQueue;
 
  virtual void update(){};
-  virtual   String postCallBack(ElementsHTML* e,String postValue, String postDataValue){}; // es virtual, lo tienen que implementar los hijos       ATENCION CUANDO DICE VTABLE ES QUE HE DEJADO UNA FUNCION SIN DEFINIR
+  virtual   String postCallBack(ElementsHTML* e,String postValue){}; // es virtual, lo tienen que implementar los hijos       ATENCION CUANDO DICE VTABLE ES QUE HE DEJADO UNA FUNCION SIN DEFINIR
   virtual String getHtml(){};
  // ElementsHTML* getIdOwner (String idd){if (this->id=idd) return this;else return nullptr;}
   static String getJavaQueue(){return javaQueue.get();}

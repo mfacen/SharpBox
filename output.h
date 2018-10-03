@@ -34,7 +34,7 @@ class Label: public Output {
 
     }
     String getHtml(){ return html;  }
-    String postCallBack(ElementsHTML* e,String postValue , String postDataValue) { if(parent) return parent->postCallBack(this,postValue,postDataValue); }
+    String postCallBack(ElementsHTML* e,String postValue) { if(parent) return parent->postCallBack(this,postValue); }
     void update ( String newValue ) { text= newValue; javaQueue.add("document.getElementById('" + id + "').innerHTML='<h5>"+text+"</h5>';");}
     void update(){ javaQueue.add("document.getElementById('" + id + "').innerHTML='V: "+text+"';"); } 
     void update(int newValue){update(String(newValue));}
@@ -61,7 +61,7 @@ class Image: public Output {
       pushElement(this);          // Los elementos basicos se registran solos en el AllHTMLElemens !!
     }
     String getHtml(){ return html;  }
-    String postCallBack(ElementsHTML* e,String postValue , String postDataValue) { if(parent) return parent->postCallBack(this,postValue,postDataValue); }
+    String postCallBack(ElementsHTML* e,String postValue ) { if(parent) return parent->postCallBack(this,postValue); }
     void update ( String newValue ) { url= newValue; javaQueue.add("document.getElementById('" + id + "').src='"+url+"';");}
     void update(int){ } 
     void update(){}
@@ -77,7 +77,7 @@ class Graphic: public Output {
   public:
     Graphic(String s, ElementsHTML* e=0){ name=s;id=s;parent=e; html="<canvas id='"+id+"' heigth='130'></canvas><script>var xPos=0;</script>";}
     String getHtml(){ return html;  }
-    String postCallBack(ElementsHTML* e,String postValue , String postDataValue) { if(parent) return parent->postCallBack(this,postValue,postDataValue); }
+    String postCallBack(ElementsHTML* e,String postValue ) { if(parent) return parent->postCallBack(this,postValue); }
     void update ( int newValue ) {
           String str;
           str+="var canvas = document.getElementById('"+id+"');\n";
@@ -155,7 +155,7 @@ class Graphic: public Output {
       }
     String getState(){  return stateStr; }
     String getHtml(){ return html;  }
-    String postCallBack(ElementsHTML* e,String postValue , String postDataValue) {  return "";      }
+    String postCallBack(ElementsHTML* e,String postValue ) {  return "";      }
     private:
       int pin;
       Label* label;
