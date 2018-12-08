@@ -18,50 +18,58 @@
   public:
     JavaQueue(){};
     String queue="";
-    void add (String q){queue+=q;}
+    void add (String q){queue+=q+"\n";}
     String get(){String temp=queue;queue="";return temp;}
 };
 
-class ElementsHTML{
+
+
+class ElementsHtml{
   public:
-  ~ElementsHTML(){};      // destructor...     todas las clases abstractas deben tener un destructor definido.
+  ~ElementsHtml(){};      // destructor...     todas las clases abstractas deben tener un destructor definido.
  // static Page page;
   String name;
   String id;
   String descriptor;
+  String style="";
+  bool visible=true;
   //String html;
-  ElementsHTML* parent = 0;
-
+  ElementsHtml* parent = 0;
+  //Wrapper* wrapper = nullptr;
       String getName(){return name;}
     String getId(){return id;}
     void setId(String i){id=i;}
     void setName(String n){name=n;}
-    
+    void setStyle(String s){style=s;}
  static  JavaQueue javaQueue;
-
+ //void setWrapper(String before, String after){wrapper = new Wrapper(before,after);}
  virtual void update(){};
-  virtual   String postCallBack(ElementsHTML* e,String postValue){}; // es virtual, lo tienen que implementar los hijos       ATENCION CUANDO DICE VTABLE ES QUE HE DEJADO UNA FUNCION SIN DEFINIR
+  virtual   String postCallBack(ElementsHtml* e,String postValue){}; // es virtual, lo tienen que implementar los hijos       ATENCION CUANDO DICE VTABLE ES QUE HE DEJADO UNA FUNCION SIN DEFINIR
   virtual String getHtml(){};
- // ElementsHTML* getIdOwner (String idd){if (this->id=idd) return this;else return nullptr;}
   static String getJavaQueue(){return javaQueue.get();}
-  static std::vector <ElementsHTML*> allHTMLElements;
-  static void pushElement(ElementsHTML* e){allHTMLElements.push_back(e); }
-  static void deleteElement(ElementsHTML* e){}   //  Todavia no he implementado esto
+  void setVisible(bool v) { v? javaQueue.add("document.getElementById('" + this->id + "').style.display='inline';") : javaQueue.add("document.getElementById('" + id + "').style.display='none';");}   //{visible=v;}
+
+  static std::vector <ElementsHtml*> allHTMLElements;
+  static void pushElement(ElementsHtml* e){allHTMLElements.push_back(e); }
+  static void deleteElement(ElementsHtml* e){}   //  Todavia no he implementado esto
+  static char html [5000];
+  static void htmlAdd(const char* s){ strncat(html,s,2000);} // Copy char* s at the end of html, max lenght 2000.
+  static String htmlGet(){ return html;} // Copy char* s at the end of html, max lenght 2000.
 };
 
-class CompositeHtml: public ElementsHTML {
+class CompositeHtml: public ElementsHtml {
   public:
-    void addChild(ElementsHTML* e) { childs.push_back(e);}
-    String getHtml() {for (int i = 0; i<childs.size(); i++) { }  }  // iterate through the childs
+    void addChild(ElementsHtml* e) { childs.push_back(e);}
+    String getHtml() {String s;for (int i = 0; i<childs.size(); i++) { s+=childs[i]->getHtml(); }; return s; }  // iterate through the childs
   private:
-    std::vector <ElementsHTML*> childs;
+    std::vector <ElementsHtml*> childs;
 };
 
 
 
-JavaQueue ElementsHTML::javaQueue;                  // Los miembros STATIC necesitan esta inicializacion, si no no funcionan... ???
-std::vector <ElementsHTML*> ElementsHTML::allHTMLElements;
-
+JavaQueue ElementsHtml::javaQueue;                  // Los miembros STATIC necesitan esta inicializacion, si no no funcionan... ???
+std::vector <ElementsHtml*> ElementsHtml::allHTMLElements;
+char ElementsHtml::html[5000];
 
 #include "output.h"
 
@@ -75,7 +83,7 @@ std::vector <ElementsHTML*> ElementsHTML::allHTMLElements;
 //  Program
 // ########################################
 
-class Program: public ElementsHTML {
+class Program: public ElementsHtml {
 public:
 String name;
   Program ( String n ){
@@ -114,6 +122,13 @@ String name;
   
 };
 
+//class CompositeProgram: public Program {
+//  public:
+//    void addCommand(Commands* e) { childs.push_back(e);}
+//    String getHtml() {for (int i = 0; i<childs.size(); i++) { }  }  // iterate through the childs
+//  private:
+//    std::vector <Commands*> childs;
+//};
 
 // ########################################
 //  Page
@@ -122,13 +137,16 @@ String name;
 class Page {
 public:
 
-   ElementsHTML* listOfElements[50];
+   ElementsHtml* listOfElements[50];
+   String strings[50];
    int elementCount = 0;
-   
-  void addElement (ElementsHTML* el){
+
+   Page(String stitle, String sSubTitle){title = stitle; subTitle= sSubTitle;}
+  void addElement (ElementsHtml* el){
     listOfElements[elementCount] = el;
     elementCount++;
   }
+  void addString( String s ) { strings[elementCount] = s;}
   void deleteElement(int index){
     for ( int i=index; i<49; i++)
       listOfElements[i]=listOfElements[i+1];
@@ -139,19 +157,19 @@ public:
   }
    String getJavaQueue(){
         String reply;   //  for ( int i=0; i<elementCount; i++) {   reply+=listOfElements[i]->getJavaQueue(); }
-        reply = ElementsHTML::getJavaQueue();
+        reply = ElementsHtml::getJavaQueue();
        return reply;
    }
    String getHtml(){
     String htmlStr;
-    htmlStr+="<html><head> <link rel='stylesheet' type='text/css' href='style1.css'> </head><body>\n";
-    htmlStr+="<h1>TheThing</h1><h3>The smart controller.</h3><a href='dataLog.csv'>dataLog.csv</a><a href='/delete?file=/dataLog.csv'>Delete Log</a><br>\n";
-    for ( int i=0; i<elementCount; i++) {   htmlStr+=listOfElements[i]->getHtml()+"\n"; }
+    htmlStr+="<html><head> <link rel='stylesheet' type='text/css' href='style1.css'></head><body>\n";
+    htmlStr+="<h1>"+title+"</h1><h3>"+subTitle+"</h3><nav><a href='edit.html'>Upload</a><a href='dataLog.csv'>dataLog</a></nav><br>\n";
+    for ( int i=0; i<elementCount; i++) {   if (strings[i]) {htmlStr+=strings[i];}; htmlStr+=listOfElements[i]->getHtml()+"\n"; }
        Serial.println(listOfElements[0]->getHtml());  // Atencion no usar Serial en Constructor !!!
 
     htmlStr+=getJavaScript();
       
-htmlStr+="<br><span id='errorLabel'></span><br>\n";
+htmlStr+="<br><span id='errorLabel'></span><br>\n<button type = 'button' dataValue='primus,2323' onclick='btnClick(this)' id='switchToStation'>Connectar WIFI</button><br>";
 
   FSInfo fs_info;
   SPIFFS.info(fs_info);
@@ -165,28 +183,32 @@ htmlStr+= "</body></html>";
   }
   String getJavaScript(){
       String str;
-    str += "<script> \n function btnClick(btn){ \t var xhttp = new XMLHttpRequest(); \n";
-    str += " \t elementName=btn.id;elementValue=btn.value;xhttp.onreadystatechange = function()\n";
-    str += " { if (this.readyState == 4 && this.status == 200) {console.log(this.responseText);eval(this.responseText)}\n";    //eval(this.responseText); 
-  str += "}; xhttp.open('GET', 'btnClick?button='+ elementName + '&value=' + elementValue +'&datavalue=' + elementdataValue, true);xhttp.send();};\n";
-
-      str += "function btnClickText(elementName,elementValue){var xhttp = new XMLHttpRequest();\n";
-    str += " xhttp.onreadystatechange = function()";
-    str += " { if (this.readyState == 4 && this.status == 200) {eval(this.responseText);}\n";     
-  str += "}; xhttp.open('GET', 'btnClick?button='+ elementName + '&value='+ elementValue +'', true);xhttp.send();}\n";
+//    str += "<script> \n function btnClick(btn){ \t var xhttp = new XMLHttpRequest(); \n";
+//    str += " \t elementName=btn.id;elementValue=btn.value;xhttp.onreadystatechange = function()\n";
+//    str += " { if (this.readyState == 4 && this.status == 200) {console.log(this.responseText);eval(this.responseText)}\n";    //eval(this.responseText); 
+//  str += "}; xhttp.open('GET', 'btnClick?button='+ elementName + '&value=' + elementValue +'&datavalue=' + elementdataValue, true);xhttp.send();};\n";
+//
+//      str += "function btnClickText(elementName,elementValue){var xhttp = new XMLHttpRequest();\n";
+//    str += " xhttp.onreadystatechange = function()";
+//    str += " { if (this.readyState == 4 && this.status == 200) {eval(this.responseText);}\n";     
+//  str += "}; xhttp.open('GET', 'btnClick?button='+ elementName + '&value='+ elementValue +'', true);xhttp.send();}\n";
  // str+="setInterval(function() {getData();}, 1000); function getData(){ if (connection) connection.send('getData');else {var  xhttp = new XMLHttpRequest(); xhttp.onreadystatechange = function() {if (this.readyState == 4 && this.status == 200) { \n";
   //str+="   eval(this.responseText)}};   xhttp.open('GET', 'getData', true); xhttp.send(); }};\n";
 
 //WEB SOCKETS
-   str+="var connection = new WebSocket('ws://192.168.1.100:81');\n";
-  str+="connection.onopen = function(){ console.log('Connection open!');}\n";
-  str+="connection.onclose = function(){console.log('Connection closed');}\n";
-  str+="connection.onerror = function(error){   console.log('Error detected: ' + error);}\n";
-  str+="connection.onmessage = function(e){   var server_message = e.data;  eval(server_message); }\n";
-  str+= "</script>";
+//   str+="var connection = new WebSocket('ws://192.168.1.100:81');\n";
+//  str+="connection.onopen = function(){ console.log('Connection open!');}\n";
+//  str+="connection.onclose = function(){console.log('Connection closed');}\n";
+//  str+="connection.onerror = function(error){   console.log('Error detected: ' + error);}\n";
+//  str+="connection.onmessage = function(e){   var server_message = e.data;  eval(server_message); }\n";
+//  str+= "</script>";
+str+="<script src='javascript.js'></script>";
   return str;
   }
-  
+
+  private:
+  String title;
+  String subTitle;
 };
 
 

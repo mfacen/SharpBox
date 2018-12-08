@@ -1,6 +1,7 @@
 
 #include <OneWire.h>
 #include <DallasTemperature.h>
+#include "DHT.h"
 #include <WiFiManager.h>
 #include <ESP8266WiFi.h>
 #include <ESP8266WebServer.h>
@@ -84,34 +85,35 @@ unsigned long countdownSetTime = 0;
 
 
 
-    Page page;
+    Page page("Sharp Box","The smart controller.");
   //String f[5] = { "uno","dos","tres","cuatro","Cinco" };
   String f[2] = { "OFF" , "ON" };
   ComboBox comboBox1 ( "combo1",2,f);
   ComboBox comboBox2 ( "combo2",2,f);
   //ComboBox comboBox3 ( "combo3",2,f);
   AnalogIn analogIn1 ( A0,"analog1");
-  DigitalIn digitalIn1 ( D2,"digital1");
+  DigitalIn digitalIn1 ( D1,"digital1");
   Logger logger1("logger1",&analogIn1);
   DigitalOutput digitalOut1 ( D1,"digiOut1","digiout1");
   RelayOutput   relay1 (RELAY_1_PIN,"Relay 1 110VAC","relay1");
   RelayOutput   relay2 (RELAY_2_PIN,"Relay 2 110VAC","relay2");
   RelayOutput   relay3 (RELAY_3_PIN,"Relay 3 110VAC","relay3");
   Dsb18B20 tempSensor ( TEMP_SENSOR_PIN ,"Temp_Probe");   // habria que crearlo solo si encontro el sensor
+  Dht11 dht1( D5,"dht1");
   Button button1("btn1","button1");
-   KeyPad keypad1 ("keypad1");
+ //  KeyPad keypad1 ("keypad1");
  // KeyPadCommand keypadCom("keyPadCom1");
   EditBox edit1 ("edit1","edit1");
   EditBox edit2 ("edit2","edit2");
   Label label1 ("label1","this is Label1");
   Label label2 ("label2","this is Label2");
     Graphic graphic1("graphic1");
-KeypadControl keypadControl1("keyPadCtrl1");
+//KeypadControl keypadControl1("keyPadCtrl1");
 
-  ActiveControl control1 ("control1" , &digitalIn1 ,"=",  &edit2  , &graphic1 , &analogIn1 );
-  ActiveControl control2 ("control2" , &analogIn1 , ">", &edit1 , &relay1 , &edit2 );
+  ActiveControl control1 ("control1" , &dht1 ,"=",  &edit2  , &graphic1 , &analogIn1 );
+  ActiveControl control2 ("control2" , &analogIn1 , ">", &edit1 , &relay3 , &edit2 );
   //ActiveControl control3 ("control3" , &tempSensor , "=", &edit1 , &relay1 , &edit2 );// xq hay problemas en la creacion de esto ?
-  Set set1 ("set1",&relay2);
+  Set set1 ("set1",&relay1);
   Set set2 ("set2",&relay2);
   //Set set3 ("set3",&relay2);
  // KeyPad keypad2 ("keypad2");   //     POR ALGUNA RAZON ESTO LO TRABA Y NO DA NINGUN HTML DE SALIDA
@@ -119,7 +121,7 @@ KeypadControl keypadControl1("keyPadCtrl1");
   //Program program2 ("program2");
   //Pause pause1 ("pause1",1);
   LabelFreeHeap lblFreeHeap("lblHeap","");
-//  IfCommand if1("If numero 1",&keypad1,&edit2);
+//  IfCommand if1("If numero 1",&edit1,&edit2);
 ///////////////////////////////////////////////////////////////////////////
 ////                                                               ////////
 ///////              SETUP                                          ////////
@@ -178,7 +180,7 @@ KeypadControl keypadControl1("keyPadCtrl1");
    
          program1.addCommand(&set1);
        program1.addCommand(&set2);
-              program1.addCommand(&keypadControl1);
+//               program1.addCommand(&keypadControl1);
 
        program1.addCommand(&control1);
        program1.addCommand(&logger1);
@@ -188,10 +190,10 @@ KeypadControl keypadControl1("keyPadCtrl1");
    //   if1.addCommand(&set3);
  //      program1.addCommand(&if1);    //  esto esta produciendo error
 //       pause1.start();
- //  page.addElement(&comboBox1);
+  page.addElement(&button1);
 
  //   page.addElement(&control1);
-      //  page.addElement(&keypad1);        // Parece que el Keypad da problemas, numero de elementos ????  El Keypad tambien tiene problemas !!!
+  //      page.addElement(&keypad1);        // Parece que el Keypad da problemas, numero de elementos ????  El Keypad tambien tiene problemas !!!
      page.addElement(&relay1);
     page.addElement(&relay2);
     page.addElement(&relay3);
@@ -209,7 +211,9 @@ KeypadControl keypadControl1("keyPadCtrl1");
 
     webSocket.begin();
     webSocket.onEvent(webSocketEvent);
-    
+    page.getHtml();
+    Serial.print("html:");
+    Serial.println(ElementsHtml::html);
 }
 
 
@@ -243,7 +247,7 @@ if (( currentMillis - lastUpdate ) > 1000 ) {   //  now it updates every 5 secon
      String ss= page.getJavaQueue();            // Get the JavaScript Queue from page
      //Serial.println(ss);
      if (ss!="") webSocket.broadcastTXT(ss);   //  WebSoket necesita una variable, no puedo poner page.getJavaQueue directamente
-    
+   
 }
     webSocket.loop();
 yield();
@@ -356,11 +360,11 @@ void handleNotFound() { // if the requested file or page doesn't exist, return a
   }
 }
 void handleIndex1() {
-String reply;
-  reply+= page.getHtml();
-  Serial.println( reply);
+//String reply;
+ // reply+= page.getHtml();
+ // Serial.println( reply);
   
-  server.send(200,"text/html",reply);
+  server.send(200,"text/html",page.getHtml());
 
 }
 
@@ -382,11 +386,11 @@ void handleBtnClick() {                             //////////////   HANDLE BUTT
                         reply=page.listOfElements[i]->postCallBack(page.listOfElements[i],buttonValue);
            }
       }
-  for (int i=0; i<ElementsHTML::allHTMLElements.size(); i++){
-        //Serial.println(ElementsHTML::allHTMLElements[i]->id);
-          if (ElementsHTML::allHTMLElements[i]->id==(buttonName) )  {
+  for (int i=0; i<ElementsHtml::allHTMLElements.size(); i++){
+        //Serial.println(ElementsHtml::allHTMLElements[i]->id);
+          if (ElementsHtml::allHTMLElements[i]->id==(buttonName) )  {
                         Serial.println("sent post call back to: " + buttonName);
-                        reply=ElementsHTML::allHTMLElements[i]->postCallBack(ElementsHTML::allHTMLElements[i],buttonValue);
+                        reply=ElementsHtml::allHTMLElements[i]->postCallBack(ElementsHtml::allHTMLElements[i],buttonValue);
            }
            
   }

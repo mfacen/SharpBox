@@ -6,9 +6,9 @@ class Input : public CompositeHtml {
 
   public:
 
-    float value;
-    int minValue;
-    int maxValue;
+    float value=0;
+    int minValue=0;
+    int maxValue=0;
     String unit;
     String text="";
     
@@ -17,37 +17,42 @@ class Input : public CompositeHtml {
 };
 
 // ########################################
-//  BUTTON
+//  BUTTON HTML
 // ########################################
 
 class Button: public Input {
   public:
-    Button(String n , String t, ElementsHTML* e = 0  ) {
+    Button(String n , String t, ElementsHtml* e = 0  ) {
       name = n;
       id = n;
       parent = e;  
       text = t;     //ERROR ERROR ERROR ERROR NO HACER ESTO Serial.println (t);
       pushElement(this);          // Los elementos basicos se registran solos en el AllHTMLElemens !!
     }
-    String postCallBack(ElementsHTML* e,String postValue) {
+    String postCallBack(ElementsHtml* e,String postValue) {
       if (parent) return parent->postCallBack(this,postValue);
       
       //return ("console.log('postCallBack of " + name+" parent: "+parent->name+"'); ");
       return "";
     } 
-    String getHtml() {  return "<button type='button' width='40' id='" + id + "' value ='" + name + "' name='" + name  + "' onclick=\"btnClickText('" + id + "','"+text+"')\" >" + text + "</button>\n";; }
+    String getHtml() { 
+    htmlAdd( "<button type='button' width='40' id='");htmlAdd( id.c_str());htmlAdd( "' value ='") ;htmlAdd( text.c_str());htmlAdd( "' onclick=\"btnClickText('");
+    htmlAdd(id.c_str()); htmlAdd( "','"); htmlAdd(text.c_str()); htmlAdd("')\" >");htmlAdd( text.c_str()); htmlAdd( "</button>\n");
+     return String(ElementsHtml::htmlGet());
+     }
     void update() {};
 };
 
 
+
 // ########################################
-//  Combo Box
+//  Combo Box HTML
 // ########################################
 class ComboBox: public Input {
   public:
   String *fields;
   int selected = 0;
-    ComboBox(String n, int s , String _fields[] ,  ElementsHTML* e=0) {
+    ComboBox(String n, int s , String _fields[] ,  ElementsHtml* e=0) {
       name = n;
       text="";
       id = n;
@@ -71,7 +76,7 @@ class ComboBox: public Input {
       javaQueue.add("document.getElementById('" + id + "').selectedIndex='" + String(selected) + "'; console.log('"+name+" update value="+String(value)+"');");
       
     }
-    String postCallBack(ElementsHTML* e,String postValue) {
+    String postCallBack(ElementsHtml* e,String postValue) {
                   selected = postValue.toInt();
                   update();
                   if (parent) parent->postCallBack(this,postValue);
@@ -84,7 +89,7 @@ class ComboBox: public Input {
 
 
 // ########################################
-//  DSB 18B20
+//  DSB 18B20 IN
 // ########################################
 
 class Dsb18B20: public Input {
@@ -109,7 +114,7 @@ class Dsb18B20: public Input {
          tempSensors->setWaitForConversion(false); //  block the program while the temperature sensor is reading
        tempSensors->begin();
     }
-    //~Dsb18B20(ElementsHTML::deleteElement(this));
+    //~Dsb18B20(ElementsHtml::deleteElement(this));
 
     String getHtml() { return " <div id='"+id+"'><h4>" + name + "</h4>"+descriptor+"<br>Temperature:" + String(value) + "</div>";  }
     
@@ -128,11 +133,55 @@ class Dsb18B20: public Input {
 
     }
 
-    String postCallBack(ElementsHTML* e,String postValue) {update();}
+    String postCallBack(ElementsHtml* e,String postValue) {update();}
   private:
   bool tempRequested = false;
   unsigned long lastTemperatureRequest;
   int intervalTemperature = 1500;
+};
+// ########################################
+//  DHT11 IN
+// ########################################
+
+class Dht11: public Input {
+    public:
+
+    int pin;
+    DHT* dhtSensor;
+  
+    Dht11 ( int _pin , String  _name) {
+      pin = _pin;
+      name = _name;
+      id = _name;
+      minValue = 0;
+      maxValue = 150;
+      unit = "grados";
+      descriptor = "DHT11 T/H";
+     // html = " <div id='"+id+"'><h4>" + name + "</h4>"+descriptor+"<br>Temperature:" + String(value) + "</div>";
+       pushElement(this);          // Los elementos basicos se registran solos en el AllHTMLElemens !!
+        dhtSensor = new DHT (pin, DHT11 );
+        dhtSensor->begin();
+    }
+    //~Dsb18B20(ElementsHtml::deleteElement(this));
+
+    String getHtml() { return " <div id='"+id+"'><h4>" + name + "</h4>"+descriptor+"<br>Temperature:" + String(value) + "</div>";  }
+    
+    void update() {
+       if ( ( millis() - lastTemperatureRequest) > intervalTemperature ) {
+        value = dhtSensor->readTemperature(); // Request the temperature from the sensor (it takes some time to read it)
+        //tempRequested=true;
+        lastTemperatureRequest = millis();
+      }
+
+      javaQueue.add( "document.getElementById('" + id + "').innerHtml='Temperature:" + String(value) + "';");
+
+    }
+
+    String postCallBack(ElementsHtml* e,String postValue) {update();}
+  private:
+  bool tempRequested = false;
+  unsigned long lastTemperatureRequest=0;
+  int intervalTemperature = 2000;
 };
 
 // ########################################
@@ -170,7 +219,7 @@ class AnalogIn: public Input {
       label->update(String(value));
     }
 
-    String postCallBack(ElementsHTML* e,String postValue) {update();}
+    String postCallBack(ElementsHtml* e,String postValue) {update();}
 
 };
 
@@ -202,18 +251,18 @@ class DigitalIn: public Input {
       label->update(String(value));
     }
 
-    String postCallBack(ElementsHTML* e,String postValue) {update();}
+    String postCallBack(ElementsHtml* e,String postValue) {update();}
 
 };
 
 
 // ########################################
-//  EDIT BOX
+//  EDIT BOX HTML
 // ########################################
 
 class EditBox: public Input {
   public:
-    EditBox(String n, String t, ElementsHTML* e=0) {
+    EditBox(String n, String t, ElementsHtml* e=0) {
       name = n;
       text=t;
       id = n;
@@ -230,7 +279,7 @@ class EditBox: public Input {
       javaQueue.add("document.getElementById('" + id + "').value='" + text + "';");
       
     }
-    String postCallBack(ElementsHTML* e,String postValue) {
+    String postCallBack(ElementsHtml* e,String postValue) {
                   text = postValue;
                   update();
                   if (parent) parent->postCallBack(this,postValue);
@@ -255,7 +304,7 @@ class EditBox: public Input {
 
 
 // ########################################
-//  KEYPAD
+//  KEYPAD HTML
 // ########################################
 class KeyPad: public Input  {  // Aqui lo he cambiado !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!  Antes era input
   public:
@@ -281,7 +330,7 @@ class KeyPad: public Input  {  // Aqui lo he cambiado !!!!!!!!!!!!!!!!!!!!!!!!!!
 
     }
     String getHtml() {
-      String h="<div><h4>" + name + "</h4>\n\t";
+      String h="<div id='"+name+"'><h4>" + name + "</h4>\n\t";
             for (int i = 0; i < 11; i++ ) {
               h+= buttons[i]->getHtml(); 
               if ((i==2)||(i==5)||(i==8)) h+="<br>";
@@ -289,7 +338,7 @@ class KeyPad: public Input  {  // Aqui lo he cambiado !!!!!!!!!!!!!!!!!!!!!!!!!!
             h+=edt->getHtml()+edtLabel->getHtml()+"</div>"; 
             return h;
     }
-    String postCallBack(ElementsHTML* e,String postValue) {
+    String postCallBack(ElementsHtml* e,String postValue) {
       if (postValue == "delete")edt->deleteChar();
       else  edt->appendText (postValue);
       update();
@@ -300,9 +349,58 @@ class KeyPad: public Input  {  // Aqui lo he cambiado !!!!!!!!!!!!!!!!!!!!!!!!!!
       !value ? state = "Locked" : state = "Unlocked";
       edtLabel->setText(state);
     };
+};
 
-   
 
 
+// ########################################
+//  ULTRA SOUND PROBE
+// ########################################
+
+class UltraSoundProbe: public Input {
+  public:
+  Label* label;
+  UltraSoundProbe ( String _name, int _pinTrig, int _pinEcho ) {
+    trigPin = _pinTrig;
+    echoPin = _pinEcho;
+    name = _name;
+    id = _name;
+    label = new Label(name+"lbl","",this); addChild(label);
+
+      pinMode(trigPin, OUTPUT);
+      pinMode(echoPin, INPUT); 
+  }
+
+  void update(){
+  value = getDistance();
+        label->update("Distance: "+String(value));
+
+  }
+
+  String getHtml() {  return " <div id='"+id+"'><h4>" + name + "</h4>"+descriptor+"<br>"+ label->getHtml() +  "</div>";
+    }
+
+    
+  float getDistance(){
+  digitalWrite(trigPin, LOW);
+  delayMicroseconds(2);
+  digitalWrite(trigPin, HIGH);
+  delayMicroseconds(10);
+  digitalWrite(trigPin, LOW);
+  
+  // Measure the response from the HC-SR04 Echo Pin
+ 
+  float duration = pulseIn(echoPin, HIGH);
+  
+  // Determine distance from duration
+  // Use 343 metres per second as speed of sound
+  
+  return (duration / 2) * 0.0343;
+  }
+
+  
+  private:
+    int trigPin;
+    int echoPin;
 };
 

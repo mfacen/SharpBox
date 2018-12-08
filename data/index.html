@@ -10,7 +10,7 @@
 </head>
 <body>
 	<header>
-	<h1>The Thing Box Controller</h1>
+	<h1>Octopus Controller</h1>
 	<nav>
 		<a href="edit.html">Upload</a>
 		<a href="connect">Connect</a>
@@ -20,8 +20,8 @@
 </header>
 	<div id="info">
 		<div id="time"> Time: <span id="TIME"></span></div>
-		<div id="temperature"> Temperature <span id="TEMPERATURE"></span> <br> <canvas id="tempGauge" height="60"></canvas><br>
-<div id="textTempGauge">50</div>
+		<div id="alimento"> Alimento <span id="ALIMENTO"></span> <br> <canvas id="alimentoGauge" height="60"></canvas><br>
+<div id="textAlimentoGauge">50</div>
 		<div id="timer">
 			Timer : <span id="TIMER">0</span><br>
 		</div>
@@ -29,10 +29,12 @@
 	</div>
 	<div id="relayControl">
 	<div id="relayButtons"> 
-		<button type="button" onclick="sendData(1,1)">RELAY 1 ON</button> 
-		<button type="button" onclick="sendData(1,0)">RELAY 1 OFF</button><br> 
-		<button type="button" onclick="sendData(2,1)">RELAY 2 ON</button> 
-		<button type="button" onclick="sendData(2,0)">RELAY 2 OFF</button><br>
+		<button type="button" onclick="sendData(1,1)">DISPENSER ON</button> 
+		<button type="button" onclick="sendData(1,0)">DISPENSER OFF</button><br> 
+		<button type="button" onclick="sendData(2,1)">CRAWLER ON</button> 
+		<button type="button" onclick="sendData(2,0)">CRAWLER OFF</button><br>
+		<button type="button" onclick="sendData(2,0)">CRAWLER DIRECTION</button><br>
+		<button type="button" onclick="sendData(2,0)">ULTRASOUND METER</button><br>
 	</div>
 	<div id="relayState">
 		RELAY 1 State is : <span id="RELAYState1">NA</span><br>
@@ -139,7 +141,7 @@ var opts = {
 ],
 
 };
-var target = document.getElementById('tempGauge'); // your canvas element
+var target = document.getElementById('alimentoGauge'); // your canvas element
 var gauge = new Gauge(target).setOptions(opts); // create sexy gauge!
 gauge.maxValue = 100; // set max gauge value
 gauge.setMinValue(0);  // Prefer setter over gauge.minValue = 0
@@ -181,7 +183,7 @@ gauge.animationSpeed = 32; // set animation speed (32 is default value)
 				var args = this.responseText.split(",");
 				document.getElementById("RELAYState1").innerHTML = args[0];
 				document.getElementById("RELAYState2").innerHTML = args[1];
-				document.getElementById("TEMPERATURE").innerHTML = args[2];
+				document.getElementById("ALIMENTO").innerHTML = args[2];
 				gauge.set(args[2]); 
 				document.getElementById("textTempGauge").innerHTML = args[2];
 

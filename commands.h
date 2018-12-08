@@ -3,7 +3,7 @@
 // ########################################
 class Program;
 ;
-class Commands: public ElementsHTML{
+class Commands: public ElementsHtml{
   public:
   bool executing=false;
   virtual bool run(){};
@@ -26,19 +26,15 @@ public:
     output = out;
     name = n;
     id = n;
-    //editOutput = new EditBox ( "edt"+name,"0");
-    
    comboBox1 = new ComboBox ( name+"combo",2,f);
-   
- //   btn = new Button ("btn"+name,"btnAction","Action",this);
   }
   bool run () {
     output->update(comboBox1->value);
     return true;
   }
-  String getHtml(){  return "<div><h4>"+name+"</h4>"+output->name+"  "+ comboBox1->getHtml() +"</div>";  }
-  String postCallBack(ElementsHTML* e,String postValue){ if (postValue == "btnAction") output->update(comboBox1->value);};
-  void update(){output->update(comboBox1->value);}
+  String getHtml(){  return "<div "+style+" id='"+name+"'><h4>"+name+"</h4>"+output->getHtml()+"  "+ comboBox1->getHtml() +"</div>";  }
+  String postCallBack(ElementsHtml* e,String postValue){ if (postValue == "btnAction") output->update(comboBox1->value);};
+  void update(){output->update(comboBox1->value);value=comboBox1->value;}
   
 };
 
@@ -58,14 +54,14 @@ class Pause: public Commands {
       
     
    String getHtml(){
-    return "<div><h4>"+name+"</h4>"+"<br>Time: "+editTime->getHtml()+"</div>";
+    return "<div id='"+name+"'><h4>"+name+"</h4>"+"<br>Time: "+editTime->getHtml()+"</div>";
    }
   bool run(){  
       if (firstRun){firstRun=false; start();}
       if  (  (lastTimeCheck - millis()  ) > 1000 ) { lastTimeCheck = millis (); value = value - 1; update(); }
       if (( millis()-lastUpdate ) > interval*1000 ) {firstRun=true;return true;} else return false;
   };
-  String postCallBack(ElementsHTML* e,String postValue){};
+  String postCallBack(ElementsHtml* e,String postValue){};
   void start( ) { lastUpdate  = millis();}
   void update(){} //javaQueue.add("document.getElementById('" + editTime->id + "').setAttribute('innerHTML', '"+String(value)+"');");    }
   private:
@@ -94,7 +90,7 @@ class Logger: public Commands {
       return r;
     }
       String getHtml(){return "<div><h4>Logger "+name+"</h4>Input: "+input->getName()+"</div>";}      //              Atencion si falta una de los metodos static se produce un Error que no se detecta y no hay HTML
-  String postCallBack(ElementsHTML* e,String postValue){};
+  String postCallBack(ElementsHtml* e,String postValue){};
 
   private:
     Input* input;
@@ -107,14 +103,17 @@ class Logger: public Commands {
 
 class CommandsComposite: public Commands {
   public:
-    int command_count = 0;
 
-  Commands* commands[];
-  //bool run();
-  String getHtml(){}
+  bool run(){
+    for ( int i=0; i<command_count; i++) {
+      commands[i]->run();
+    }
+  }  String getHtml(){}
   void addCommand( Commands* c) {commands [ command_count ] = c; command_count++; }
-  private:
-  
+  //private:
+      int command_count = 0;
+
+  Commands* commands[20];
 };
 
 
@@ -125,11 +124,7 @@ class CommandsComposite: public Commands {
 class IfCommand: public CommandsComposite {
   public:
   IfCommand(String s, Input* inLL, Input* inRR ){name=s;id=s;inR=inRR;inL=inLL; }//   ERROR ERROR ERROR ERROR ERROR  Serial.print("Created IfCommand "+name); };
-  bool run(){
-    for ( int i=0; i<command_count; i++) {
-      commands[i]->run();
-    }
-  }
+
   String getHtml(){
     String html = "<div><h4>"+name+"</h4>"+inL->getHtml()+"  > " + inR->getHtml()+"<br>";
     for ( int i=0; i<command_count; i++) {
@@ -137,8 +132,8 @@ class IfCommand: public CommandsComposite {
     }
     return html;
   }
-  void addCommand( Commands* c) {commands [ command_count ] = c; command_count++; }
-    String postCallBack(ElementsHTML* e,String postValue){};
+   
+    String postCallBack(ElementsHtml* e,String postValue){};
  void update(){};
   private:
   Input* inL;
@@ -171,6 +166,9 @@ class ActiveControl:public Commands {
 
   void update(){
     inputEdit->update();
+    inputLeft->update();
+    inputRight->update();
+    
     if (op==">") {
       if ( inputLeft->value > inputRight->value ) {
           output->update(  inputEdit->value );
@@ -191,7 +189,7 @@ class ActiveControl:public Commands {
     update();
     return true;
   }
-   String postCallBack(ElementsHTML* e,String postValue) {   return "";  }
+   String postCallBack(ElementsHtml* e,String postValue) {   return "";  }
 };
 
 
@@ -229,7 +227,7 @@ int value=0;
     update();
     if (value==0) return false; else return true;
   }
-    String postCallBack(ElementsHTML* e,String postValue){};
+    String postCallBack(ElementsHtml* e,String postValue){};
 
 };
 
@@ -249,7 +247,7 @@ class KeypadControl: public Commands {
     //update();
     if (keypad->value==0) return false; else return true;
   }
-    String postCallBack(ElementsHTML* e,String postValue){};
+    String postCallBack(ElementsHtml* e,String postValue){};
 void update(){};
 
 };

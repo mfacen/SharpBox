@@ -2,7 +2,7 @@
 //  OUTPUT
 // ########################################
 
-  class Output:public ElementsHTML {
+  class Output:public ElementsHtml {
 
     
   public:
@@ -12,7 +12,7 @@
   int minValue;
   int maxValue;
   String unit;
-
+  bool invertedLogic = true;
   virtual void update( int newValue){};
   String getHtml(){};
     };
@@ -24,7 +24,7 @@
 class Label: public Output {
   public:
   String text="Output::Label";
-    Label ( String n , String t, ElementsHTML* e = 0 ){
+    Label ( String n , String t, ElementsHtml* e = 0 ){
       name = n;
       id = n;
       text = t;
@@ -33,7 +33,7 @@ class Label: public Output {
 
     }
     String getHtml(){ return "<span id='"+id+ "'><h5>"+text+"</h5></span>";  }
-    String postCallBack(ElementsHTML* e,String postValue) { if(parent) return parent->postCallBack(this,postValue); }
+    String postCallBack(ElementsHtml* e,String postValue) { if(parent) return parent->postCallBack(this,postValue); }
     void update ( String newValue ) { text= newValue; javaQueue.add("document.getElementById('" + id + "').innerHTML='<h5>"+text+"</h5>';");}
     void update(){ javaQueue.add("document.getElementById('" + id + "').innerHTML='V: "+text+"';"); } 
     void update(int newValue){update(String(newValue));}
@@ -51,7 +51,7 @@ class LabelFreeHeap: public Label {
 
 class Image: public Output {
   public:
-    Image ( String n , String t, ElementsHTML* e = 0 ){
+    Image ( String n , String t, ElementsHtml* e = 0 ){
       name = n;
       id = n;
       url = t;
@@ -59,7 +59,7 @@ class Image: public Output {
       pushElement(this);          // Los elementos basicos se registran solos en el AllHTMLElemens !!
     }
     String getHtml(){ return "<img id='"+id+ "' src='"+url+"'>";  }
-    String postCallBack(ElementsHTML* e,String postValue ) { if(parent) return parent->postCallBack(this,postValue); }
+    String postCallBack(ElementsHtml* e,String postValue ) { if(parent) return parent->postCallBack(this,postValue); }
     void update ( String newValue ) { url= newValue; javaQueue.add("document.getElementById('" + id + "').src='"+url+"';");}
     void update(int){ } 
     void update(){}
@@ -73,9 +73,9 @@ class Image: public Output {
 
 class Graphic: public Output {
   public:
-    Graphic(String s, ElementsHTML* e=0){ name=s;id=s;parent=e;}
+    Graphic(String s, ElementsHtml* e=0){ name=s;id=s;parent=e;}
     String getHtml(){ return "<canvas id='"+id+"' heigth='130'></canvas><script>var xPos=0;</script>";  }
-    String postCallBack(ElementsHTML* e,String postValue ) { if(parent) return parent->postCallBack(this,postValue); }
+    String postCallBack(ElementsHtml* e,String postValue ) { if(parent) return parent->postCallBack(this,postValue); }
     void update ( int newValue ) {
           String str;
           str+="var canvas = document.getElementById('"+id+"');\n";
@@ -109,8 +109,7 @@ class Graphic: public Output {
   class DigitalOutput:public Output {
 
   public:
-        bool invertedLogic = false;
-        DigitalOutput ( int _pin , String _name, String _id ) {          /// Constructor
+        DigitalOutput ( int _pin , String _name, String _id, bool inverted=false ) {          /// Constructor
         pin = _pin;
         id= _id;
         name = "D-Out" + id;
@@ -123,6 +122,7 @@ class Graphic: public Output {
         label = new Label ("lbl"+id,stateStr,this);
         img = new Image ("img"+id,"LampOn.bmp",this);
         pinMode(pin,OUTPUT);
+        invertedLogic = inverted;
          };
       void update(){};
       void update(String s){update(s.toInt());};
@@ -152,7 +152,7 @@ class Graphic: public Output {
       }
     String getState(){  return stateStr; }
     String getHtml(){ return "<div><h4>"+name+"</h4>"+label->getHtml()+img->getHtml()+"</div>";  }
-    String postCallBack(ElementsHTML* e,String postValue ) {  return "";      }
+    String postCallBack(ElementsHtml* e,String postValue ) {  return "";      }
     private:
       int pin;
       Label* label;
@@ -161,9 +161,46 @@ class Graphic: public Output {
 
 class RelayOutput: public DigitalOutput {
   using DigitalOutput::DigitalOutput;       // inherit the constructor
-  bool invertedLogic = true;
   public:
+ // invertedLogic = true;
 
+};
+
+class Gauge: public Output {
+  public:
+  bool firstRun = true;
+    Gauge(String s, ElementsHtml* e=0){ name=s;id=s;parent=e;}
+    String getHtml(){ return "<script src='gauge.min.js'></script><script src='gaugeScript.js'></script><canvas id='"+id+"' heigth='60' width='100'></canvas>";  }
+    String postCallBack(ElementsHtml* e,String postValue ) { if(parent) return parent->postCallBack(this,postValue); }
+    void update(int v){value=v;update();}
+    void update(){
+      String str; if (firstRun) {str+="initiateGauge();"; firstRun=0;}
+      str+= "injectedID='"+name; ///+"';ODgauge.set("+String(value)+");";
+      javaQueue.add(str);
+    }
+};
+
+
+class Meter: public Output {
+  public:
+    Meter ( String n , String _name, String unit_ , int min, int max, ElementsHtml* e = 0 ){
+      name = _name;
+      unit = unit_;
+      id = n;
+      _max=max;
+      _min=min;
+      parent = e;
+             pushElement(this);          // Los elementos basicos se registran solos en el AllHTMLElemens !!
+
+    }
+    String getHtml(){ return "<div id='"+id+"'><h5>"+name+"</h5><meter id='"+id+ "Meter' min='"+String(_min)+"' max='"+String(_max)+"'></meter>"+unit+"</div>";  }
+    String postCallBack(ElementsHtml* e,String postValue) { if(parent) return parent->postCallBack(this,postValue); }
+    //void update ( String newValue ) { update(newValue.toInt());}
+    void update(){ javaQueue.add("document.getElementById('" + id + "Meter').value="+String((int)value)+";"); } 
+    void update(float newValue){value=newValue;update();}
+
+   private:
+    int _max,_min; String unit;
 };
 
 
