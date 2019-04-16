@@ -18,7 +18,15 @@ class Wrapper: public ElementsHtml {
   String addAfter;
 };
 
-
+class Page;
+class Mediator {
+  public:
+    ~Mediator(){};
+    Mediator ( Page *p ) { page=p; }
+    static bool run(){};
+  private:
+    Page *page;
+  };
 
 class SimpleHtml1: public ElementsHtml {
   public:

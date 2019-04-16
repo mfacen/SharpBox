@@ -7,13 +7,14 @@ class Input : public CompositeHtml {
   public:
 
     float value=0;
+    float factor=1;
     int minValue=0;
     int maxValue=0;
     String unit;
     String text="";
     
     //String getHtml() {};
-
+    void setFactor ( float _factor ) { factor = _factor ; }
 };
 
 // ########################################
@@ -35,12 +36,11 @@ class Button: public Input {
       //return ("console.log('postCallBack of " + name+" parent: "+parent->name+"'); ");
       return "";
     } 
-    String getHtml() { 
-    htmlAdd( "<button type='button' width='40' id='");htmlAdd( id.c_str());htmlAdd( "' value ='") ;htmlAdd( text.c_str());htmlAdd( "' onclick=\"btnClickText('");
-    htmlAdd(id.c_str()); htmlAdd( "','"); htmlAdd(text.c_str()); htmlAdd("')\" >");htmlAdd( text.c_str()); htmlAdd( "</button>\n");
-     return String(ElementsHtml::htmlGet());
-     }
-    void update() {};
+    String getHtml() {  return "<button "+style+" type='button' width='40' id='"+ id + "' value ='" + text + "' onclick=\"btnClickText('" + id + "',this.value)\" >" + text + "</button>\n";  }
+    void update(String s) {
+            javaQueue.add( "var a=document.getElementById('" + id + "'); a.value='"+s+"'; a.textContent='" + s + "';");
+
+      };
 };
 
 
@@ -65,7 +65,7 @@ class ComboBox: public Input {
       }
 
    
-    String getHtml() {String html = "<select id='" + id + "' onchange=\"btnClickText('"+id+"', this.selectedIndex)\">\n";
+    String getHtml() {String html = "<select "+style+" id='" + id + "' onchange=\"btnClickText('"+id+"', this.selectedIndex)\">\n";
           for(int i = 0; i <= fieldsCount ; i++) {
               html+="<option value='"+fields[i]+"'>"+fields[i]+"</option>";
           }
@@ -116,7 +116,7 @@ class Dsb18B20: public Input {
     }
     //~Dsb18B20(ElementsHtml::deleteElement(this));
 
-    String getHtml() { return " <div id='"+id+"'><h4>" + name + "</h4>"+descriptor+"<br>Temperature:" + String(value) + "</div>";  }
+    String getHtml() { return " <div "+style+" id='"+id+"'><h4>" + name + "</h4>"+descriptor+"<br>Temperature:" + String(value) + "</div>";  }
     
     void update() {
       if  (!tempRequested)  {
@@ -164,7 +164,7 @@ class Dht11: public Input {
     }
     //~Dsb18B20(ElementsHtml::deleteElement(this));
 
-    String getHtml() { return " <div id='"+id+"'><h4>" + name + "</h4>"+descriptor+"<br>Temperature:" + String(value) + "</div>";  }
+    String getHtml() { return " <div "+style+"  id='"+id+"'><h4>" + name + "</h4>"+descriptor+"<br>Temperature:" + String(value) + "</div>";  }
     
     void update() {
        if ( ( millis() - lastTemperatureRequest) > intervalTemperature ) {
@@ -194,28 +194,28 @@ class Dht11: public Input {
 class AnalogIn: public Input {
     public:
     int pin;
-
     Label* label;
-    AnalogIn ( int _pin , String  _name) {
+    AnalogIn ( int _pin , String  _name , String _unit = "anLevel" , float _factor=1 ) {
       pin = _pin;
       name = _name;
       id = _name;
+      factor = _factor;
       minValue = 0;
       maxValue = 150;
-      unit = "milliVolts";
+      unit = _unit;
       descriptor = "Ana In ";
       label = new Label(name+"lbl","",this);
        pushElement(this);          // Los elementos basicos se registran solos en el AllHTMLElemens !!
       
     }
 
-    String getHtml() {  return " <div id='"+id+"'><h4>" + name + "</h4>"+descriptor+"<br>"+ label->getHtml() +  "</div>";
+    String getHtml() {  return " <div "+style+" id='"+id+"'><h4>" + name + "</h4>"+descriptor+"<br>"+ label->getHtml() + unit + "</div>";
     }
 //    class Label;
 //class Output;
 //Label::getHtml();
     void update() {
-      value = analogRead(pin);
+      value = analogRead(pin) * factor;
       label->update(String(value));
     }
 
@@ -229,30 +229,35 @@ class AnalogIn: public Input {
 
 class DigitalIn: public Input {
     public:
-    int pin;
 
-    Label* label;
     DigitalIn ( int _pin , String  _name) {
       pin = _pin;
+     // pinMode(pin,INPUT);
+       
       name = _name;
       id = _name;
       minValue = 0;
       maxValue = 1;
       unit = "milliVolts";
       label = new Label(name+"lbl","",this); addChild(label);
+       img = new Image ("img"+id,"LampOn.bmp",this);
        pushElement(this);          // Los elementos basicos se registran solos en el AllHTMLElemens !!
       
     }
 
-    String getHtml() {return " <div id='"+id+"'><h4>" + name + "</h4>"+descriptor+"<br>"+ label->getHtml() +  "</div>"; }
+    String getHtml() {return " <div "+style+" id='"+id+"'><h6>" + name + "</h6>"+ label->getHtml() + img->getHtml() + "</div>"; }
 
     void update() {
       value = digitalRead(pin);
       label->update(String(value));
+      img->update( (!value)?"power-button.jpg":"LampOn.bmp" );
     }
 
     String postCallBack(ElementsHtml* e,String postValue) {update();}
-
+      private:
+      int pin;
+      Label* label;
+      Image* img;
 };
 
 
@@ -273,7 +278,7 @@ class EditBox: public Input {
 
     }
 
-    String getHtml() {return  "<input type='text' id='" + id + "' width='20' onkeyup=\"btnClickText('"+id+"',(this.value))\"></input>\n";}
+    String getHtml() {return  "<input "+style+" type='text' id='" + id + "' width='20' onchange=\"btnClickText('"+id+"',(this.value))\"></input>\n";}
     void update() {
       value = text.toInt();
       javaQueue.add("document.getElementById('" + id + "').value='" + text + "';");
@@ -285,7 +290,10 @@ class EditBox: public Input {
                   if (parent) parent->postCallBack(this,postValue);
                   return "document.getElementById('" + id + "').innerHTML='" + text + "';";
     }
-    
+
+    void disable (){
+            javaQueue.add("document.getElementById('" + id + "').setAttribute('disabled','disabled');");
+    }
     void appendText (String t) {
       text += t;
       //Serial.println("EditBox->appendText()");
@@ -330,7 +338,7 @@ class KeyPad: public Input  {  // Aqui lo he cambiado !!!!!!!!!!!!!!!!!!!!!!!!!!
 
     }
     String getHtml() {
-      String h="<div id='"+name+"'><h4>" + name + "</h4>\n\t";
+      String h="<div "+style+" id='"+name+"'><h4>" + name + "</h4>\n\t";
             for (int i = 0; i < 11; i++ ) {
               h+= buttons[i]->getHtml(); 
               if ((i==2)||(i==5)||(i==8)) h+="<br>";
@@ -360,6 +368,7 @@ class KeyPad: public Input  {  // Aqui lo he cambiado !!!!!!!!!!!!!!!!!!!!!!!!!!
 class UltraSoundProbe: public Input {
   public:
   Label* label;
+  AverageModule average;
   UltraSoundProbe ( String _name, int _pinTrig, int _pinEcho ) {
     trigPin = _pinTrig;
     echoPin = _pinEcho;
@@ -373,11 +382,14 @@ class UltraSoundProbe: public Input {
 
   void update(){
   value = getDistance();
+  average.addValue(value);
+  value=average.getAverage();
+  
         label->update("Distance: "+String(value));
 
   }
 
-  String getHtml() {  return " <div id='"+id+"'><h4>" + name + "</h4>"+descriptor+"<br>"+ label->getHtml() +  "</div>";
+  String getHtml() {  return " <div "+style+" id='"+id+"'><h6>" + name + "</h6>"+descriptor+"<br>"+ label->getHtml() +  "</div>";
     }
 
     
@@ -395,7 +407,7 @@ class UltraSoundProbe: public Input {
   // Determine distance from duration
   // Use 343 metres per second as speed of sound
   
-  return (duration / 2) * 0.0343;
+  return (duration / 2) * 0.0349;
   }
 
   

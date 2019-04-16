@@ -10,6 +10,7 @@
 // ########################################
 
 #include <vector>
+#include <map>
 
  // El problema es que solo estan registrados en Page los parientes de los componentes entonces no los encuentra cuando el PostRequest busca el id, no figura porque esta solo
  // el ID del pariente en page.listOf Elements[]
@@ -22,7 +23,15 @@
     String get(){String temp=queue;queue="";return temp;}
 };
 
+class AverageModule {
+  public:
+    void addValue(float v) { values[index] = v; index++; if (index==10)index=0;  }
+    float getAverage(){ float partial=0; for (int i=0; i<10;i++){ partial+=values[i]; } return partial/10;}
+  private:
+float values[10] = {0}  ;
+int index = 0;
 
+};
 
 class ElementsHtml{
   public:
@@ -42,13 +51,15 @@ class ElementsHtml{
     void setName(String n){name=n;}
     void setStyle(String s){style=s;}
  static  JavaQueue javaQueue;
+ 
  //void setWrapper(String before, String after){wrapper = new Wrapper(before,after);}
  virtual void update(){};
   virtual   String postCallBack(ElementsHtml* e,String postValue){}; // es virtual, lo tienen que implementar los hijos       ATENCION CUANDO DICE VTABLE ES QUE HE DEJADO UNA FUNCION SIN DEFINIR
   virtual String getHtml(){};
   static String getJavaQueue(){return javaQueue.get();}
   void setVisible(bool v) { v? javaQueue.add("document.getElementById('" + this->id + "').style.display='inline';") : javaQueue.add("document.getElementById('" + id + "').style.display='none';");}   //{visible=v;}
-
+  void setDisabled (bool v){ v? javaQueue.add("var a=document.getElementById('" + id + "').setAttribute('disabled','disabled');"):javaQueue.add("var a=document.getElementById('" + id + "').removeAttribute('disabled');"); 
+    }
   static std::vector <ElementsHtml*> allHTMLElements;
   static void pushElement(ElementsHtml* e){allHTMLElements.push_back(e); }
   static void deleteElement(ElementsHtml* e){}   //  Todavia no he implementado esto
@@ -162,8 +173,8 @@ public:
    }
    String getHtml(){
     String htmlStr;
-    htmlStr+="<html><head> <link rel='stylesheet' type='text/css' href='style1.css'></head><body>\n";
-    htmlStr+="<h1>"+title+"</h1><h3>"+subTitle+"</h3><nav><a href='edit.html'>Upload</a><a href='dataLog.csv'>dataLog</a></nav><br>\n";
+    htmlStr+="<html><head> <link rel='stylesheet' type='text/css' href='style.css'></head><body>\n";
+    htmlStr+="<h1>"+title+"</h1><h3>"+subTitle+"</h3><nav><a href='edit.html'>Upload </a><a href='dataLog.csv'>dataLog</a><a href='settings'>Preferencias </a><a href='dir'>Directory</a></nav>\n";
     for ( int i=0; i<elementCount; i++) {   if (strings[i]) {htmlStr+=strings[i];}; htmlStr+=listOfElements[i]->getHtml()+"\n"; }
        Serial.println(listOfElements[0]->getHtml());  // Atencion no usar Serial en Constructor !!!
 

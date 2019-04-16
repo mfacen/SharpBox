@@ -32,11 +32,58 @@ public:
     output->update(comboBox1->value);
     return true;
   }
-  String getHtml(){  return "<div "+style+" id='"+name+"'><h4>"+name+"</h4>"+output->getHtml()+"  "+ comboBox1->getHtml() +"</div>";  }
-  String postCallBack(ElementsHtml* e,String postValue){ if (postValue == "btnAction") output->update(comboBox1->value);};
-  void update(){output->update(comboBox1->value);value=comboBox1->value;}
+  String getHtml(){  return "<div class='"+name+"' "+style+" id='"+name+"'><h6>"+name+"</h6>"+output->getHtml()+"  "+ comboBox1->getHtml() +"</div>";  }
+  String postCallBack(ElementsHtml* e,String postValue){ if ( e==comboBox1 )  output->update(!comboBox1->value);};
+void update(){ value=comboBox1->value; output->update(!value);}
   
 };
+
+// #######################################
+//  Command   InputPanel
+// ########################################       
+class InputPanel:public Commands {
+  public:
+     Input* input;
+     int value;
+     InputPanel(String n, Input* inp){
+    input = inp;
+    name = n;
+    id = n;
+  }
+  bool run () {
+    input->update();
+    return true;
+  }
+  String getHtml(){  return "<div class='"+name+"' "+style+" id='"+name+"'><h6>"+name+"</h6>"+input->getHtml() +"</div>";  }
+  String postCallBack(ElementsHtml* e,String postValue){};
+void update(){ input->update();}
+};
+
+// #######################################
+//  Command   InputPanelText
+// ########################################       
+class InputPanelText:public Commands {
+  public:
+     InputPanelText(String n, String s, String editText){
+    name = n;
+    id = n;
+    label = new Label ( "lbl"+name , s );
+    edit = new EditBox ( "edt"+name , editText);
+  }
+  bool run () {
+    edit->update();
+    return true;
+  }
+  String getHtml(){  return "<div class='"+name+"' "+style+" id='"+name+"'><h6>"+name+"</h6>"+ label->getHtml() + edit->getHtml()  +"</div>";  }
+  String postCallBack(ElementsHtml* e,String postValue){};
+void update(){ edit->update();}
+  void readOnly(){edit->setDisabled(true);}
+  private:
+  EditBox* edit;
+  Label* label;
+  
+};
+
 
 
 // #######################################
@@ -51,10 +98,11 @@ class Pause: public Commands {
       editTime  = new EditBox (name+"edtBox",String(interval));
 //      addChild(editTime);
       }
-      
+
+    void setInterval(int i){ interval = i ;}
     
    String getHtml(){
-    return "<div id='"+name+"'><h4>"+name+"</h4>"+"<br>Time: "+editTime->getHtml()+"</div>";
+    return "<div class='"+name+"' "+style+" id='"+name+"'><h4>"+name+"</h4>"+"<br>Time: "+editTime->getHtml()+"</div>";
    }
   bool run(){  
       if (firstRun){firstRun=false; start();}
@@ -78,23 +126,51 @@ class Pause: public Commands {
 // ########################################
 class Logger: public Commands {
   public:
-    Logger ( String s , Input* in) {id=s;name=s;input=in;}
-    bool run(){return logData(input);}
-    void update(){input->update();}
-    bool logData( Input* i){
+    Logger ( String s , String _fileName ) { id=s;name=s;fileName=_fileName;label= new Label ("lbl"+name,"Stoped."); pause = new Pause("tmr"+name,10); }
+
+    void addInput ( Input *i ) { if (index<9) {inputArray[index]=i;index++;}}
+    bool run(){return logData();}
+    void update(){
+      if ( (index>0) && ( pause->run() ) )  {
+        for ( int i=0; i<index; i++ ) {  inputArray[i]->update(); }
+        pause->setInterval(interval);
+        logData();
+      }
+      label->update("Restante: "+String(pause->value));
+
+    }
+    void startTimer(){pause->run();}
+    void setInterval ( int _interval) { interval = _interval ;pause->setInterval(interval); }
+    bool logData(){
       File tempLog ;
-      tempLog = SPIFFS.open("/dataLog.csv", "a"); // Write the time and the temperature to the csv file
+      tempLog = SPIFFS.open(fileName , "a"); // Write the time and the temperature to the csv file
       bool r=tempLog;
-      tempLog.println(i->getName()+": "+String(i->value));
+      if (index>0){
+      for ( int i=0; i<index; i++ ) {
+        tempLog.println(inputArray[i]->getName()+" , "+String(inputArray[i]->value));
+      }
       tempLog.close();
+      }
       return r;
     }
-      String getHtml(){return "<div><h4>Logger "+name+"</h4>Input: "+input->getName()+"</div>";}      //              Atencion si falta una de los metodos static se produce un Error que no se detecta y no hay HTML
+      String getHtml(){
+        String str= "<div class='"+name+"' "+ style+" id='"+name+"'><h6>Logger "+name+"</h6>Inputs:<br>"+label->getHtml()+"<br>";
+        if (index!=0) {
+         for ( int i=0; i<index; i++ ) { str += inputArray[i]->getName() + " : " + String (inputArray[i]->value )  + "<br>"; }
+          str += "</div>";
+         }  
+         return str;
+      }
+      //              Atencion si falta una de los metodos static se produce un Error que no se detecta y no hay HTML
   String postCallBack(ElementsHtml* e,String postValue){};
 
   private:
-    Input* input;
-    
+    Input* inputArray[10];
+    Label* label;
+    String fileName;
+    int index = 0;
+    Pause * pause;
+    int interval;
 };
 
 
@@ -126,7 +202,7 @@ class IfCommand: public CommandsComposite {
   IfCommand(String s, Input* inLL, Input* inRR ){name=s;id=s;inR=inRR;inL=inLL; }//   ERROR ERROR ERROR ERROR ERROR  Serial.print("Created IfCommand "+name); };
 
   String getHtml(){
-    String html = "<div><h4>"+name+"</h4>"+inL->getHtml()+"  > " + inR->getHtml()+"<br>";
+    String html = "<div class='"+name+"'><h4>"+name+"</h4>"+inL->getHtml()+"  > " + inR->getHtml()+"<br>";
     for ( int i=0; i<command_count; i++) {
       html+=commands[i]->getHtml();
     }
@@ -162,7 +238,7 @@ class ActiveControl:public Commands {
     
     };
     
-  String getHtml(){return "<div id='"+id+"'><h4>"+name+"</h4> If "+ inputLeft->getHtml() +"  "+ op + "  " + inputRight->getHtml()+ "  Then  " + output->name + " =  "+inputEdit->getHtml()+"</div>";}
+  String getHtml(){return "<div class='"+name+"' id='"+id+"'><h4>"+name+"</h4> If "+ inputLeft->getHtml() +"  "+ op + "  " + inputRight->getHtml()+ "  Then  " + output->name + " =  "+inputEdit->getHtml()+"</div>";}
 
   void update(){
     inputEdit->update();

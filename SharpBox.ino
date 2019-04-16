@@ -93,7 +93,7 @@ unsigned long countdownSetTime = 0;
   //ComboBox comboBox3 ( "combo3",2,f);
   AnalogIn analogIn1 ( A0,"analog1");
   DigitalIn digitalIn1 ( D1,"digital1");
-  Logger logger1("logger1",&analogIn1);
+  Logger logger1("logger1", "/dataLog.csv" );
   DigitalOutput digitalOut1 ( D1,"digiOut1","digiout1");
   RelayOutput   relay1 (RELAY_1_PIN,"Relay 1 110VAC","relay1");
   RelayOutput   relay2 (RELAY_2_PIN,"Relay 2 110VAC","relay2");
