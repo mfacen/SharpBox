@@ -13,10 +13,13 @@
   int maxValue;
   String unit;
   bool invertedLogic = true;
-  virtual void update( int newValue){};
-  String getHtml(){};
+   virtual void update( float newValue)=0;
+  String getHtml(){}
+      //void toogle(){ value? value=0:value=1;}
+
     };
 
+  //Output operator++ () { value++;}
 // ########################################
 //  LABEL
 // ########################################
@@ -36,7 +39,7 @@ class Label: public Output {
     String postCallBack(ElementsHtml* e,String postValue) { if(parent) return parent->postCallBack(this,postValue); }
     void update ( String newValue ) { text= newValue; javaQueue.add("document.getElementById('" + id + "').innerHTML='<h5>"+text+"</h5>';");}
     void update(){ javaQueue.add("document.getElementById('" + id + "').innerHTML='Free Heap: "+text+"';"); } 
-    void update(int newValue){update(String(newValue));}
+    void update(float newValue){update(String(newValue));}
     void append(String appendValue) { text += appendValue; update();}
 };
 
@@ -45,13 +48,18 @@ class LabelFreeHeap: public Label {
   using Label::Label;
   void update(){ javaQueue.add("document.getElementById('" + id + "').innerHTML='V: "+String(ESP.getFreeHeap(),DEC)+"';"); }
 };
-
+class TimeLabel: public Label{
+public:
+      using Label::Label;
+        String getHtml(){ return "<span id='"+id+ "'>"+text+"</span>";  }
+  void update( long t ) { value=t; javaQueue.add("var now = new Date("+String(t)+"*1000); document.getElementById('" + id + "').innerHTML=now.toString();"); }
+};
 // ########################################
 //  TABLE
 // ########################################
 class Table: public Output {
   public:
-  String text="Output::Label";
+  String text="Table Title";
     Table ( String n , ElementsHtml* e = 0 ){
       name = n;
       id = n;
@@ -62,6 +70,7 @@ class Table: public Output {
     String getHtml(){ return "<div id='"+id+"div'><h5>"+text+"</h5><table id='"+id+ "'><tr><td></td><td></td></tr></table></div>";  }
     String postCallBack(ElementsHtml* e,String postValue) { if(parent) return parent->postCallBack(this,postValue); }
     //void update ( String newValue ) { text= newValue; javaQueue.add("document.getElementById('" + id + "').innerHTML='<h5>"+text+"</h5>';");}
+    void setTitle (String s){text=s;}
     void addRow ( String newRow ) { javaQueue.add("document.getElementById('" + id + "').insertRow().insertCell(0).innerHTML='"+newRow+"';");}
    // void makeTable(String csv){ javaQueue.add("document.getElementById('" + id + "') = makeTable(csv);"); }
     void makeTable(String csv) { 
@@ -93,6 +102,8 @@ class Table: public Output {
       "document.getElementById('" + id + "').getElementsByTagName('tbody')[0].getElementsByTagName('tr')["+String(indexRow)+"].getElementsByTagName('td')["+String(indexColumn)+"].childNodes[0]=createdText;");//    insertRow().insertCell("+String(indexY)+").innerHTML='"+newText+"';");
     }
     void update(){ } 
+       void update( float newValue) {value=newValue;update();}
+
     private:
     
 };
@@ -113,7 +124,7 @@ class Image: public Output {
     String getHtml(){ return "<img heigth='"+String(heigth)+"' width='"+String(width)+"' id='"+id+ "' src='"+url+"'>";  }
     String postCallBack(ElementsHtml* e,String postValue ) { if(parent) return parent->postCallBack(this,postValue); }
     void update ( String newValue ) { url= newValue; javaQueue.add("document.getElementById('" + id + "').src='"+url+"';");}
-    void update(int){ } 
+    void update(float f){ } 
     void update(){}
     void setWidth(int w){width=w;}
     void setHeigth(int h){heigth=h;}
@@ -133,7 +144,7 @@ class Graphic: public Output {
     Graphic(String s, ElementsHtml* e=0){ name=s;id=s;parent=e;}
     String getHtml(){ return "<canvas id='"+id+"' heigth='130'></canvas><script>var xPos=0;</script>";  }
     String postCallBack(ElementsHtml* e,String postValue ) { if(parent) return parent->postCallBack(this,postValue); }
-    void update ( int newValue ) {
+    void update ( float newValue ) {
           String str;
           str+="var canvas = document.getElementById('"+id+"');\n"
           "ctx=canvas.getContext('2d');\n"
@@ -152,6 +163,8 @@ class Graphic: public Output {
     }
     void update(String s){update(s.toInt());}
     void update(){ } 
+      // void update( float newValue) {value=newValue;update();}
+
   private:
     //int xPos=0;
 };
@@ -177,7 +190,7 @@ class PWM
     else 
       { result = true; }
 
-    if  (  ( currentMillis - previousMillis )  > period ) { previousMillis = currentMillis; }
+    if  (  ( currentMillis - previousMillis )  > period ) { previousMillis = currentMillis; level++; if (level == 10 ) level = 1; }
     return result;
     }
    void setLevel(int i){level=i;}
@@ -206,9 +219,11 @@ class PWM
         invertedLogic = inverted;
          };
       void setPWM ( PWM * _pwm) { pwm = _pwm; }
+      void setLevel ( int l) { pwm->setLevel(l);}
       void update(){};
       void update(String s){update(s.toInt());};
-      void update( int newValue) {
+      void update( float newValue) {
+        Serial.println("Updating "+id+" Value: " + String(newValue));
       value = newValue;
       if (value>1)value=1;
       if (  newValue != 0 ) {
@@ -220,10 +235,10 @@ class PWM
         invertedLogic?stateStr="ON":stateStr = "OFF";
       }
             //javaQueue.add("document.getElementById('" + label->id + "').innerHTML='"+stateStr+"';");
-            img->update( stateStr=="OFF"?"LampOff.bmp":"LampOn.bmp" );
+            img->update( stateStr=="OFF"?"power-button.jpg":"power-buttonON.jpg" );
             label->update(stateStr);
        }
-      void  updatePWM (){ if (pwm!=0) ( pwm->update()) ?  digitalWrite(pin,LOW): digitalWrite (pin,HIGH);   } 
+      void  updatePWM (){ if ( (stateStr=="ON") && (pwm!=0) )  ( pwm->update() ) ?  digitalWrite(pin,LOW): digitalWrite (pin,HIGH);   } 
       void changePWMLevel(int i ) { pwm->setLevel(i); }
       void toogle(){
         if (value==0){
@@ -266,6 +281,7 @@ class Gauge: public Output {
     String getHtml(){ return "<script src='gauge.min.js'></script><script src='gaugeScript.js'></script><canvas id='"+id+"' heigth='60' width='100'></canvas>";  }
     String postCallBack(ElementsHtml* e,String postValue ) { if(parent) return parent->postCallBack(this,postValue); }
     void update(int v){value=v;update();}
+       void update( float newValue) {value=newValue;update();}
     void update(){
       String str; if (firstRun) {str+="initiateGauge();"; firstRun=0;}
       str+= "injectedID='"+name; ///+"';ODgauge.set("+String(value)+");";
@@ -297,8 +313,8 @@ class Meter: public Output {
     String postCallBack(ElementsHtml* e,String postValue) { if(parent) return parent->postCallBack(this,postValue); }
     //void update ( String newValue ) { update(newValue.toInt());}
     void update(){
-      javaQueue.add("document.getElementById('" + id + "Meter').value="+String((int)value)+";");
-      lblValue->update(value);
+      javaQueue.add("document.getElementById('" + id + "Meter').value="+String(value)+";");
+      lblValue->update(String(value)+" kg");
     } 
     void update(float newValue){value=newValue;update();}
 

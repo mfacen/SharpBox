@@ -2,7 +2,7 @@
 //  INPUT
 // ########################################
 
-class Input : public CompositeHtml {
+class Input : public ElementsHtml {
 
   public:
 
@@ -31,8 +31,10 @@ class Button: public Input {
       pushElement(this);          // Los elementos basicos se registran solos en el AllHTMLElemens !!
     }
     String postCallBack(ElementsHtml* e,String postValue) {
-      if (parent) return parent->postCallBack(this,postValue);
-      
+                  Serial.println("Button-Post-Call-Back"+id);
+
+      if (parent) parent->postCallBack(this,postValue);
+
       //return ("console.log('postCallBack of " + name+" parent: "+parent->name+"'); ");
       return "";
     } 
@@ -66,7 +68,7 @@ class ComboBox: public Input {
 
    
     String getHtml() {String html = "<select "+style+" id='" + id + "' onchange=\"btnClickText('"+id+"', this.selectedIndex)\">\n";
-          for(int i = 0; i <= fieldsCount ; i++) {
+          for(int i = 0; i < fieldsCount ; i++) {
               html+="<option value='"+fields[i]+"'>"+fields[i]+"</option>";
           }
               html+="</select>";return  html;}
@@ -74,7 +76,7 @@ class ComboBox: public Input {
       text = fields[selected];
       value = selected;
       javaQueue.add("document.getElementById('" + id + "').selectedIndex='" + String(selected) + "'; console.log('"+name+" update value="+String(value)+"');");
-      
+            
     }
     String postCallBack(ElementsHtml* e,String postValue) {
                   selected = postValue.toInt();
@@ -238,8 +240,8 @@ class DigitalIn: public Input {
       id = _name;
       minValue = 0;
       maxValue = 1;
-      unit = "milliVolts";
-      label = new Label(name+"lbl","",this); addChild(label);
+      unit = "n/a";
+      label = new Label(name+"lbl","",this); //addChild(label);
        img = new Image ("img"+id,"LampOn.bmp",this);
        pushElement(this);          // Los elementos basicos se registran solos en el AllHTMLElemens !!
       
@@ -250,7 +252,7 @@ class DigitalIn: public Input {
     void update() {
       value = digitalRead(pin);
       label->update(String(value));
-      img->update( (!value)?"power-button.jpg":"LampOn.bmp" );
+      img->update( (value==0)?"power-button.jpg":"power-buttonON.jpg" );
     }
 
     String postCallBack(ElementsHtml* e,String postValue) {update();}
@@ -267,28 +269,25 @@ class DigitalIn: public Input {
 
 class EditBox: public Input {
   public:
-    EditBox(String n, String t, ElementsHtml* e=0) {
+    EditBox(String n, String t , String _type, ElementsHtml* e=0) {
       name = n;
       text=t;
       id = n;
-      value = 0;
+      type = _type;
+      value = text.toFloat();
        pushElement(this);          // Los elementos basicos se registran solos en el AllHTMLElemens !!
        
       if (e!=0) parent = e;                                                                            //ERROR ERROR ERROR ERROR NO HACER ESTO Serial.println (t);
 
     }
 
-    String getHtml() {return  "<input "+style+" type='text' id='" + id + "' width='20' onchange=\"btnClickText('"+id+"',(this.value))\"></input>\n";}
-    void update() {
-      value = text.toInt();
-      javaQueue.add("document.getElementById('" + id + "').value='" + text + "';");
-      
-    }
+    String getHtml() {return  "<input width='50px' "+style+" type='" + type + "' id='" + id + "' value='"+text+"' onchange=\"btnClickText('"+id+"',(this.value))\">";}
     String postCallBack(ElementsHtml* e,String postValue) {
                   text = postValue;
+                   //     if (text.toFloat()) value = text.toFloat();
                   update();
                   if (parent) parent->postCallBack(this,postValue);
-                  return "document.getElementById('" + id + "').innerHTML='" + text + "';";
+                  //return "document.getElementById('" + id + "').innerHTML='" + text + "';";
     }
 
     void disable (){
@@ -296,10 +295,9 @@ class EditBox: public Input {
     }
     void appendText (String t) {
       text += t;
-      //Serial.println("EditBox->appendText()");
       update();
     }
-    void setText (String t) {
+    void update (String t) {
       text = t;
       update();
     }
@@ -307,6 +305,13 @@ class EditBox: public Input {
       text = text.substring(0, text.length() - 1);
       update();
     }
+    void update() {
+            //Serial.println("EditBox->Update()");
+      if (text) value = text.toFloat();
+      javaQueue.add("document.getElementById('" + id + "').value='" + text + "';");
+    }
+  private:
+    String type;
 };
 
 
@@ -325,8 +330,8 @@ class KeyPad: public Input  {  // Aqui lo he cambiado !!!!!!!!!!!!!!!!!!!!!!!!!!
     KeyPad(String n) {
       name = n;
       id = n;
-      edt = new EditBox(name+ "Edit","");
-      edtLabel = new EditBox(name+"Label","");
+      edt = new EditBox(name+ "Edit","","text",this);
+      edtLabel = new EditBox(name+"Label","","text",this);
 //      addChild(edt);addChild(edtLabel);
       for (int i = 0; i < 10; i++ ) {
 
@@ -355,7 +360,7 @@ class KeyPad: public Input  {  // Aqui lo he cambiado !!!!!!!!!!!!!!!!!!!!!!!!!!
     void update() {
       (edt->text == "1234") ? value = 1 : value = 0 ; //updateDisplay();
       !value ? state = "Locked" : state = "Unlocked";
-      edtLabel->setText(state);
+      edtLabel->update(state);
     };
 };
 
@@ -374,7 +379,7 @@ class UltraSoundProbe: public Input {
     echoPin = _pinEcho;
     name = _name;
     id = _name;
-    label = new Label(name+"lbl","",this); addChild(label);
+    label = new Label(name+"lbl","",this); //addChild(label);
 
       pinMode(trigPin, OUTPUT);
       pinMode(echoPin, INPUT); 
@@ -402,7 +407,7 @@ class UltraSoundProbe: public Input {
   
   // Measure the response from the HC-SR04 Echo Pin
  
-  float duration = pulseIn(echoPin, HIGH);
+  float duration = pulseIn(echoPin, HIGH , 30000 );
   
   // Determine distance from duration
   // Use 343 metres per second as speed of sound

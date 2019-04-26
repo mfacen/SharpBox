@@ -18,23 +18,26 @@ class Set:public Commands {
 public:
   Output* output;
   String f[2] = { "OFF" , "ON" };
-  ComboBox* comboBox1; 
+  //ComboBox* comboBox1; 
   //EditBox* editOutput;
- // Button* btn;
+  Button* btnON;
+  Button* btnOFF;
   int value;
   Set(String n, Output* out){
     output = out;
     name = n;
     id = n;
-   comboBox1 = new ComboBox ( name+"combo",2,f);
+   //comboBox1 = new ComboBox ( name+"combo",2,f);
+    btnON = new Button ("btnON"+id,"ON",this);
+    btnOFF = new Button ("btnOFF"+id,"OFF",this);
   }
   bool run () {
-    output->update(comboBox1->value);
+    //output->update(comboBox1->value);
     return true;
   }
-  String getHtml(){  return "<div class='"+name+"' "+style+" id='"+name+"'><h6>"+name+"</h6>"+output->getHtml()+"  "+ comboBox1->getHtml() +"</div>";  }
-  String postCallBack(ElementsHtml* e,String postValue){ if ( e==comboBox1 )  output->update(!comboBox1->value);};
-void update(){ value=comboBox1->value; output->update(!value);}
+  String getHtml(){  return "<div class='"+name+"' "+style+" id='"+name+"'><h6>"+name+"</h6>"+output->getHtml()+"  "+ btnON->getHtml()+btnOFF->getHtml() +"</div>";  }
+  String postCallBack(ElementsHtml* e,String postValue){ if ( e==btnON )  output->update(0); if (e==btnOFF) output->update(1);Serial.println(e->id);}
+void update(){}
   
 };
 
@@ -57,6 +60,7 @@ class InputPanel:public Commands {
   String getHtml(){  return "<div class='"+name+"' "+style+" id='"+name+"'><h6>"+name+"</h6>"+input->getHtml() +"</div>";  }
   String postCallBack(ElementsHtml* e,String postValue){};
 void update(){ input->update();}
+//void update ( String s ) { input->update(s);}
 };
 
 // #######################################
@@ -68,15 +72,17 @@ class InputPanelText:public Commands {
     name = n;
     id = n;
     label = new Label ( "lbl"+name , s );
-    edit = new EditBox ( "edt"+name , editText);
+    edit = new EditBox ( "edt"+name , editText, "number",this);
   }
   bool run () {
     edit->update();
     return true;
   }
   String getHtml(){  return "<div class='"+name+"' "+style+" id='"+name+"'><h6>"+name+"</h6>"+ label->getHtml() + edit->getHtml()  +"</div>";  }
-  String postCallBack(ElementsHtml* e,String postValue){};
+  String postCallBack(ElementsHtml* e,String postValue){Serial.print("Post Call Back de "+this->name+" value: "+postValue);};
 void update(){ edit->update();}
+void update ( String s ) { label->update(s);}
+float getValue () { return edit->value;Serial.println("InputPanelText.getValue()");}
   void readOnly(){edit->setDisabled(true);}
   private:
   EditBox* edit;
@@ -95,22 +101,23 @@ class Pause: public Commands {
     bool firstRun=true;
     Pause(String s , int i ){
       name=s;interval=i;
-      editTime  = new EditBox (name+"edtBox",String(interval));
+      value=i;
+      editTime  = new EditBox (name+"edtBox",String(interval),"text",this);
 //      addChild(editTime);
       }
 
-    void setInterval(int i){ interval = i ;}
+    void setInterval(int i){ interval = i ; value = i;}
     
    String getHtml(){
     return "<div class='"+name+"' "+style+" id='"+name+"'><h4>"+name+"</h4>"+"<br>Time: "+editTime->getHtml()+"</div>";
    }
   bool run(){  
       if (firstRun){firstRun=false; start();}
-      if  (  (lastTimeCheck - millis()  ) > 1000 ) { lastTimeCheck = millis (); value = value - 1; update(); }
+      if  (  (lastTimeCheck - millis()  ) > 1000 ) { lastTimeCheck = millis (); value = value - 1; update();if(value==0)value=interval; }
       if (( millis()-lastUpdate ) > interval*1000 ) {firstRun=true;return true;} else return false;
   };
   String postCallBack(ElementsHtml* e,String postValue){};
-  void start( ) { lastUpdate  = millis();}
+  void start( ) { lastUpdate  = millis();value=interval/1000;}
   void update(){} //javaQueue.add("document.getElementById('" + editTime->id + "').setAttribute('innerHTML', '"+String(value)+"');");    }
   private:
     unsigned long lastUpdate;
@@ -126,51 +133,77 @@ class Pause: public Commands {
 // ########################################
 class Logger: public Commands {
   public:
-    Logger ( String s , String _fileName ) { id=s;name=s;fileName=_fileName;label= new Label ("lbl"+name,"Stoped."); pause = new Pause("tmr"+name,10); }
+    Logger ( String s , String _fileName ) { 
+        id=s;name=s;fileName=_fileName;
+        label= new Label ("lbl"+name,"Stoped.");
+         pause = new Pause("tmr"+name,10);
+         comboBox = new ComboBox ( "combo"+id, 2 , f,this );
+         edtInterval = new EditBox ("edt"+id,"","number",this);
+    }
 
     void addInput ( Input *i ) { if (index<9) {inputArray[index]=i;index++;}}
+    void addOutput ( Output *o ) { if (indexO<9) {outputArray[indexO]=o;indexO++;}}
     bool run(){return logData();}
-    void update(){
-      if ( (index>0) && ( pause->run() ) )  {
-        for ( int i=0; i<index; i++ ) {  inputArray[i]->update(); }
-        pause->setInterval(interval);
-        logData();
-      }
-      label->update("Restante: "+String(pause->value));
 
-    }
+    void update(){
+                if ( (index>0) && ( pause->run() ) )  {
+                  for ( int i=0; i<index; i++ ) {  inputArray[i]->update(); }
+                  pause->setInterval(interval);
+                  logData();
+                }
+                label->update("Tmr: "+String(pause->value));
+              }
     void startTimer(){pause->run();}
-    void setInterval ( int _interval) { interval = _interval ;pause->setInterval(interval); }
+    void setInterval ( int _interval) { interval = _interval ;pause->setInterval(interval); edtInterval->update(String(interval)); }
+
     bool logData(){
+      if (comboBox->value){
       File tempLog ;
       tempLog = SPIFFS.open(fileName , "a"); // Write the time and the temperature to the csv file
       bool r=tempLog;
       if (index>0){
-      for ( int i=0; i<index; i++ ) {
-        tempLog.println(inputArray[i]->getName()+" , "+String(inputArray[i]->value));
+        for ( int i=0; i<index; i++ ) {
+         tempLog.println(inputArray[i]->getName()+" , "+String(inputArray[i]->value));
+        }
       }
-      tempLog.close();
+      if (indexO>0){
+        for ( int i=0; i<indexO; i++ ) {
+         tempLog.println(outputArray[i]->getName()+" , "+String(outputArray[i]->value));
+        }
       }
+
+            tempLog.close();
       return r;
     }
+    }
       String getHtml(){
-        String str= "<div class='"+name+"' "+ style+" id='"+name+"'><h6>Logger "+name+"</h6>Inputs:<br>"+label->getHtml()+"<br>";
+        String str= "<div class='"+name+"' "+ style+" id='"+name+"'><h6>"+name+"</h6>"+comboBox->getHtml()+edtInterval->getHtml()+"<br>Inputs:<br>";
         if (index!=0) {
-         for ( int i=0; i<index; i++ ) { str += inputArray[i]->getName() + " : " + String (inputArray[i]->value )  + "<br>"; }
-          str += "</div>";
+         for ( int i=0; i<index; i++ ) { str += inputArray[i]->getName()  + "<br>"; }
+         } 
+                 if (indexO!=0) {
+         for ( int i=0; i<indexO; i++ ) { str += outputArray[i]->getName() + "<br>"; }
          }  
+
+                 str += label->getHtml()+"</div>";
+
          return str;
       }
       //              Atencion si falta una de los metodos static se produce un Error que no se detecta y no hay HTML
-  String postCallBack(ElementsHtml* e,String postValue){};
+  String postCallBack(ElementsHtml* e,String postValue){ if (e==edtInterval) interval = edtInterval->value;}
 
   private:
     Input* inputArray[10];
+    Output* outputArray[10];
     Label* label;
+    String f[2] = { "OFF" , "ON" };
+ComboBox* comboBox;
+EditBox* edtInterval;
     String fileName;
     int index = 0;
+    int indexO = 0;
     Pause * pause;
-    int interval;
+    int interval=60;
 };
 
 
@@ -208,7 +241,7 @@ class IfCommand: public CommandsComposite {
     }
     return html;
   }
-   
+     bool run(){}
     String postCallBack(ElementsHtml* e,String postValue){};
  void update(){};
   private:

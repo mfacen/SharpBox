@@ -60,6 +60,7 @@ class ElementsHtml{
   void setVisible(bool v) { v? javaQueue.add("document.getElementById('" + this->id + "').style.display='inline';") : javaQueue.add("document.getElementById('" + id + "').style.display='none';");}   //{visible=v;}
   void setDisabled (bool v){ v? javaQueue.add("var a=document.getElementById('" + id + "').setAttribute('disabled','disabled');"):javaQueue.add("var a=document.getElementById('" + id + "').removeAttribute('disabled');"); 
     }
+  void clearHtml(){javaQueue.add("var a=document.getElementById('" + id + "').innerHTML=''");}
   static std::vector <ElementsHtml*> allHTMLElements;
   static void pushElement(ElementsHtml* e){allHTMLElements.push_back(e); }
   static void deleteElement(ElementsHtml* e){}   //  Todavia no he implementado esto
@@ -173,9 +174,10 @@ public:
    }
    String getHtml(){
     String htmlStr;
-    htmlStr+="<html><head> <link rel='stylesheet' type='text/css' href='style.css'></head><body>\n";
-    htmlStr+="<h1>"+title+"</h1><h3>"+subTitle+"</h3><nav><a href='edit.html'>Upload </a><a href='dataLog.csv'>dataLog</a><a href='settings'>Preferencias </a><a href='dir'>Directory</a></nav>\n";
-    for ( int i=0; i<elementCount; i++) {   if (strings[i]) {htmlStr+=strings[i];}; htmlStr+=listOfElements[i]->getHtml()+"\n"; }
+    htmlStr+="<html><head> <link rel='stylesheet' type='text/css' href='style1.css'></head><body>\n";
+    htmlStr+="<h1>"+title+"</h1><h3>"+subTitle+"</h3><nav><a href='edit.html'>Upload </a><a href='dataLog.csv'>dataLog</a><a href='settings'>Preferencias </a><a href='list?dir=/'>Directory</a></nav>\n";
+    for ( int i=0; i<elementCount; i++) {  if (strings[i]) {htmlStr+=strings[i];} htmlStr+=listOfElements[i]->getHtml()+"\n";}
+      if (strings[elementCount]) htmlStr+=strings[elementCount];
        Serial.println(listOfElements[0]->getHtml());  // Atencion no usar Serial en Constructor !!!
 
     htmlStr+=getJavaScript();
