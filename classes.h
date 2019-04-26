@@ -1,5 +1,6 @@
 
 
+#define DEBUG
 
 //     ATENCION NO USAR SERIAL AQUI< TODAVIA NO EXISTE !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! 
 
@@ -175,7 +176,8 @@ public:
    String getHtml(){
     String htmlStr;
     htmlStr+="<html><head> <link rel='stylesheet' type='text/css' href='style1.css'></head><body>\n";
-    htmlStr+="<h1>"+title+"</h1><h3>"+subTitle+"</h3><nav><a href='edit.html'>Upload </a><a href='dataLog.csv'>dataLog</a><a href='settings'>Preferencias </a><a href='list?dir=/'>Directory</a></nav>\n";
+    htmlStr+="<h1>"+title+"</h1><h3>"+subTitle+"</h3><nav><a href='edit.html'>Upload </a><a href='dataLog.csv'>dataLog</a><a href='delete?file=/dataLog.csv'>delete</a>"
+            "<a href='settings'>Preferencias </a><a href='list?dir=/'>Directory</a></nav>\n";
     for ( int i=0; i<elementCount; i++) {  if (strings[i]) {htmlStr+=strings[i];} htmlStr+=listOfElements[i]->getHtml()+"\n";}
       if (strings[elementCount]) htmlStr+=strings[elementCount];
        Serial.println(listOfElements[0]->getHtml());  // Atencion no usar Serial en Constructor !!!

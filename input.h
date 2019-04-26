@@ -135,7 +135,7 @@ class Dsb18B20: public Input {
 
     }
 
-    String postCallBack(ElementsHtml* e,String postValue) {update();}
+    String postCallBack(ElementsHtml* e,String postValue) {update();return "";}
   private:
   bool tempRequested = false;
   unsigned long lastTemperatureRequest;
@@ -179,7 +179,7 @@ class Dht11: public Input {
 
     }
 
-    String postCallBack(ElementsHtml* e,String postValue) {update();}
+    String postCallBack(ElementsHtml* e,String postValue) {update(); return "";}
   private:
   bool tempRequested = false;
   unsigned long lastTemperatureRequest=0;
@@ -221,7 +221,7 @@ class AnalogIn: public Input {
       label->update(String(value));
     }
 
-    String postCallBack(ElementsHtml* e,String postValue) {update();}
+    String postCallBack(ElementsHtml* e,String postValue) {update(); return "";}
 
 };
 
@@ -255,7 +255,7 @@ class DigitalIn: public Input {
       img->update( (value==0)?"power-button.jpg":"power-buttonON.jpg" );
     }
 
-    String postCallBack(ElementsHtml* e,String postValue) {update();}
+    String postCallBack(ElementsHtml* e,String postValue) {update();return "";}
       private:
       int pin;
       Label* label;
@@ -277,17 +277,21 @@ class EditBox: public Input {
       value = text.toFloat();
        pushElement(this);          // Los elementos basicos se registran solos en el AllHTMLElemens !!
        
-      if (e!=0) parent = e;                                                                            //ERROR ERROR ERROR ERROR NO HACER ESTO Serial.println (t);
+      //if (e!=0)
+       parent = e;                                                                            //ERROR ERROR ERROR ERROR NO HACER ESTO Serial.println (t);
 
     }
 
     String getHtml() {return  "<input width='50px' "+style+" type='" + type + "' id='" + id + "' value='"+text+"' onchange=\"btnClickText('"+id+"',(this.value))\">";}
     String postCallBack(ElementsHtml* e,String postValue) {
+
                   text = postValue;
                    //     if (text.toFloat()) value = text.toFloat();
                   update();
                   if (parent) parent->postCallBack(this,postValue);
                   //return "document.getElementById('" + id + "').innerHTML='" + text + "';";
+                                    Serial.println("EditBox->postCallBack()");
+                  return "";
     }
 
     void disable (){
@@ -298,6 +302,8 @@ class EditBox: public Input {
       update();
     }
     void update (String t) {
+                  Serial.println("EditBox->Update(String)");
+
       text = t;
       update();
     }
@@ -306,9 +312,10 @@ class EditBox: public Input {
       update();
     }
     void update() {
-            //Serial.println("EditBox->Update()");
       if (text) value = text.toFloat();
       javaQueue.add("document.getElementById('" + id + "').value='" + text + "';");
+                  Serial.println("EditBox->Update()");
+
     }
   private:
     String type;

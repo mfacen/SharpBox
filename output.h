@@ -37,8 +37,8 @@ class Label: public Output {
     }
     String getHtml(){ return "<span id='"+id+ "'>"+text+"</span>";  }
     String postCallBack(ElementsHtml* e,String postValue) { if(parent) return parent->postCallBack(this,postValue); }
-    void update ( String newValue ) { text= newValue; javaQueue.add("document.getElementById('" + id + "').innerHTML='<h5>"+text+"</h5>';");}
-    void update(){ javaQueue.add("document.getElementById('" + id + "').innerHTML='Free Heap: "+text+"';"); } 
+    void update ( String newValue ) { text= newValue; update(); }
+    void update(){ javaQueue.add("document.getElementById('" + id + "').innerHTML='<h5>"+text+"</h5>';"); } 
     void update(float newValue){update(String(newValue));}
     void append(String appendValue) { text += appendValue; update();}
 };
@@ -52,7 +52,10 @@ class TimeLabel: public Label{
 public:
       using Label::Label;
         String getHtml(){ return "<span id='"+id+ "'>"+text+"</span>";  }
-  void update( long t ) { value=t; javaQueue.add("var now = new Date("+String(t)+"*1000); document.getElementById('" + id + "').innerHTML=now.toString();"); }
+  void update( long t ) { tt=t; javaQueue.add("var now = new Date("+String(t)+"*1000); document.getElementById('" + id + "').innerHTML=now.toString();"); }
+  
+private:
+  long tt;
 };
 // ########################################
 //  TABLE
@@ -279,7 +282,7 @@ class Gauge: public Output {
   bool firstRun = true;
     Gauge(String s, ElementsHtml* e=0){ name=s;id=s;parent=e;}
     String getHtml(){ return "<script src='gauge.min.js'></script><script src='gaugeScript.js'></script><canvas id='"+id+"' heigth='60' width='100'></canvas>";  }
-    String postCallBack(ElementsHtml* e,String postValue ) { if(parent) return parent->postCallBack(this,postValue); }
+    String postCallBack(ElementsHtml* e,String postValue ) { if(parent) return parent->postCallBack(this,postValue);else return ""; }
     void update(int v){value=v;update();}
        void update( float newValue) {value=newValue;update();}
     void update(){
@@ -310,7 +313,7 @@ class Meter: public Output {
 
     }
     String getHtml(){ return "<div id='"+id+"'><h5>"+name+"</h5>"+lblValue->getHtml()+"<meter id='"+id+ "Meter' min='"+String(_min)+"' max='"+String(_max)+"'></meter>"+unit+"</div>";  }
-    String postCallBack(ElementsHtml* e,String postValue) { if(parent) return parent->postCallBack(this,postValue); }
+    String postCallBack(ElementsHtml* e,String postValue) { if(parent) return parent->postCallBack(this,postValue);else return ""; }
     //void update ( String newValue ) { update(newValue.toInt());}
     void update(){
       javaQueue.add("document.getElementById('" + id + "Meter').value="+String(value)+";");
@@ -341,7 +344,7 @@ class Slider: public Output {
     label = new Label ( "lbl"+name , "" , this );
     }
     String getHtml(){ return "<div id='"+id+"'><h5>"+name+"</h5><input type='range' id='"+id+ "Meter' min='"+String(_min)+"' max='"+String(_max)+"' onchange='btnClick(this.value)'>"+unit+label->getHtml()+"</div>";  }
-    String postCallBack(ElementsHtml* e,String postValue) { if(parent) return parent->postCallBack(this,postValue); value = postValue.toInt(); }
+    String postCallBack(ElementsHtml* e,String postValue) { if(parent) return parent->postCallBack(this,postValue); value = postValue.toFloat(); return ""; }
     //void update ( String newValue ) { update(newValue.toInt());}
     void update(){ javaQueue.add("document.getElementById('" + id + "Meter').value="+String((int)value)+";"); label->update(value); } 
     void update(float newValue){value=newValue;update();}

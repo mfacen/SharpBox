@@ -35,8 +35,8 @@ public:
     //output->update(comboBox1->value);
     return true;
   }
-  String getHtml(){  return "<div class='"+name+"' "+style+" id='"+name+"'><h6>"+name+"</h6>"+output->getHtml()+"  "+ btnON->getHtml()+btnOFF->getHtml() +"</div>";  }
-  String postCallBack(ElementsHtml* e,String postValue){ if ( e==btnON )  output->update(0); if (e==btnOFF) output->update(1);Serial.println(e->id);}
+  String getHtml(){  return "<div class='"+name+"' "+style+" id='"+name+"'><h6>"+name+"</h6>"+output->getHtml()+"<br>"+ btnON->getHtml()+btnOFF->getHtml() +"</div>";  }
+  String postCallBack(ElementsHtml* e,String postValue){ if ( e==btnON )  output->update(0); if (e==btnOFF) output->update(1);Serial.println(e->id);return "";}
 void update(){}
   
 };
@@ -79,7 +79,7 @@ class InputPanelText:public Commands {
     return true;
   }
   String getHtml(){  return "<div class='"+name+"' "+style+" id='"+name+"'><h6>"+name+"</h6>"+ label->getHtml() + edit->getHtml()  +"</div>";  }
-  String postCallBack(ElementsHtml* e,String postValue){Serial.print("Post Call Back de "+this->name+" value: "+postValue);};
+  String postCallBack(ElementsHtml* e,String postValue){Serial.print("Post Call Back de "+this->name+" value: "+postValue); return "";};
 void update(){ edit->update();}
 void update ( String s ) { label->update(s);}
 float getValue () { return edit->value;Serial.println("InputPanelText.getValue()");}
@@ -113,11 +113,11 @@ class Pause: public Commands {
    }
   bool run(){  
       if (firstRun){firstRun=false; start();}
-      if  (  (lastTimeCheck - millis()  ) > 1000 ) { lastTimeCheck = millis (); value = value - 1; update();if(value==0)value=interval; }
+      if  (  (lastTimeCheck - millis()  ) > 1000 ) { lastTimeCheck = millis (); update();if(value==0)value=interval;value-=1; }
       if (( millis()-lastUpdate ) > interval*1000 ) {firstRun=true;return true;} else return false;
   };
-  String postCallBack(ElementsHtml* e,String postValue){};
-  void start( ) { lastUpdate  = millis();value=interval/1000;}
+  String postCallBack(ElementsHtml* e,String postValue){return "";}
+  void start( ) { lastUpdate  = millis();}
   void update(){} //javaQueue.add("document.getElementById('" + editTime->id + "').setAttribute('innerHTML', '"+String(value)+"');");    }
   private:
     unsigned long lastUpdate;
@@ -143,6 +143,9 @@ class Logger: public Commands {
 
     void addInput ( Input *i ) { if (index<9) {inputArray[index]=i;index++;}}
     void addOutput ( Output *o ) { if (indexO<9) {outputArray[indexO]=o;indexO++;}}
+    void addFloat ( String name, float *f ) {
+                                               if (indexF<9) {
+                                        names[indexF]=name;floatArray[indexF]=f;indexF++;}}
     bool run(){return logData();}
 
     void update(){
@@ -151,16 +154,17 @@ class Logger: public Commands {
                   pause->setInterval(interval);
                   logData();
                 }
-                label->update("Tmr: "+String(pause->value));
+                label->update("Tmr: "+String(pause->value) );
               }
     void startTimer(){pause->run();}
     void setInterval ( int _interval) { interval = _interval ;pause->setInterval(interval); edtInterval->update(String(interval)); }
 
     bool logData(){
+            bool r=false;
+
       if (comboBox->value){
       File tempLog ;
       tempLog = SPIFFS.open(fileName , "a"); // Write the time and the temperature to the csv file
-      bool r=tempLog;
       if (index>0){
         for ( int i=0; i<index; i++ ) {
          tempLog.println(inputArray[i]->getName()+" , "+String(inputArray[i]->value));
@@ -171,10 +175,21 @@ class Logger: public Commands {
          tempLog.println(outputArray[i]->getName()+" , "+String(outputArray[i]->value));
         }
       }
+      if (indexF>0){
+        for ( int i=0; i<indexF; i++ ) {
+          float temp = *floatArray[i];
+         tempLog.println(names[i]+" , "+String(temp));
+        }
+      }
 
             tempLog.close();
-      return r;
+            #ifndef debug
+            Serial.println("Data Logged");
+            #endif
+
     }
+          return r;
+
     }
       String getHtml(){
         String str= "<div class='"+name+"' "+ style+" id='"+name+"'><h6>"+name+"</h6>"+comboBox->getHtml()+edtInterval->getHtml()+"<br>Inputs:<br>";
@@ -184,17 +199,22 @@ class Logger: public Commands {
                  if (indexO!=0) {
          for ( int i=0; i<indexO; i++ ) { str += outputArray[i]->getName() + "<br>"; }
          }  
-
+                 if (indexF!=0) {
+         for ( int i=0; i<indexF; i++ ) { str += names[i] + "<br>"; }
+         }  
                  str += label->getHtml()+"</div>";
 
          return str;
       }
       //              Atencion si falta una de los metodos static se produce un Error que no se detecta y no hay HTML
-  String postCallBack(ElementsHtml* e,String postValue){ if (e==edtInterval) interval = edtInterval->value;}
+  String postCallBack(ElementsHtml* e,String postValue){ if (e==edtInterval) interval = edtInterval->value;pause->setInterval(interval); return "";}
 
   private:
     Input* inputArray[10];
     Output* outputArray[10];
+    float * floatArray[10];
+     String names [10];
+
     Label* label;
     String f[2] = { "OFF" , "ON" };
 ComboBox* comboBox;
@@ -202,6 +222,7 @@ EditBox* edtInterval;
     String fileName;
     int index = 0;
     int indexO = 0;
+    int indexF = 0;
     Pause * pause;
     int interval=60;
 };
@@ -242,7 +263,7 @@ class IfCommand: public CommandsComposite {
     return html;
   }
      bool run(){}
-    String postCallBack(ElementsHtml* e,String postValue){};
+    String postCallBack(ElementsHtml* e,String postValue){return "";};
  void update(){};
   private:
   Input* inL;
@@ -336,7 +357,7 @@ int value=0;
     update();
     if (value==0) return false; else return true;
   }
-    String postCallBack(ElementsHtml* e,String postValue){};
+    String postCallBack(ElementsHtml* e,String postValue){ return "";};
 
 };
 
@@ -356,7 +377,7 @@ class KeypadControl: public Commands {
     //update();
     if (keypad->value==0) return false; else return true;
   }
-    String postCallBack(ElementsHtml* e,String postValue){};
+    String postCallBack(ElementsHtml* e,String postValue){ return "";};
 void update(){};
 
 };
