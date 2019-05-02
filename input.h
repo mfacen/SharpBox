@@ -108,7 +108,8 @@ class Dsb18B20: public Input {
       minValue = 0;
       maxValue = 150;
       unit = "grados";
-      descriptor = "Temperature Sensor  Dsb18B20";
+      descriptor = "Dsb18B20";
+      label = new Label("lbl"+id,"Temp: ",this);
      // html = " <div id='"+id+"'><h4>" + name + "</h4>"+descriptor+"<br>Temperature:" + String(value) + "</div>";
        pushElement(this);          // Los elementos basicos se registran solos en el AllHTMLElemens !!
        oneWire = new  OneWire(pin);        // Set up a OneWire instance to communicate with OneWire devices
@@ -118,7 +119,7 @@ class Dsb18B20: public Input {
     }
     //~Dsb18B20(ElementsHtml::deleteElement(this));
 
-    String getHtml() { return " <div "+style+" id='"+id+"'><h4>" + name + "</h4>"+descriptor+"<br>Temperature:" + String(value) + "</div>";  }
+    String getHtml() { return " <div "+style+"><h4>" + name + "</h4>"+descriptor+"<br>"+label->getHtml() + "</div>";  }
     
     void update() {
       if  (!tempRequested)  {
@@ -129,14 +130,14 @@ class Dsb18B20: public Input {
       if ( ( millis() - lastTemperatureRequest > intervalTemperature ) && tempRequested ) {
         value = tempSensors->getTempCByIndex(0); // Get the temperature from the sensor
         tempRequested=false;
+              label->update(String(value));
       }
       //value = tempSensors->getTempCByIndex(0);
-      javaQueue.add( "document.getElementById('" + id + "').innerHtml='Temperature:" + String(value) + "';");
-
     }
 
-    String postCallBack(ElementsHtml* e,String postValue) {update();return "";}
+    String postCallBack(ElementsHtml* e,String postValue) {return "";}
   private:
+    Label* label;
   bool tempRequested = false;
   unsigned long lastTemperatureRequest;
   int intervalTemperature = 1500;
@@ -282,7 +283,7 @@ class EditBox: public Input {
 
     }
 
-    String getHtml() {return  "<input width='50px' "+style+" type='" + type + "' id='" + id + "' value='"+text+"' onchange=\"btnClickText('"+id+"',(this.value))\">";}
+    String getHtml() {return  "<input size='4' "+style+" type='" + type + "' id='" + id + "' value='"+text+"' onchange=\"btnClickText('"+id+"',(this.value))\">";}
     String postCallBack(ElementsHtml* e,String postValue) {
 
                   text = postValue;
@@ -331,18 +332,18 @@ class KeyPad: public Input  {  // Aqui lo he cambiado !!!!!!!!!!!!!!!!!!!!!!!!!!
     int value=0;
     String state ="ooo";
     EditBox *edt;
-    EditBox *edtLabel;
+    Label *edtLabel;
           Button* buttons[11];
 
     KeyPad(String n) {
       name = n;
       id = n;
-      edt = new EditBox(name+ "Edit","","text",this);
-      edtLabel = new EditBox(name+"Label","","text",this);
+      edt = new EditBox(id+ "Edit","","text",this);
+      edtLabel = new Label(id+"Label","Locked",this);
 //      addChild(edt);addChild(edtLabel);
       for (int i = 0; i < 10; i++ ) {
 
-        buttons[i] = new Button (name+"btn"+String(i), String(i),this);  // esto indica que tiene pariente 
+        buttons[i] = new Button (id+"btn"+String(i), String(i),this);  // esto indica que tiene pariente 
 //        addChild (buttons[i]);
 //yield();
       }
@@ -350,7 +351,7 @@ class KeyPad: public Input  {  // Aqui lo he cambiado !!!!!!!!!!!!!!!!!!!!!!!!!!
 
     }
     String getHtml() {
-      String h="<div "+style+" id='"+name+"'><h4>" + name + "</h4>\n\t";
+      String h="<div "+style+" id='"+id+"'><h4>" + name + "</h4>\n\t";
             for (int i = 0; i < 11; i++ ) {
               h+= buttons[i]->getHtml(); 
               if ((i==2)||(i==5)||(i==8)) h+="<br>";

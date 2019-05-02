@@ -52,8 +52,8 @@ class TimeLabel: public Label{
 public:
       using Label::Label;
         String getHtml(){ return "<span id='"+id+ "'>"+text+"</span>";  }
-  void update( long t ) { tt=t; javaQueue.add("var now = new Date("+String(t)+"*1000); document.getElementById('" + id + "').innerHTML=now.toString();"); }
-  
+  void update( long t ) { tt=t;value=t; javaQueue.add("var now = new Date("+String(t)+"*1000); document.getElementById('" + id + "').innerHTML=now.toString();"); }
+
 private:
   long tt;
 };
@@ -193,7 +193,7 @@ class PWM
     else 
       { result = true; }
 
-    if  (  ( currentMillis - previousMillis )  > period ) { previousMillis = currentMillis; level++; if (level == 10 ) level = 1; }
+    if  (  ( currentMillis - previousMillis )  > period ) { previousMillis = currentMillis; }
     return result;
     }
    void setLevel(int i){level=i;}
@@ -217,7 +217,7 @@ class PWM
         pinMode ( pin , OUTPUT );
         stateStr="OFF";
         label = new Label ("lbl"+id,stateStr,this);
-        img = new Image ("img"+id,"LampOn.bmp",this);
+        img = new Image ("img"+id,"power-button.jpg",this);
         pinMode(pin,OUTPUT);
         invertedLogic = inverted;
          };

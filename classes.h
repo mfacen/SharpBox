@@ -176,13 +176,13 @@ public:
    String getHtml(){
     String htmlStr;
     htmlStr+="<html><head> <link rel='stylesheet' type='text/css' href='style1.css'></head><body>\n";
+        htmlStr+=getJavaScript();
+
     htmlStr+="<h1>"+title+"</h1><h3>"+subTitle+"</h3><nav><a href='edit.html'>Upload </a><a href='dataLog.csv'>dataLog</a><a href='delete?file=/dataLog.csv'>delete</a>"
             "<a href='settings'>Preferencias </a><a href='list?dir=/'>Directory</a></nav>\n";
     for ( int i=0; i<elementCount; i++) {  if (strings[i]) {htmlStr+=strings[i];} htmlStr+=listOfElements[i]->getHtml()+"\n";}
       if (strings[elementCount]) htmlStr+=strings[elementCount];
-       Serial.println(listOfElements[0]->getHtml());  // Atencion no usar Serial en Constructor !!!
 
-    htmlStr+=getJavaScript();
       
 htmlStr+="<br><span id='errorLabel'></span><br>\n<button type = 'button' dataValue='primus,2323' onclick='btnClick(this)' id='switchToStation'>Connectar WIFI</button><br>";
 
@@ -193,8 +193,10 @@ htmlStr+="<br><span id='errorLabel'></span><br>\n<button type = 'button' dataVal
 htmlStr+="Total KB: "+String(fileTotalKB)+"Kb / Used: "+String(fileUsedKB);
   
 htmlStr+= "</body></html>";    
+  Serial.println(htmlStr);  // Atencion no usar Serial en Constructor !!!
 
     return htmlStr;
+
   }
   String getJavaScript(){return "<script src='javascript.js'></script>"; }
 

@@ -17,6 +17,7 @@
 #include <FS.h>
 #include <WebSocketsServer.h>
 #include <Hash.h>
+//#include <GDBStub.h>    //   este es un Debugger que se puede usar si la aplicacion no es muy grande
 
 #define ONE_HOUR 3600000UL
 #define TEMP_SENSOR_PIN D2
@@ -57,7 +58,6 @@ byte packetBuffer[NTP_PACKET_SIZE];      // A buffer to hold incoming and outgoi
 
 
 File fsUploadFile;                                    // a File variable to temporarily store the received file
-AlarmId logAlarm;
 
 
 
@@ -78,7 +78,9 @@ String chkCountdownTimer;
 String relay_1_state;
 const unsigned long intervalNTP = ONE_HOUR; // Update the time every hour
 unsigned long prevNTP = 0;
-uint32_t timeUNIX = 0;                      // The most recent timestamp received from the time server
+uint32_t timeUNIX = 0;   
+uint32_t timeNow = 0;                      // The most recent timestamp received from the time server
+                   // The most recent timestamp received from the time server
 unsigned long lastNTPResponse = 0;
 unsigned long countdownSetTime = 0;
 
@@ -99,19 +101,19 @@ unsigned long countdownSetTime = 0;
   RelayOutput   relay2 (RELAY_2_PIN,"Relay 2 110VAC","relay2");
   RelayOutput   relay3 (RELAY_3_PIN,"Relay 3 110VAC","relay3");
   Dsb18B20 tempSensor ( TEMP_SENSOR_PIN ,"Temp_Probe");   // habria que crearlo solo si encontro el sensor
-  Dht11 dht1( D5,"dht1");
+  //Dht11 dht1( D5,"dht1");
   Button button1("btn1","button1");
  //  KeyPad keypad1 ("keypad1");
  // KeyPadCommand keypadCom("keyPadCom1");
-  EditBox edit1 ("edit1","edit1");
-  EditBox edit2 ("edit2","edit2");
+  EditBox edit1 ("edit1","edit1","text");
+  EditBox edit2 ("edit2","edit2","text");
   Label label1 ("label1","this is Label1");
   Label label2 ("label2","this is Label2");
     Graphic graphic1("graphic1");
 //KeypadControl keypadControl1("keyPadCtrl1");
 
-  ActiveControl control1 ("control1" , &dht1 ,"=",  &edit2  , &graphic1 , &analogIn1 );
-  ActiveControl control2 ("control2" , &analogIn1 , ">", &edit1 , &relay3 , &edit2 );
+  ActiveControl control1 ("control1" , &digitalIn1 ,"=",  &edit2  , &graphic1 , &analogIn1 );
+  ActiveControl control2 ("control2" , &tempSensor , ">", &edit1 , &relay3 , &edit2 );
   //ActiveControl control3 ("control3" , &tempSensor , "=", &edit1 , &relay1 , &edit2 );// xq hay problemas en la creacion de esto ?
   Set set1 ("set1",&relay1);
   Set set2 ("set2",&relay2);
@@ -121,6 +123,8 @@ unsigned long countdownSetTime = 0;
   //Program program2 ("program2");
   //Pause pause1 ("pause1",1);
   LabelFreeHeap lblFreeHeap("lblHeap","");
+  TimeLabel lblTime("lblTime","Label Time");
+
 //  IfCommand if1("If numero 1",&edit1,&edit2);
 ///////////////////////////////////////////////////////////////////////////
 ////                                                               ////////
@@ -136,7 +140,7 @@ unsigned long countdownSetTime = 0;
   // put your setup code here, to run once:
    // pinMode ( RELAY_1_PIN , OUTPUT );
     //pinMode ( RELAY_2_PIN , OUTPUT );
-    pinMode ( TEMP_SENSOR_PIN , INPUT_PULLUP );
+    //pinMode ( TEMP_SENSOR_PIN , INPUT_PULLUP );
    // relay1.update(1);
   //  relay2.update(1);
   Serial.begin(115200);        // Start the Serial communication to send messages to the computer
@@ -183,26 +187,26 @@ unsigned long countdownSetTime = 0;
 //               program1.addCommand(&keypadControl1);
 
        program1.addCommand(&control1);
-       program1.addCommand(&logger1);
+     //  program1.addCommand(&logger1);
        program1.addCommand(&control2);
        //pause1.start();
  //      if1.addCommand(&set2);
    //   if1.addCommand(&set3);
  //      program1.addCommand(&if1);    //  esto esta produciendo error
 //       pause1.start();
-  page.addElement(&button1);
-
+  page.addElement(&lblTime);
+  page.addString("<br>");
  //   page.addElement(&control1);
-  //      page.addElement(&keypad1);        // Parece que el Keypad da problemas, numero de elementos ????  El Keypad tambien tiene problemas !!!
+  //     page.addElement(&keypad1);        // Parece que el Keypad da problemas, numero de elementos ????  El Keypad tambien tiene problemas !!!
      page.addElement(&relay1);
     page.addElement(&relay2);
     page.addElement(&relay3);
-           page.addElement(&graphic1);
+    page.addElement(&graphic1);
     page.addElement(&lblFreeHeap);
 
     page.addElement(&program1);       // El program es el que esta haciendo randoms problems
 
-//    page.addElement(&tempSensor);
+    page.addElement(&tempSensor);
 //    page.addElement(&analogIn1);
 //    page.addElement(&digitalIn1);
 //    page.addElement(&set1);
@@ -236,12 +240,16 @@ void loop() {
   
 if (( currentMillis - lastUpdate ) > 1000 ) {   //  now it updates every 5 seconds
   Serial.println("Time: "+String(currentMillis/1000));
-    //tempSensor.update();
+              timeNow = timeUNIX + ( (currentMillis - lastNTPResponse) / 1000 );
+
+    tempSensor.update();// ElementsHtml::javaQueue.add("console.log('tmpSensorUpdate');");
     //analogIn1.update();
     //digitalIn1.update();
+                lblTime.update(timeNow);
+
     lblFreeHeap.update();
     //control1.update();
-    program1.run();
+   // program1.run();
     lastUpdate = currentMillis;
      Serial.println("Heap Left: "+String(ESP.getFreeHeap(),DEC));//+" :Frag: " +String(ESP.getHeapFragmentation(),DEC)+"   Max-SIze = "+ String(ESP.getMaxFreeBlockSize()));
      String ss= page.getJavaQueue();            // Get the JavaScript Queue from page
@@ -325,13 +333,13 @@ void startServer() { // Start a HTTP server with a file read handler and an uplo
     server.send(200, "text/plain", "");
   }, handleFileUpload); 
    
-  // server.on("/list", HTTP_GET, handleFileList);
+   server.on("/list", HTTP_GET, handleFileList);
     server.on("/delete", HTTP_GET, handleFileDelete);
    server.on("/getData", handleGetData);
    server.on("/btnClick", HTTP_GET , handleBtnClick );
 
   // server.on("/reset",HTTP_GET , handleReset );
-  server.on("/index1", HTTP_GET , handleIndex1);
+  server.on("/index.html", HTTP_GET , handleIndex1);
   server.onNotFound(handleNotFound);          // if someone requests any other file or page, go to function 'handleNotFound'
   // and check if the file exists
 
@@ -394,6 +402,10 @@ void handleBtnClick() {                             //////////////   HANDLE BUTT
            }
            
   }
+          if (buttonName == "Time") {
+            timeUNIX = buttonValue.toInt();
+            lastNTPResponse = millis();
+        }
   reply="console.log('fake handleBtnClick reply');";
   server.send(200, "text/plain", reply );
 
@@ -475,6 +487,39 @@ void handleFileDelete() {                     // Usage   192.168.1.13/delete?fil
 
   SPIFFS.remove(path);
   server.send(200, "text/plain", "deleted" + path);
+}
+
+void handleFileList() {
+    if (!server.hasArg("dir")) {
+        server.send(500, "text/plain", "BAD ARGS");
+        return;
+    }
+
+    String path = server.arg("dir");
+    Serial.println("handleFileList: " + path);
+    Dir dir = SPIFFS.openDir(path);
+    path = String();
+    int memoryUsed = 0;
+    String output = "[";
+    while (dir.next()) {
+        File entry = dir.openFile("r");
+        if (output != "[") output += ',';
+        bool isDir = false;
+        output += "{\"type\":\"";
+        output += (isDir) ? "dir" : "file";
+        output += "\",\"name\":\"";
+        output += String(entry.name()).substring(1) + "\"";
+        output += "Size: " + String(entry.size());
+        memoryUsed += entry.size();
+        output += "\"}";
+        output += "\n";
+        entry.close();
+    }
+
+    output += "]";
+    output += "    Total memory used: " + String (memoryUsed);
+
+    server.send(200, "text/json", output);
 }
 
 //////////////////////////////////////////////////////////////////
@@ -570,6 +615,3 @@ void sendNTPpacket(IPAddress& address) {
 long mapFloat ( float x , float in_min , float in_max  , float out_min , float out_max ) {
   return (x - in_min) * (out_max - out_min) / (in_max - in_min) + out_min;
 }
-
-
-
