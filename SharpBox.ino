@@ -110,7 +110,7 @@ unsigned long countdownSetTime = 0;
   Label label1 ("label1","this is Label1");
   Label label2 ("label2","this is Label2");
     Graphic graphic1("graphic1");
-//KeypadControl keypadControl1("keyPadCtrl1");
+KeypadControl keypadControl1("keyPadCtrl1");
 
   ActiveControl control1 ("control1" , &digitalIn1 ,"=",  &edit2  , &graphic1 , &analogIn1 );
   ActiveControl control2 ("control2" , &tempSensor , ">", &edit1 , &relay3 , &edit2 );
@@ -184,7 +184,7 @@ unsigned long countdownSetTime = 0;
    
          program1.addCommand(&set1);
        program1.addCommand(&set2);
-//               program1.addCommand(&keypadControl1);
+              program1.addCommand(&keypadControl1);
 
        program1.addCommand(&control1);
      //  program1.addCommand(&logger1);
@@ -216,8 +216,8 @@ unsigned long countdownSetTime = 0;
     webSocket.begin();
     webSocket.onEvent(webSocketEvent);
     page.getHtml();
-    Serial.print("html:");
-    Serial.println(ElementsHtml::html);
+   // Serial.print("html:");
+   // Serial.println(ElementsHtml::html);
 }
 
 

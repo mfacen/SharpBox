@@ -124,7 +124,7 @@ String name;
   
   String getHtml(){
     String html;
-    html+="<div id='"+id+"'><h4>"+name+"</h4> CommandCount = " + label->getHtml()+"<br>";
+    html+="<div id='"; html+=id;html+="'><h4>";html+=name;html+="</h4> CommandCount = ";html+=label->getHtml();html+="<br>";
     for ( int i=0; i<commandCount; i++) {   html+=listOfCommands[i]->getHtml()+"\n"; }
     html+= "</div>";
     return html;

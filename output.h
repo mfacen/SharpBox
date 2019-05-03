@@ -169,18 +169,20 @@ class Graphic: public Output {
     String postCallBack(ElementsHtml* e,String postValue ) { if(parent) return parent->postCallBack(this,postValue); }
     void update ( float newValue ) {
           String str;
-          str+="var canvas = document.getElementById('"+id+"');\n"
+          str+="var canvas = document.getElementById('";str+=id;str+="');\n"
           "ctx=canvas.getContext('2d');\n"
           "ctx.strokeStyle = 'blue';\n" 
           "ctx.beginPath();\n"
-          "ctx.arc(xPos*4,canvas.height-2 - "+String(newValue*5)+", 2, 0 , 2*Math.PI );\n"
+          "ctx.arc(xPos*4,canvas.height-2 - ";
+          str += String(newValue*5);
+          str+=", 2, 0 , 2*Math.PI );\n"
           "ctx.fillStyle = 'blue';\n"
           "ctx.fill();\n"
           "ctx.stroke();\n"
          "ctx.closePath();\n"
          "xPos++; if ( xPos*4>canvas.width ) {  ctx.clearRect(0, 0, canvas.width, canvas.height);   xPos = 0;     generateCanvas();   }"
-         "function generateCanvas(){ var canvas = document.getElementById('"+id+"');  ctx=canvas.getContext('2d');"
-                "  ctx.font = '10px serif';  ctx.fillStyle = 'blue';    ctx.fillText('"+name+"', 20, 15);    ctx.stroke();} ";
+         "function generateCanvas(){ var canvas = document.getElementById('"; str+= id; str+= "');  ctx=canvas.getContext('2d');"
+                "  ctx.font = '10px serif';  ctx.fillStyle = 'blue';    ctx.fillText('";str+=name;str+="', 20, 15);    ctx.stroke();} ";
           javaQueue.add(str);
           //xPos++; if(xPos==
     }

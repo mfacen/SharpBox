@@ -38,7 +38,14 @@ class Button: public Input {
       //return ("console.log('postCallBack of " + name+" parent: "+parent->name+"'); ");
       return "";
     } 
-    String getHtml() {  return "<button "+style+" type='button' width='40' id='"+ id + "' value ='" + text + "' onclick=\"btnClickText('" + id + "',this.value)\" >" + text + "</button>\n";  }
+   String getHtml() {  String s;s += "<button "; s+= style ; s+=" type='button' width='40' id='";s+=id; s+= "' value ='"; s+= text; s+= "' onclick=\"btnClickText('"; s+= id;s+= "',this.value)\" >";
+                      s+=text; s+= "</button>\n"; return s;  }
+   
+void addHtml() {
+    htmlAdd("<button "); htmlAdd(style.c_str()); htmlAdd(" type='button' width='40' id='"); htmlAdd( id.c_str()); htmlAdd ("' value ='"); htmlAdd(text.c_str());
+    htmlAdd("' onclick=\"btnClickText('");
+    htmlAdd(id.c_str()); htmlAdd("',this.value)\" >");htmlAdd(text.c_str()); htmlAdd ("</button>\n");
+}
     void update(String s) {
             javaQueue.add( "var a=document.getElementById('" + id + "'); a.value='"+s+"'; a.textContent='" + s + "';");
 
