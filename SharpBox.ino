@@ -206,7 +206,7 @@ unsigned long countdownSetTime = 0;
 
     page.addElement(&program1);       // El program es el que esta haciendo randoms problems
 
-    page.addElement(&tempSensor);
+    //page.addElement(&tempSensor);
 //    page.addElement(&analogIn1);
 //    page.addElement(&digitalIn1);
 //    page.addElement(&set1);
@@ -249,7 +249,7 @@ if (( currentMillis - lastUpdate ) > 1000 ) {   //  now it updates every 5 secon
 
     lblFreeHeap.update();
     //control1.update();
-   // program1.run();
+    program1.run();
     lastUpdate = currentMillis;
      Serial.println("Heap Left: "+String(ESP.getFreeHeap(),DEC));//+" :Frag: " +String(ESP.getHeapFragmentation(),DEC)+"   Max-SIze = "+ String(ESP.getMaxFreeBlockSize()));
      String ss= page.getJavaQueue();            // Get the JavaScript Queue from page

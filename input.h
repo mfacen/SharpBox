@@ -313,13 +313,16 @@ class EditBox: public Input {
       update();
     }
     void update() {
-      if (text) value = text.toFloat();
-      javaQueue.add("document.getElementById('" + id + "').value='" + text + "';");
-                  Serial.println("EditBox->Update()");
+      if (text && ( text!=lastValue)) { value = text.toFloat(); lastValue = text;
 
+        javaQueue.add("document.getElementById('" + id + "').value='" + text + "';");
+                  //Serial.println("EditBox->Update()");
+
+      }
     }
   private:
     String type;
+    String lastValue;
 };
 
 

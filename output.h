@@ -23,6 +23,7 @@
 // ########################################
 //  LABEL
 // ########################################
+#include <umm_malloc/umm_malloc.h> // for computing memory fragmentation
 
 class Label: public Output {
   public:
@@ -43,10 +44,29 @@ class Label: public Output {
     void append(String appendValue) { text += appendValue; update();}
 };
 
+const size_t block_size = 8;
+size_t getTotalAvailableMemory() {
+  umm_info(0, 0);
+  return ummHeapInfo.freeBlocks * block_size;
+}
+
+size_t getLargestAvailableBlock() {
+  umm_info(0, 0);
+  return ummHeapInfo.maxFreeContiguousBlocks * block_size;
+}
 class LabelFreeHeap: public Label {
   public:
   using Label::Label;
-  void update(){ javaQueue.add("document.getElementById('" + id + "').innerHTML='V: "+String(ESP.getFreeHeap(),DEC)+"';"); }
+  void update(){ 
+// Returns the number of free bytes in the RAM.
+
+
+// Computes the heap fragmentation percentage.
+  int percentage =  100 - getLargestAvailableBlock() * 100.0 / getTotalAvailableMemory();
+  javaQueue.add("document.getElementById('" + id + "').innerHTML='V: "+String(ESP.getFreeHeap(),DEC)+" "+String(percentage)+"%';");// for size_t
+
+
+}
 };
 class TimeLabel: public Label{
 public:
