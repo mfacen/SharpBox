@@ -103,7 +103,7 @@ unsigned long countdownSetTime = 0;
   Dsb18B20 tempSensor ( TEMP_SENSOR_PIN ,"Temp_Probe");   // habria que crearlo solo si encontro el sensor
   //Dht11 dht1( D5,"dht1");
   Button button1("btn1","button1");
- //  KeyPad keypad1 ("keypad1");
+   //KeyPad keypad1 ("keypad1");
  // KeyPadCommand keypadCom("keyPadCom1");
   EditBox edit1 ("edit1","edit1","text");
   EditBox edit2 ("edit2","edit2","text");
@@ -124,7 +124,7 @@ unsigned long countdownSetTime = 0;
   //Pause pause1 ("pause1",1);
   LabelFreeHeap lblFreeHeap("lblHeap","");
   TimeLabel lblTime("lblTime","Label Time");
-Logger logger ("Logger","/dataLog.csv");
+Logger logger ("Logger","dataLog.csv");
 //  IfCommand if1("If numero 1",&edit1,&edit2);
 ///////////////////////////////////////////////////////////////////////////
 ////                                                               ////////
@@ -198,7 +198,7 @@ Logger logger ("Logger","/dataLog.csv");
   page.addElement(&lblTime);
   page.addString("<br>");
  //   page.addElement(&control1);
-  //     page.addElement(&keypad1);        // Parece que el Keypad da problemas, numero de elementos ????  El Keypad tambien tiene problemas !!!
+ //      page.addElement(&keypad1);        // Parece que el Keypad da problemas, numero de elementos ????  El Keypad tambien tiene problemas !!!
      page.addElement(&relay1);
     page.addElement(&relay2);
     page.addElement(&relay3);

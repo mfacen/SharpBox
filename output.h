@@ -54,16 +54,15 @@ size_t getLargestAvailableBlock() {
   umm_info(0, 0);
   return ummHeapInfo.maxFreeContiguousBlocks * block_size;
 }
+
+
 class LabelFreeHeap: public Label {
   public:
   using Label::Label;
   void update(){ 
-// Returns the number of free bytes in the RAM.
 
-
-// Computes the heap fragmentation percentage.
   int percentage =  100 - getLargestAvailableBlock() * 100.0 / getTotalAvailableMemory();
-  javaQueue.add("document.getElementById('" + id + "').innerHTML='V: "+String(ESP.getFreeHeap(),DEC)+" "+String(percentage)+"%';");// for size_t
+  javaQueue.add("document.getElementById('" + id + "').innerHTML='V: "+String(ESP.getFreeHeap(),DEC)+" Frag: "+String(percentage)+"%';");// for size_t
 
 
 }
@@ -90,7 +89,7 @@ class Table: public Output {
              pushElement(this);          // Los elementos basicos se registran solos en el AllHTMLElemens !!
 
     }
-    String getHtml(){ return "<div id='"+id+"div'><h5>"+text+"</h5><table id='"+id+ "'><tr><td></td><td></td></tr></table></div>";  }
+    String getHtml(){ String s= "<div id='";s+=id;s+="div'><h5>";s+=text;s+="</h5><table id='";s+=id;s+= "'><tr><td></td><td></td></tr></table></div>"; return s;  }
     String postCallBack(ElementsHtml* e,String postValue) { if(parent) return parent->postCallBack(this,postValue); }
     //void update ( String newValue ) { text= newValue; javaQueue.add("document.getElementById('" + id + "').innerHTML='<h5>"+text+"</h5>';");}
     void setTitle (String s){text=s;}

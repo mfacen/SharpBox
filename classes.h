@@ -20,7 +20,7 @@
   public:
     JavaQueue(){};
     String queue="";
-    void add (String q){queue+=q+"\n";}
+    void add (String q){queue+=q;queue+="\n";}
     String get(){String temp=queue;queue="";return temp;}
 };
 
@@ -66,7 +66,7 @@ class ElementsHtml{
   static void pushElement(ElementsHtml* e){allHTMLElements.push_back(e); }
   static void deleteElement(ElementsHtml* e){}   //  Todavia no he implementado esto
   static char html [1000];
-  static void htmlAdd(const char* s){ strncat(html,s,2000);} // Copy char* s at the end of html, max lenght 2000.
+  static void htmlAdd(const char* s){ strncat(html,s,1000);} // Copy char* s at the end of html, max lenght 2000.
   static String htmlGet(){ return html;} // Copy char* s at the end of html, max lenght 2000.
 };
 

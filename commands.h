@@ -153,7 +153,7 @@ class Logger: public Commands {
     void update(){
                 if ( (index>0) && ( pause->run() ) )  {
                   for ( int i=0; i<index; i++ ) {  inputArray[i]->update(); }
-                  pause->setInterval(interval);
+                  //pause->setInterval(interval);
                   logData();
                 }
                 label->update("Tmr: "+String(pause->value) );

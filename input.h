@@ -74,15 +74,20 @@ class ComboBox: public Input {
       }
 
    
-    String getHtml() {String html = "<select "+style+" id='" + id + "' onchange=\"btnClickText('"+id+"', this.selectedIndex)\">\n";
+    String getHtml() {String html = "<select "; html+=style;html+=" id='";html+= id ; html+= "' onchange=\"btnClickText('";html+=id;html+="', this.selectedIndex)\">\n";
           for(int i = 0; i < fieldsCount ; i++) {
-              html+="<option value='"+fields[i]+"'>"+fields[i]+"</option>";
+              html+="<option value='";html+=fields[i];html+="'>";html+=fields[i];html+="</option>";
           }
               html+="</select>";return  html;}
     void update() {
-      text = fields[selected];
-      value = selected;
-      javaQueue.add("document.getElementById('" + id + "').selectedIndex='" + String(selected) + "'; console.log('"+name+" update value="+String(value)+"');");
+        if (value!=lastValue){
+            text = fields[selected];
+            value = text.toFloat();
+            lastValue=value;
+             javaQueue.add("document.getElementById('" + id + "').selectedIndex='" + String(selected) );//+ "'; console.log('"+name+" update value="+String(value)+"');");
+
+          }
+
             
     }
     String postCallBack(ElementsHtml* e,String postValue) {
@@ -93,6 +98,7 @@ class ComboBox: public Input {
     }
     private:
       int fieldsCount;
+      int lastValue;
 };
 
 
@@ -126,7 +132,7 @@ class Dsb18B20: public Input {
     }
     //~Dsb18B20(ElementsHtml::deleteElement(this));
 
-    String getHtml() { return " <div "+style+"><h4>" + name + "</h4>"+descriptor+"<br>"+label->getHtml() + "</div>";  }
+    String getHtml() { String s= " <div ";s+=style;s+="><h4>";s+= name ;s+= "</h4>";s+=descriptor;s+="<br>";s+=label->getHtml() ;s+= "</div>"; return s;  }
     
     void update() {
       if  (!tempRequested)  {
