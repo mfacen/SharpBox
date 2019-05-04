@@ -374,6 +374,7 @@ void handleIndex1() {
  // Serial.println( reply);
   
   server.send(200,"text/html",page.getHtml());
+  //server.send(200,"text/html",ElementsHtml::htmlGet());
 
 }
 

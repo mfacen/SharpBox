@@ -36,7 +36,8 @@ class Label: public Output {
              pushElement(this);          // Los elementos basicos se registran solos en el AllHTMLElemens !!
 
     }
-    String getHtml(){ return "<span id='"+id+ "'>"+text+"</span>";  }
+    String getHtml(){ String s= "<span id='";s+=id;s+= "'>";s+=text;s+="</span>"; return s; }
+    void addHtml(){ String s= "<span id='";s+=id;s+= "'>";s+=text;s+="</span>"; htmlAdd(s.c_str()); }
     String postCallBack(ElementsHtml* e,String postValue) { if(parent) return parent->postCallBack(this,postValue); }
     void update ( String newValue ) { text= newValue; update(); }
     void update(){ javaQueue.add("document.getElementById('" + id + "').innerHTML='<h5>"+text+"</h5>';"); } 
@@ -70,7 +71,8 @@ class LabelFreeHeap: public Label {
 class TimeLabel: public Label{
 public:
       using Label::Label;
-        String getHtml(){ return "<span id='"+id+ "'>"+text+"</span>";  }
+        String getHtml(){ String s= "<span id='"; s+=id;s+= "'>";s+=text;s+="</span>"; return s;  }
+        void addHtml(){ String s= "<span id='"; s+=id;s+= "'>";s+=text;s+="</span>"; htmlAdd( s.c_str()) ;  }
   void update( long t ) { tt=t;value=t; javaQueue.add("var now = new Date("+String(t)+"*1000); document.getElementById('" + id + "').innerHTML=now.toString();"); }
 
 private:
@@ -90,6 +92,7 @@ class Table: public Output {
 
     }
     String getHtml(){ String s= "<div id='";s+=id;s+="div'><h5>";s+=text;s+="</h5><table id='";s+=id;s+= "'><tr><td></td><td></td></tr></table></div>"; return s;  }
+    void addHtml(){ String s= "<div id='";s+=id;s+="div'><h5>";s+=text;s+="</h5><table id='";s+=id;s+= "'><tr><td></td><td></td></tr></table></div>"; htmlAdd( s.c_str());  }
     String postCallBack(ElementsHtml* e,String postValue) { if(parent) return parent->postCallBack(this,postValue); }
     //void update ( String newValue ) { text= newValue; javaQueue.add("document.getElementById('" + id + "').innerHTML='<h5>"+text+"</h5>';");}
     void setTitle (String s){text=s;}
@@ -143,7 +146,7 @@ class Image: public Output {
       parent = e;
       pushElement(this);          // Los elementos basicos se registran solos en el AllHTMLElemens !!
     }
-    String getHtml(){ return "<img heigth='"+String(heigth)+"' width='"+String(width)+"' id='"+id+ "' src='"+url+"'>";  }
+    String getHtml(){ String s="<img heigth='"; s+=String(heigth); s+= "' width='"; s+=String(width);s+="' id='";s+=id;s+= "' src='";s+=url;s+="'>";return s;  }
     String postCallBack(ElementsHtml* e,String postValue ) { if(parent) return parent->postCallBack(this,postValue); }
     void update ( String newValue ) { url= newValue; javaQueue.add("document.getElementById('" + id + "').src='"+url+"';");}
     void update(float f){ } 

@@ -67,7 +67,7 @@ class ElementsHtml{
   static void deleteElement(ElementsHtml* e){}   //  Todavia no he implementado esto
   static char html [1000];
   static void htmlAdd(const char* s){ strncat(html,s,1000);} // Copy char* s at the end of html, max lenght 2000.
-  static String htmlGet(){ return html;} // Copy char* s at the end of html, max lenght 2000.
+  static String htmlGet(){ return String(html);html[0]=0;} // Copy char* s at the end of html, max lenght 2000.
 };
 
 class CompositeHtml: public ElementsHtml {
@@ -178,9 +178,9 @@ public:
     htmlStr+="<html><head> <link rel='stylesheet' type='text/css' href='style1.css'></head><body>\n";
         htmlStr+=getJavaScript();
 
-    htmlStr+="<h1>"+title+"</h1><h3>"+subTitle+"</h3><nav><a href='edit.html'>Upload </a><a href='dataLog.csv'>dataLog</a><a href='delete?file=/dataLog.csv'>delete</a>"
+    htmlStr+="<h1>";htmlStr+=title+"</h1><h3>";htmlStr+=subTitle;htmlStr+="</h3><nav><a href='edit.html'>Upload </a><a href='dataLog.csv'>dataLog</a><a href='delete?file=/dataLog.csv'>delete</a>"
             "<a href='settings'>Preferencias </a><a href='list?dir=/'>Directory</a></nav>\n";
-    for ( int i=0; i<elementCount; i++) {  if (strings[i]) {htmlStr+=strings[i];} htmlStr+=listOfElements[i]->getHtml()+"\n";}
+    for ( int i=0; i<elementCount; i++) {  if (strings[i]) {htmlStr+=strings[i];} htmlStr+=listOfElements[i]->getHtml();htmlStr+="\n";}
       if (strings[elementCount]) htmlStr+=strings[elementCount];
 
       
@@ -190,11 +190,11 @@ htmlStr+="<br><span id='errorLabel'></span><br>\n<button type = 'button' dataVal
   SPIFFS.info(fs_info);
   float fileTotalKB = (float)fs_info.totalBytes / 1024.0;
   float fileUsedKB = (float)fs_info.usedBytes / 1024.0;
-htmlStr+="Total KB: "+String(fileTotalKB)+"Kb / Used: "+String(fileUsedKB);
+htmlStr+="Total KB: ";htmlStr+=String(fileTotalKB);htmlStr+="Kb / Used: ";htmlStr+=String(fileUsedKB);
   
 htmlStr+= "</body></html>";    
   Serial.println(htmlStr);  // Atencion no usar Serial en Constructor !!!
-
+//  ElementsHtml::htmlAdd(htmlStr.c_str());
     return htmlStr;
 
   }
