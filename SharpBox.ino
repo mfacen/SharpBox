@@ -110,7 +110,7 @@ unsigned long countdownSetTime = 0;
   Label label1 ("label1","this is Label1");
   Label label2 ("label2","this is Label2");
     Graphic graphic1("graphic1");
-KeypadControl keypadControl1("keyPadCtrl1");
+//KeypadControl keypadControl1("keyPadCtrl1");
 
   ActiveControl control1 ("control1" , &digitalIn1 ,"=",  &edit2  , &graphic1 , &analogIn1 );
   ActiveControl control2 ("control2" , &tempSensor , ">", &edit1 , &relay3 , &edit2 );
@@ -124,7 +124,7 @@ KeypadControl keypadControl1("keyPadCtrl1");
   //Pause pause1 ("pause1",1);
   LabelFreeHeap lblFreeHeap("lblHeap","");
   TimeLabel lblTime("lblTime","Label Time");
-
+Logger logger ("Logger","/dataLog.csv");
 //  IfCommand if1("If numero 1",&edit1,&edit2);
 ///////////////////////////////////////////////////////////////////////////
 ////                                                               ////////
@@ -184,7 +184,7 @@ KeypadControl keypadControl1("keyPadCtrl1");
    
          program1.addCommand(&set1);
        program1.addCommand(&set2);
-              program1.addCommand(&keypadControl1);
+//              program1.addCommand(&keypadControl1);
 
        program1.addCommand(&control1);
      //  program1.addCommand(&logger1);
@@ -194,6 +194,7 @@ KeypadControl keypadControl1("keyPadCtrl1");
    //   if1.addCommand(&set3);
  //      program1.addCommand(&if1);    //  esto esta produciendo error
 //       pause1.start();
+       logger.addInput(&tempSensor);
   page.addElement(&lblTime);
   page.addString("<br>");
  //   page.addElement(&control1);
@@ -207,7 +208,7 @@ KeypadControl keypadControl1("keyPadCtrl1");
     page.addElement(&program1);       // El program es el que esta haciendo randoms problems
 
     //page.addElement(&tempSensor);
-//    page.addElement(&analogIn1);
+    page.addElement(&logger);
 //    page.addElement(&digitalIn1);
 //    page.addElement(&set1);
     //page.updateElements();
@@ -244,7 +245,7 @@ if (( currentMillis - lastUpdate ) > 1000 ) {   //  now it updates every 5 secon
 
     tempSensor.update();// ElementsHtml::javaQueue.add("console.log('tmpSensorUpdate');");
     //analogIn1.update();
-    //digitalIn1.update();
+    logger.update();
                 lblTime.update(timeNow);
 
     lblFreeHeap.update();

@@ -65,7 +65,7 @@ class ElementsHtml{
   static std::vector <ElementsHtml*> allHTMLElements;
   static void pushElement(ElementsHtml* e){allHTMLElements.push_back(e); }
   static void deleteElement(ElementsHtml* e){}   //  Todavia no he implementado esto
-  static char html [5000];
+  static char html [1000];
   static void htmlAdd(const char* s){ strncat(html,s,2000);} // Copy char* s at the end of html, max lenght 2000.
   static String htmlGet(){ return html;} // Copy char* s at the end of html, max lenght 2000.
 };
@@ -82,7 +82,7 @@ class CompositeHtml: public ElementsHtml {
 
 JavaQueue ElementsHtml::javaQueue;                  // Los miembros STATIC necesitan esta inicializacion, si no no funcionan... ???
 std::vector <ElementsHtml*> ElementsHtml::allHTMLElements;
-char ElementsHtml::html[5000];
+char ElementsHtml::html[1000];
 
 #include "output.h"
 

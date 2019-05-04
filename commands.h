@@ -35,7 +35,8 @@ public:
     //output->update(comboBox1->value);
     return true;
   }
-  String getHtml(){  return "<div class='"+name+"' "+style+" id='"+name+"'><h6>"+name+"</h6>"+output->getHtml()+"<br>"+ btnON->getHtml()+btnOFF->getHtml() +"</div>";  }
+  String getHtml(){  String s = "<div class='";s+=name;s+="' ";s+=style;s+=" id='";s+=name;s+="'><h6>";s+=name;s+="</h6>";s+=output->getHtml();
+                                s+="<br>"; s+= btnON->getHtml(); s+= btnOFF->getHtml() ; s+= "</div>"; return s; }
   String postCallBack(ElementsHtml* e,String postValue){ if ( e==btnON )  output->update(0); if (e==btnOFF) output->update(1);Serial.println(e->id);return "";}
 void update(){}
   
@@ -108,8 +109,8 @@ class Pause: public Commands {
 
     void setInterval(int i){ interval = i ; value = i;}
     
-   String getHtml(){
-    return "<div class='"+name+"' "+style+" id='"+name+"'><h4>"+name+"</h4>"+"<br>Time: "+editTime->getHtml()+"</div>";
+   String getHtml(){String s = "<div class='"; s+= name; s+= "' "; s+= style; s+=" id='"; s+= name; s+= "'><h4>"; s+= name; s+= "</h4><br>Time: ";
+                              s+=editTime->getHtml(); s+= "</div>"; return s;
    }
   bool run(){  
       if (firstRun){firstRun=false; start();}
@@ -133,12 +134,13 @@ class Pause: public Commands {
 // ########################################
 class Logger: public Commands {
   public:
-    Logger ( String s , String _fileName ) { 
+    Logger ( String s , String _fileName , int i = 10) { 
         id=s;name=s;fileName=_fileName;
         label= new Label ("lbl"+name,"Stoped.");
          pause = new Pause("tmr"+name,10);
          comboBox = new ComboBox ( "combo"+id, 2 , f,this );
          edtInterval = new EditBox ("edt"+id,"","number",this);
+         interval = i;
     }
 
     void addInput ( Input *i ) { if (index<9) {inputArray[index]=i;index++;}}
@@ -192,7 +194,8 @@ class Logger: public Commands {
 
     }
       String getHtml(){
-        String str= "<div class='"+name+"' "+ style+" id='"+name+"'><h6>"+name+"</h6>"+comboBox->getHtml()+edtInterval->getHtml()+"<br>Inputs:<br>";
+        String str= "<div class='";str+=name;str+="' ";str+= style; str+=" id='"; str+= name ; str+= "'><h6>"; str+= name; str += "</h6>"; str += comboBox->getHtml();
+        str+= edtInterval->getHtml(); str += "<br>Inputs:<br>";
         if (index!=0) {
          for ( int i=0; i<index; i++ ) { str += inputArray[i]->getName()  + "<br>"; }
          } 
@@ -292,7 +295,8 @@ class ActiveControl:public Commands {
     
     };
     
-  String getHtml(){return "<div class='"+name+"' id='"+id+"'><h4>"+name+"</h4> If "+ inputLeft->getHtml() +"  "+ op + "  " + inputRight->getHtml()+ "  Then  " + output->name + " =  "+inputEdit->getHtml()+"</div>";}
+  String getHtml(){String s= "<div class='";s+=name;s+="' id='";s+=id;s+="'><h4>";s+=name;s+="</h4> If ";s+= inputLeft->getHtml();s+="  ";s+= op ;
+                          s+= "  "; s+= inputRight->getHtml(); s+=  "  Then  " ; s+= output->name ;s+= " =  "; s+=inputEdit->getHtml(); s+= "</div>"; return s;}
 
   void update(){
     inputEdit->update();
