@@ -67,7 +67,7 @@ class ElementsHtml{
   static void deleteElement(ElementsHtml* e){}   //  Todavia no he implementado esto
   static char html [1000];
   static void htmlAdd(const char* s){ strncat(html,s,1000);} // Copy char* s at the end of html, max lenght 2000.
-  static String htmlGet(){ return String(html);html[0]=0;} // Copy char* s at the end of html, max lenght 2000.
+  static char* htmlGet(){ return html;} // Copy char* s at the end of html, max lenght 2000.
 };
 
 class CompositeHtml: public ElementsHtml {
@@ -175,11 +175,13 @@ public:
    }
    String getHtml(){
     String htmlStr;
+    //htmlStr.reserve(5000);        /////    Reserva espacio en la memoria para evitar fragmentacion.
     htmlStr+="<html><head> <link rel='stylesheet' type='text/css' href='style1.css'></head><body>\n";
         htmlStr+=getJavaScript();
 
     htmlStr+="<h1>";htmlStr+=title+"</h1><h3>";htmlStr+=subTitle;htmlStr+="</h3><nav><a href='edit.html'>Upload </a><a href='dataLog.csv'>dataLog</a><a href='delete?file=/dataLog.csv'>delete</a>"
             "<a href='settings'>Preferencias </a><a href='list?dir=/'>Directory</a></nav>\n";
+
     for ( int i=0; i<elementCount; i++) {  if (strings[i]) {htmlStr+=strings[i];} htmlStr+=listOfElements[i]->getHtml();htmlStr+="\n";}
       if (strings[elementCount]) htmlStr+=strings[elementCount];
 

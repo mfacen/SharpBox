@@ -103,16 +103,16 @@ unsigned long countdownSetTime = 0;
   Dsb18B20 tempSensor ( TEMP_SENSOR_PIN ,"Temp_Probe");   // habria que crearlo solo si encontro el sensor
   //Dht11 dht1( D5,"dht1");
   Button button1("btn1","button1");
-   //KeyPad keypad1 ("keypad1");
+   KeyPad keypad1 ("keypad1");
  // KeyPadCommand keypadCom("keyPadCom1");
   EditBox edit1 ("edit1","edit1","text");
   EditBox edit2 ("edit2","edit2","text");
   Label label1 ("label1","this is Label1");
   Label label2 ("label2","this is Label2");
-    Graphic graphic1("graphic1");
-//KeypadControl keypadControl1("keyPadCtrl1");
+   // Graphic graphic1("graphic1");
+KeypadControl keypadControl1("keyPadCtrl1");
 
-  ActiveControl control1 ("control1" , &digitalIn1 ,"=",  &edit2  , &graphic1 , &analogIn1 );
+  ActiveControl control1 ("control1" , &digitalIn1 ,"=",  &edit2  , &relay1 , &analogIn1 );
   ActiveControl control2 ("control2" , &tempSensor , ">", &edit1 , &relay3 , &edit2 );
   //ActiveControl control3 ("control3" , &tempSensor , "=", &edit1 , &relay1 , &edit2 );// xq hay problemas en la creacion de esto ?
   Set set1 ("set1",&relay1);
@@ -124,7 +124,7 @@ unsigned long countdownSetTime = 0;
   //Pause pause1 ("pause1",1);
   LabelFreeHeap lblFreeHeap("lblHeap","");
   TimeLabel lblTime("lblTime","Label Time");
-Logger logger ("Logger","dataLog.csv");
+Logger logger ("Logger","/dataLog.csv");
 //  IfCommand if1("If numero 1",&edit1,&edit2);
 ///////////////////////////////////////////////////////////////////////////
 ////                                                               ////////
@@ -184,7 +184,7 @@ Logger logger ("Logger","dataLog.csv");
    
          program1.addCommand(&set1);
        program1.addCommand(&set2);
-//              program1.addCommand(&keypadControl1);
+             program1.addCommand(&keypadControl1);
 
        program1.addCommand(&control1);
      //  program1.addCommand(&logger1);
@@ -194,15 +194,16 @@ Logger logger ("Logger","dataLog.csv");
    //   if1.addCommand(&set3);
  //      program1.addCommand(&if1);    //  esto esta produciendo error
 //       pause1.start();
+       logger.addOutput(&lblTime);
        logger.addInput(&tempSensor);
   page.addElement(&lblTime);
   page.addString("<br>");
  //   page.addElement(&control1);
- //      page.addElement(&keypad1);        // Parece que el Keypad da problemas, numero de elementos ????  El Keypad tambien tiene problemas !!!
+   //    page.addElement(&keypad1);        // Parece que el Keypad da problemas, numero de elementos ????  El Keypad tambien tiene problemas !!!
      page.addElement(&relay1);
     page.addElement(&relay2);
     page.addElement(&relay3);
-    page.addElement(&graphic1);
+   // page.addElement(&graphic1);
     page.addElement(&lblFreeHeap);
 
     page.addElement(&program1);       // El program es el que esta haciendo randoms problems
@@ -216,7 +217,7 @@ Logger logger ("Logger","dataLog.csv");
 
     webSocket.begin();
     webSocket.onEvent(webSocketEvent);
-    page.getHtml();
+    //page.getHtml();
    // Serial.print("html:");
    // Serial.println(ElementsHtml::html);
 }
@@ -547,7 +548,7 @@ void webSocketEvent(uint8_t num, WStype_t type, uint8_t * payload, size_t length
 
             // send message to client
             ss = page.getJavaQueue();
-            webSocket.sendTXT(num, ss );
+            webSocket.sendTXT(ss.length(), ss );
 
             // send data to all connected clients
             // webSocket.broadcastTXT("message here");

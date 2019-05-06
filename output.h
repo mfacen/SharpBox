@@ -40,7 +40,7 @@ class Label: public Output {
     void addHtml(){ String s= "<span id='";s+=id;s+= "'>";s+=text;s+="</span>"; htmlAdd(s.c_str()); }
     String postCallBack(ElementsHtml* e,String postValue) { if(parent) return parent->postCallBack(this,postValue); }
     void update ( String newValue ) { text= newValue; update(); }
-    void update(){ javaQueue.add("document.getElementById('" + id + "').innerHTML='<h5>"+text+"</h5>';"); } 
+    void update(){String s="document.getElementById('"; s+= id ; s+= "').innerHTML='<h5>";s+=text;s+="</h5>';"; javaQueue.add(s); } 
     void update(float newValue){update(String(newValue));}
     void append(String appendValue) { text += appendValue; update();}
 };
@@ -63,9 +63,7 @@ class LabelFreeHeap: public Label {
   void update(){ 
 
   int percentage =  100 - getLargestAvailableBlock() * 100.0 / getTotalAvailableMemory();
-  javaQueue.add("document.getElementById('" + id + "').innerHTML='V: "+String(ESP.getFreeHeap(),DEC)+" Frag: "+String(percentage)+"%';");// for size_t
-
-
+    String s="document.getElementById('";s+= id ;s+= "').innerHTML='V: ";s+=String(ESP.getFreeHeap(),DEC);s+=" Frag: ";s+=String(percentage);s+="%';";javaQueue.add(s);// for size_t
 }
 };
 class TimeLabel: public Label{
@@ -73,7 +71,7 @@ public:
       using Label::Label;
         String getHtml(){ String s= "<span id='"; s+=id;s+= "'>";s+=text;s+="</span>"; return s;  }
         void addHtml(){ String s= "<span id='"; s+=id;s+= "'>";s+=text;s+="</span>"; htmlAdd( s.c_str()) ;  }
-  void update( long t ) { tt=t;value=t; javaQueue.add("var now = new Date("+String(t)+"*1000); document.getElementById('" + id + "').innerHTML=now.toString();"); }
+  void update( long t ) { tt=t;value=t;String s="var now = new Date(";s+=String(t);s+="*1000); document.getElementById('";s+= id; s+= "').innerHTML=now.toString();"; javaQueue.add(s); }
 
 private:
   long tt;
@@ -148,7 +146,7 @@ class Image: public Output {
     }
     String getHtml(){ String s="<img heigth='"; s+=String(heigth); s+= "' width='"; s+=String(width);s+="' id='";s+=id;s+= "' src='";s+=url;s+="'>";return s;  }
     String postCallBack(ElementsHtml* e,String postValue ) { if(parent) return parent->postCallBack(this,postValue); }
-    void update ( String newValue ) { url= newValue; javaQueue.add("document.getElementById('" + id + "').src='"+url+"';");}
+    void update ( String newValue ) { url= newValue;String s="document.getElementById('";s+= id;s+= "').src='";s+=url;s+="';"; javaQueue.add(s);}
     void update(float f){ } 
     void update(){}
     void setWidth(int w){width=w;}

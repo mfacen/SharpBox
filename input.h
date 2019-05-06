@@ -38,16 +38,17 @@ class Button: public Input {
       //return ("console.log('postCallBack of " + name+" parent: "+parent->name+"'); ");
       return "";
     } 
-   String getHtml() {  String s;s += "<button "; s+= style ; s+=" type='button' width='40' id='";s+=id; s+= "' value ='"; s+= text; s+= "' onclick=\"btnClickText('"; s+= id;s+= "',this.value)\" >";
-                      s+=text; s+= "</button>\n"; return s;  }
-   
+  // String getHtml() {  String s;s += "<button "; s+= style ; s+=" type='button' width='40' id='";s+=id; s+= "' value ='"; s+= text; s+= "' onclick=\"btnClickText('"; s+= id;s+= "',this.value)\" >";
+         //             s+=text; s+= "</button>\n"; return s;  }
+   String getHtml() {  String s= "<button id='"+id+"'></button> ";javaQueue.add("btn('"+id+"','"+text+"');\n"); return s;}
+
 void addHtml() {
     htmlAdd("<button "); htmlAdd(style.c_str()); htmlAdd(" type='button' width='40' id='"); htmlAdd( id.c_str()); htmlAdd ("' value ='"); htmlAdd(text.c_str());
     htmlAdd("' onclick=\"btnClickText('");
     htmlAdd(id.c_str()); htmlAdd("',this.value)\" >");htmlAdd(text.c_str()); htmlAdd ("</button>\n");
 }
-    void update(String s) {
-            javaQueue.add( "var a=document.getElementById('" + id + "'); a.value='"+s+"'; a.textContent='" + s + "';");
+    void update(String sss) {
+           String s= "var a=document.getElementById('";s+= id;s+= "'); a.value='";s+=sss;s+="'; a.textContent='";s+= sss ;s+= "';"; javaQueue.add(s);
 
       };
 };
@@ -82,9 +83,9 @@ class ComboBox: public Input {
     void update() {
         if (value!=lastValue){
             text = fields[selected];
-            value = text.toFloat();
+            //value = selected;
             lastValue=value;
-             javaQueue.add("document.getElementById('" + id + "').selectedIndex='" + String(selected) );//+ "'; console.log('"+name+" update value="+String(value)+"');");
+             String s="document.getElementById('";s+=id ;s+= "').selectedIndex=" ;s+= String(selected);s+=";";javaQueue.add(s );//+ "'; console.log('"+name+" update value="+String(value)+"');");
 
           }
 
@@ -92,6 +93,7 @@ class ComboBox: public Input {
     }
     String postCallBack(ElementsHtml* e,String postValue) {
                   selected = postValue.toInt();
+                  value = selected;
                   update();
                   if (parent) parent->postCallBack(this,postValue);
                   return "";//"document.getElementById('" + id + "').innerHTML='" + text + "';";
@@ -256,12 +258,12 @@ class DigitalIn: public Input {
       maxValue = 1;
       unit = "n/a";
       label = new Label(name+"lbl","",this); //addChild(label);
-       img = new Image ("img"+id,"LampOn.bmp",this);
+       img = new Image ("img"+id,"power-button.jpg",this);
        pushElement(this);          // Los elementos basicos se registran solos en el AllHTMLElemens !!
       
     }
 
-    String getHtml() {return " <div "+style+" id='"+id+"'><h6>" + name + "</h6>"+ label->getHtml() + img->getHtml() + "</div>"; }
+    String getHtml() {String s;s=" <div ";s+=style;s+=" id='";s+=id;s+="'><h6>" ;s+= name ;s+= "</h6>";s+= label->getHtml() ;s+= img->getHtml() ;s+= "</div>"; return s;}
 
     void update() {
       value = digitalRead(pin);
@@ -296,7 +298,8 @@ class EditBox: public Input {
 
     }
 
-    String getHtml() {return  "<input size='4' "+style+" type='" + type + "' id='" + id + "' value='"+text+"' onchange=\"btnClickText('"+id+"',(this.value))\">";}
+    String getHtml() {String s=  "<input size='4' ";s=s+style;s=s+" type='" ;s=s+ type; s=s+ "' id='"; s=s+ id ;s=s+ "' value='";s=s+text;
+                              s=s+"' onchange=\"btnClickText('";s=s+id;s=s+"',(this.value))\">"; return(s);}
     String postCallBack(ElementsHtml* e,String postValue) {
 
                   text = postValue;
@@ -328,7 +331,7 @@ class EditBox: public Input {
     void update() {
       if (text && ( text!=lastValue)) { value = text.toFloat(); lastValue = text;
 
-        javaQueue.add("document.getElementById('" + id + "').value='" + text + "';");
+        String s="document.getElementById('"; s+= id ;s+= "').value='" ;s+= text ;s+= "';";javaQueue.add(s);
                   //Serial.println("EditBox->Update()");
 
       }
@@ -367,12 +370,12 @@ class KeyPad: public Input  {  // Aqui lo he cambiado !!!!!!!!!!!!!!!!!!!!!!!!!!
 
     }
     String getHtml() {
-      String h="<div "+style+" id='"+id+"'><h4>" + name + "</h4>\n\t";
+      String h="<div "; h+=style;h+=" id='";h+=id;h+="'><h4>" ;h+= name ; "</h4>\n\t";
             for (int i = 0; i < 11; i++ ) {
               h+= buttons[i]->getHtml(); 
               if ((i==2)||(i==5)||(i==8)) h+="<br>";
             }
-            h+=edt->getHtml()+edtLabel->getHtml()+"</div>"; 
+            h+=edt->getHtml();h+=edtLabel->getHtml();h+="</div>"; 
             return h;
     }
     String postCallBack(ElementsHtml* e,String postValue) {

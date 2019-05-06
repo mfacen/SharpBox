@@ -32,7 +32,7 @@ connection.onclose = function(){console.log('Connection closed');}
 connection.onerror = function(error){   console.log('Error detected: ' + error);}
 connection.onmessage = function(e){ 
 	 var server_message = e.data;
-	  //console.log(e.data); 		//													HERE TURN ON AND OFF LOOGING OF EVAL
+	  console.log(e.data); 		//													HERE TURN ON AND OFF LOOGING OF EVAL
 	  eval(server_message); }
 
 
@@ -42,3 +42,10 @@ window.onload = function(){
     btnClickText("Time",now.getTime()/1000);
 };
 
+function btn(id,text){
+   var s = "<button type='button' width='40' id='";s+=id; s+= "' value ='"; s+= text; s+= "' onclick=\"btnClickText('"; s+= id;s+= "',this.value)\" >";
+                      s+=text; s+= "</button>\n";
+  console.log("Btn()sub id:"+id+" :  text: "+text);
+
+  document.getElementById(id).outerHtml=s;
+}

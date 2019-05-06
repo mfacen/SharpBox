@@ -156,7 +156,7 @@ class Logger: public Commands {
                   //pause->setInterval(interval);
                   logData();
                 }
-                label->update("Tmr: "+String(pause->value) );
+                label->update("Tmr: "+String(pause->value)+ " "+String(comboBox->value) );
               }
     void startTimer(){pause->run();}
     void setInterval ( int _interval) { interval = _interval ;pause->setInterval(interval); edtInterval->update(String(interval)); }
@@ -164,7 +164,7 @@ class Logger: public Commands {
     bool logData(){
             bool r=false;
 
-      if (comboBox->value){
+      if (comboBox->value != 0){
       File tempLog ;
       tempLog = SPIFFS.open(fileName , "a"); // Write the time and the temperature to the csv file
       if (index>0){
@@ -295,9 +295,8 @@ class ActiveControl:public Commands {
     
     };
     
-  String getHtml(){String s= "<div class='";s+=name;s+="' id='";s+=id;s+="'><h4>";s+=name;s+="</h4> If ";s+= inputLeft->getHtml();s+="  ";s+= op ;
+  String getHtml(){String s; s+= "<div class='";s+=name;s+="' id='";s+=id;s+="'><h4>";s+=name;s+="</h4> If ";s+= inputLeft->getHtml();s+="  ";s+= op ;
                           s+= "  "; s+= inputRight->getHtml(); s+=  "  Then  " ; s+= output->name ;s+= " =  "; s+=inputEdit->getHtml(); s+= "</div>"; return s;}
-
   void update(){
     inputEdit->update();
     inputLeft->update();
@@ -370,19 +369,23 @@ int value=0;
 // ########################################
 class KeypadControl: public Commands {
   public:
-  KeyPad* keypad;
+  //KeyPad* keypad;
    KeypadControl( String n ){
     name = n;
     id = n;
-    keypad = new KeyPad(name+"kpd");
+    edit = new EditBox (name+"edt","","text",this);
+    label = new Label (name+"lbl","Locked",this);
    }
-   String getHtml(){ return "<div><h4>"+name+"</h4>"+keypad->getHtml()+"</div>"; }
+   String getHtml(){ String s= "<div><h4>";s+=name;s+="</h4>";s+=edit->getHtml();s+=label->getHtml();s+="</div>"; }
      bool run(){
     //update();
-    if (keypad->value==0) return false; else return true;
+     return state;
   }
-    String postCallBack(ElementsHtml* e,String postValue){ return "";};
+    String postCallBack(ElementsHtml* e,String postValue){ if (edit->text == "1234" ) {state= true;label->update("Unlocked");} else {state = false; label->update("Locked");}; return "";};
 void update(){};
-
+  private:
+    EditBox* edit;
+    Label* label; 
+    bool state;
 };
 
