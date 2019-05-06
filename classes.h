@@ -197,7 +197,12 @@ htmlStr+="Total KB: ";htmlStr+=String(fileTotalKB);htmlStr+="Kb / Used: ";htmlSt
 htmlStr+= "</body></html>";    
   Serial.println(htmlStr);  // Atencion no usar Serial en Constructor !!!
 //  ElementsHtml::htmlAdd(htmlStr.c_str());
-    return htmlStr;
+      SPIFFS.remove("/index.html");
+      File htmlFile = SPIFFS.open( "/index.html" , "w");
+      htmlFile.seek(0, SeekSet);
+      htmlFile.write((uint8_t *)htmlStr.c_str(), htmlStr.length());
+      htmlFile.close();
+    return "";//htmlStr;
 
   }
   String getJavaScript(){return "<script src='javascript.js'></script>"; }

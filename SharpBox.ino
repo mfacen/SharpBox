@@ -83,7 +83,7 @@ uint32_t timeNow = 0;                      // The most recent timestamp received
                    // The most recent timestamp received from the time server
 unsigned long lastNTPResponse = 0;
 unsigned long countdownSetTime = 0;
-
+bool webSocketConnected = false;
 
 
 
@@ -186,7 +186,7 @@ Logger logger ("Logger","/dataLog.csv");
        program1.addCommand(&set2);
              program1.addCommand(&keypadControl1);
 
-       program1.addCommand(&control1);
+       //program1.addCommand(&control1);
      //  program1.addCommand(&logger1);
        program1.addCommand(&control2);
        //pause1.start();
@@ -214,7 +214,7 @@ Logger logger ("Logger","/dataLog.csv");
 //    page.addElement(&set1);
     //page.updateElements();
     //label1.update("newValue");
-
+    page.getHtml();
     webSocket.begin();
     webSocket.onEvent(webSocketEvent);
     //page.getHtml();
@@ -256,7 +256,7 @@ if (( currentMillis - lastUpdate ) > 1000 ) {   //  now it updates every 5 secon
      Serial.println("Heap Left: "+String(ESP.getFreeHeap(),DEC));//+" :Frag: " +String(ESP.getHeapFragmentation(),DEC)+"   Max-SIze = "+ String(ESP.getMaxFreeBlockSize()));
      String ss= page.getJavaQueue();            // Get the JavaScript Queue from page
      //Serial.println(ss);
-     if (ss!="") webSocket.broadcastTXT(ss);   //  WebSoket necesita una variable, no puedo poner page.getJavaQueue directamente
+     if (ss!="" && webSocketConnected) webSocket.broadcastTXT(ss);   //  WebSoket necesita una variable, no puedo poner page.getJavaQueue directamente
    
 }
     webSocket.loop();
@@ -337,11 +337,10 @@ void startServer() { // Start a HTTP server with a file read handler and an uplo
    
    server.on("/list", HTTP_GET, handleFileList);
     server.on("/delete", HTTP_GET, handleFileDelete);
-   server.on("/getData", handleGetData);
    server.on("/btnClick", HTTP_GET , handleBtnClick );
 
   // server.on("/reset",HTTP_GET , handleReset );
-  server.on("/index.html", HTTP_GET , handleIndex1);
+  server.on("/index1", HTTP_GET , handleIndex1);
   server.onNotFound(handleNotFound);          // if someone requests any other file or page, go to function 'handleNotFound'
   // and check if the file exists
 
@@ -417,15 +416,6 @@ void handleBtnClick() {                             //////////////   HANDLE BUTT
   }
 }
 
-
-void handleGetData(){
-  String reply=page.getJavaQueue();
-  reply = "";
-//String   reply = "console.log('getData Reply');";
-  Serial.println ("HandleGetData sub in SharpBox.ino "+reply);
-          server.send(200, "text/plain", reply );
-
-}
 
 
 
@@ -533,13 +523,15 @@ void webSocketEvent(uint8_t num, WStype_t type, uint8_t * payload, size_t length
     switch(type) {
         case WStype_DISCONNECTED:
             Serial.printf("[%u] Disconnected!\n", num);
+            webSocketConnected=false;
             break;
         case WStype_CONNECTED:
             {
                 IPAddress ip = webSocket.remoteIP(num);
                 Serial.printf("[%u] Connected from %d.%d.%d.%d url: %s\n", num, ip[0], ip[1], ip[2], ip[3], payload);
-        
+                
         // send message to client
+                webSocketConnected=true;
         webSocket.sendTXT(num, "console.log('Connected');");
             }
             break;
@@ -547,8 +539,8 @@ void webSocketEvent(uint8_t num, WStype_t type, uint8_t * payload, size_t length
             Serial.printf("[%u] get Text: %s\n", num, payload);
 
             // send message to client
-            ss = page.getJavaQueue();
-            webSocket.sendTXT(ss.length(), ss );
+            //ss = page.getJavaQueue();
+            //webSocket.sendTXT(ss.length(), ss );
 
             // send data to all connected clients
             // webSocket.broadcastTXT("message here");
