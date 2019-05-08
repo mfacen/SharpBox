@@ -8,7 +8,7 @@
 #include <ArduinoOTA.h>
 #include <ESP8266mDNS.h>
 #include <ESP8266SSDP.h>
-#include <WiFiUdp.h>
+//#include <WiFiUdp.h>
 #include <WiFiClient.h>
 #include <Time.h>
 #include <TimeLib.h>
@@ -17,6 +17,8 @@
 #include <FS.h>
 #include <WebSocketsServer.h>
 #include <Hash.h>
+#include <ESP8266HTTPUpdateServer.h>
+
 //#include <GDBStub.h>    //   este es un Debugger que se puede usar si la aplicacion no es muy grande
 
 #define ONE_HOUR 3600000UL
@@ -39,8 +41,9 @@
 ESP8266WebServer server (80);       // create a web server on port 80
 DNSServer dnsServer;
 WiFiManager wifiManager;
-WiFiUDP UDP;                   // Create an instance of the WiFiUDP class to send and receive UDP messages
+//WiFiUDP UDP;                   // Create an instance of the WiFiUDP class to send and receive UDP messages
 WebSocketsServer webSocket = WebSocketsServer(81);
+ESP8266HTTPUpdateServer httpUpdater;
 
 const char *OTAName = "ESP8266";         // A name and a password for the OTA service
 //const char *OTAPassword = "esp8266";
@@ -95,7 +98,7 @@ bool webSocketConnected = false;
   //ComboBox comboBox3 ( "combo3",2,f);
   AnalogIn analogIn1 ( A0,"analog1");
   DigitalIn digitalIn1 ( D1,"digital1");
-  Logger logger1("logger1", "/dataLog.csv" );
+  //Logger logger1("logger1", "/dataLog.csv" );
   DigitalOutput digitalOut1 ( D1,"digiOut1","digiout1");
   RelayOutput   relay1 (RELAY_1_PIN,"Relay 1 110VAC","relay1");
   RelayOutput   relay2 (RELAY_2_PIN,"Relay 2 110VAC","relay2");
@@ -113,7 +116,7 @@ bool webSocketConnected = false;
 KeypadControl keypadControl1("keyPadCtrl1");
 
   ActiveControl control1 ("control1" , &digitalIn1 ,"=",  &edit2  , &relay1 , &analogIn1 );
-  ActiveControl control2 ("control2" , &tempSensor , ">", &edit1 , &relay3 , &edit2 );
+ // ActiveControl control2 ("control2" , &tempSensor , ">", &edit1 , &relay3 , &edit2 );
   //ActiveControl control3 ("control3" , &tempSensor , "=", &edit1 , &relay1 , &edit2 );// xq hay problemas en la creacion de esto ?
   Set set1 ("set1",&relay1);
   Set set2 ("set2",&relay2);
@@ -167,10 +170,11 @@ Logger logger ("Logger","/dataLog.csv");
 
 
   startMDNS();                 // Start the mDNS responder
+  httpUpdater.setup(&server);
 
   startServer();               // Start a HTTP server with a file read handler and an upload handler
 
-  startUDP();                  // Start listening for UDP messages to port 123
+  //startUDP();                  // Start listening for UDP messages to port 123
 
   WiFi.hostByName(ntpServerName, timeServerIP); // Get the IP address of the NTP server
   Serial.print("Local Ip " +WiFi.localIP());
@@ -184,16 +188,18 @@ Logger logger ("Logger","/dataLog.csv");
    
          program1.addCommand(&set1);
        program1.addCommand(&set2);
-             program1.addCommand(&keypadControl1);
+              program1.addCommand(&control1);
 
-       //program1.addCommand(&control1);
-     //  program1.addCommand(&logger1);
-       program1.addCommand(&control2);
+      //program1.addCommand(&keypadControl1);
+       program1.addCommand(&keypadControl1);
+     //  program1.addCommand(&logger);
+      // program1.addCommand(&control2);
        //pause1.start();
  //      if1.addCommand(&set2);
    //   if1.addCommand(&set3);
  //      program1.addCommand(&if1);    //  esto esta produciendo error
 //       pause1.start();
+
        logger.addOutput(&lblTime);
        logger.addInput(&tempSensor);
   page.addElement(&lblTime);
@@ -203,6 +209,8 @@ Logger logger ("Logger","/dataLog.csv");
      page.addElement(&relay1);
     page.addElement(&relay2);
     page.addElement(&relay3);
+    page.addElement(&tempSensor);
+    page.addElement(&comboBox1);
    // page.addElement(&graphic1);
     page.addElement(&lblFreeHeap);
 
@@ -210,7 +218,7 @@ Logger logger ("Logger","/dataLog.csv");
 
     //page.addElement(&tempSensor);
     page.addElement(&logger);
-//    page.addElement(&digitalIn1);
+    //page.addElement(&keypadControl1);
 //    page.addElement(&set1);
     //page.updateElements();
     //label1.update("newValue");
@@ -235,9 +243,7 @@ unsigned long lastUpdate;
 void loop() {
   unsigned long currentMillis = millis();
 
- 
-  server.handleClient();                      // run the server
-  ArduinoOTA.handle();                        // listen for OTA events
+
 
   
 if (( currentMillis - lastUpdate ) > 1000 ) {   //  now it updates every 5 seconds
@@ -260,6 +266,8 @@ if (( currentMillis - lastUpdate ) > 1000 ) {   //  now it updates every 5 secon
    
 }
     webSocket.loop();
+    server.handleClient();
+   ArduinoOTA.handle();                        // listen for OTA events
 yield();
 }
 
@@ -317,12 +325,12 @@ void startMDNS() { // Start the mDNS responder
   Serial.println(".local");
 }
 
-void startUDP() {
-  Serial.println("Starting UDP");
-  UDP.begin(123);                          // Start listening for UDP messages to port 123
-  Serial.print("Local port:\t");
-  Serial.println(UDP.localPort());
-}
+// void startUDP() {
+//   Serial.println("Starting UDP");
+//   UDP.begin(123);                          // Start listening for UDP messages to port 123
+//   Serial.print("Local port:\t");
+//   Serial.println(UDP.localPort());
+// }
 
 ////////////////////////////////////////////
 //      SERVER START                       //
@@ -373,7 +381,7 @@ void handleIndex1() {
  // reply+= page.getHtml();
  // Serial.println( reply);
   
-  server.send(200,"text/html",page.getHtml());
+//  server.send(200,"text/html",page.getHtml());
   //server.send(200,"text/html",ElementsHtml::htmlGet());
 
 }
@@ -540,7 +548,7 @@ void webSocketEvent(uint8_t num, WStype_t type, uint8_t * payload, size_t length
 
             // send message to client
             //ss = page.getJavaQueue();
-            //webSocket.sendTXT(ss.length(), ss );
+            //if (ss!="") webSocket.sendTXT(ss.length(), ss );
 
             // send data to all connected clients
             // webSocket.broadcastTXT("message here");
@@ -579,33 +587,33 @@ String getContentType(String filename) { // determine the filetype of a given fi
   return "text/plain";
 }
 
-unsigned long getTime() { // Check if the time server has responded, if so, get the UNIX time, otherwise, return 0
-  if (UDP.parsePacket() == 0) { // If there's no response (yet)
-    return 0;
-}
-  UDP.read(packetBuffer, NTP_PACKET_SIZE); // read the packet into the buffer
-  // Combine the 4 timestamp bytes into one 32-bit number
-  uint32_t NTPTime = (packetBuffer[40] << 24) | (packetBuffer[41] << 16) | (packetBuffer[42] << 8) | packetBuffer[43];
-  // Convert NTP time to a UNIX timestamp:
-  // Unix time starts on Jan 1 1970. That's 2208988800 seconds in NTP time:
-  const uint32_t seventyYears = 2208988800UL;
-  // subtract seventy years:
-  uint32_t UNIXTime = NTPTime - seventyYears ;
-  return UNIXTime;
-}
+// unsigned long getTime() { // Check if the time server has responded, if so, get the UNIX time, otherwise, return 0
+//   if (UDP.parsePacket() == 0) { // If there's no response (yet)
+//     return 0;
+// }
+//   UDP.read(packetBuffer, NTP_PACKET_SIZE); // read the packet into the buffer
+//   // Combine the 4 timestamp bytes into one 32-bit number
+//   uint32_t NTPTime = (packetBuffer[40] << 24) | (packetBuffer[41] << 16) | (packetBuffer[42] << 8) | packetBuffer[43];
+//   // Convert NTP time to a UNIX timestamp:
+//   // Unix time starts on Jan 1 1970. That's 2208988800 seconds in NTP time:
+//   const uint32_t seventyYears = 2208988800UL;
+//   // subtract seventy years:
+//   uint32_t UNIXTime = NTPTime - seventyYears ;
+//   return UNIXTime;
+// }
 
 
-void sendNTPpacket(IPAddress& address) {
-  Serial.println("Sending NTP request to " + String ( address));
-  memset(packetBuffer, 0, NTP_PACKET_SIZE);  // set all bytes in the buffer to 0
-  // Initialize values needed to form NTP request
-  packetBuffer[0] = 0b11100011;   // LI, Version, Mode
+// void sendNTPpacket(IPAddress& address) {
+//   Serial.println("Sending NTP request to " + String ( address));
+//   memset(packetBuffer, 0, NTP_PACKET_SIZE);  // set all bytes in the buffer to 0
+//   // Initialize values needed to form NTP request
+//   packetBuffer[0] = 0b11100011;   // LI, Version, Mode
 
-  // send a packet requesting a timestamp:
-  UDP.beginPacket(address, 123); // NTP requests are to port 123
-  UDP.write(packetBuffer, NTP_PACKET_SIZE);
-  UDP.endPacket();
-}
+//   // send a packet requesting a timestamp:
+//   UDP.beginPacket(address, 123); // NTP requests are to port 123
+//   UDP.write(packetBuffer, NTP_PACKET_SIZE);
+//   UDP.endPacket();
+// }
 
 long mapFloat ( float x , float in_min , float in_max  , float out_min , float out_max ) {
   return (x - in_min) * (out_max - out_min) / (in_max - in_min) + out_min;

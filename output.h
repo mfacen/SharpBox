@@ -36,8 +36,8 @@ class Label: public Output {
              pushElement(this);          // Los elementos basicos se registran solos en el AllHTMLElemens !!
 
     }
-    String getHtml(){ String s= "<span id='";s+=id;s+= "'>";s+=text;s+="</span>"; return s; }
-    void addHtml(){ String s= "<span id='";s+=id;s+= "'>";s+=text;s+="</span>"; htmlAdd(s.c_str()); }
+    String getHtml(){String  s= "<span id='";s+=id;s+= "'>";s+=text;s+="</span>"; return s; }
+    //void addHtml(){ String s= "<span id='";s+=id;s+= "'>";s+=text;s+="</span>"; htmlAdd(s.c_str()); }
     String postCallBack(ElementsHtml* e,String postValue) { if(parent) return parent->postCallBack(this,postValue); }
     void update ( String newValue ) { text= newValue; update(); }
     void update(){String s="document.getElementById('"; s+= id ; s+= "').innerHTML='<h5>";s+=text;s+="</h5>';"; javaQueue.add(s); } 
@@ -63,15 +63,15 @@ class LabelFreeHeap: public Label {
   void update(){ 
 
   int percentage =  100 - getLargestAvailableBlock() * 100.0 / getTotalAvailableMemory();
-    String s="document.getElementById('";s+= id ;s+= "').innerHTML='V: ";s+=String(ESP.getFreeHeap(),DEC);s+=" Frag: ";s+=String(percentage);s+="%';";javaQueue.add(s);// for size_t
+   String s="document.getElementById('";s+= id ;s+= "').innerHTML='V: ";s+=String(ESP.getFreeHeap(),DEC);s+=" Frag: ";s+=String(percentage);s+="%';";javaQueue.add(s);// for size_t
 }
 };
 class TimeLabel: public Label{
 public:
       using Label::Label;
         String getHtml(){ String s= "<span id='"; s+=id;s+= "'>";s+=text;s+="</span>"; return s;  }
-        void addHtml(){ String s= "<span id='"; s+=id;s+= "'>";s+=text;s+="</span>"; htmlAdd( s.c_str()) ;  }
-  void update( long t ) { tt=t;value=t;String s="var now = new Date(";s+=String(t);s+="*1000); document.getElementById('";s+= id; s+= "').innerHTML=now.toString();"; javaQueue.add(s); }
+       // void addHtml(){ String s= "<span id='"; s+=id;s+= "'>";s+=text;s+="</span>"; htmlAdd( s.c_str()) ;  }
+  void update( long t ) { tt=t;value=t; String s="var now = new Date(";s+=String(t);s+="*1000); document.getElementById('";s+= id; s+= "').innerHTML=now.toString();"; javaQueue.add(s); }
 
 private:
   long tt;
@@ -90,10 +90,10 @@ class Table: public Output {
 
     }
     String getHtml(){ String s= "<div id='";s+=id;s+="div'><h5>";s+=text;s+="</h5><table id='";s+=id;s+= "'><tr><td></td><td></td></tr></table></div>"; return s;  }
-    void addHtml(){ String s= "<div id='";s+=id;s+="div'><h5>";s+=text;s+="</h5><table id='";s+=id;s+= "'><tr><td></td><td></td></tr></table></div>"; htmlAdd( s.c_str());  }
+    //void addHtml(){ String s= "<div id='";s+=id;s+="div'><h5>";s+=text;s+="</h5><table id='";s+=id;s+= "'><tr><td></td><td></td></tr></table></div>"; htmlAdd( s.c_str());  }
     String postCallBack(ElementsHtml* e,String postValue) { if(parent) return parent->postCallBack(this,postValue); }
     //void update ( String newValue ) { text= newValue; javaQueue.add("document.getElementById('" + id + "').innerHTML='<h5>"+text+"</h5>';");}
-    void setTitle (String s){text=s;}
+    void setTitle (String sss){text=sss;}
     void addRow ( String newRow ) { javaQueue.add("document.getElementById('" + id + "').insertRow().insertCell(0).innerHTML='"+newRow+"';");}
    // void makeTable(String csv){ javaQueue.add("document.getElementById('" + id + "') = makeTable(csv);"); }
     void makeTable(String csv) { 
@@ -164,7 +164,7 @@ class Image: public Output {
 
 class Graphic: public Output {
   public:
-    Graphic(String s, ElementsHtml* e=0){ name=s;id=s;parent=e;}
+    Graphic(String ss, ElementsHtml* e=0){ name=ss;id=ss;parent=e;}
     String getHtml(){ return "<canvas id='"+id+"' heigth='130'></canvas><script>var xPos=0;</script>";  }
     String postCallBack(ElementsHtml* e,String postValue ) { if(parent) return parent->postCallBack(this,postValue); }
     void update ( float newValue ) {
@@ -186,7 +186,7 @@ class Graphic: public Output {
           javaQueue.add(str);
           //xPos++; if(xPos==
     }
-    void update(String s){update(s.toInt());}
+    void update(String sss){update(sss.toInt());}
     void update(){ } 
       // void update( float newValue) {value=newValue;update();}
 
@@ -246,7 +246,7 @@ class PWM
       void setPWM ( PWM * _pwm) { pwm = _pwm; }
       void setLevel ( int l) { pwm->setLevel(l);}
       void update(){};
-      void update(String s){update(s.toInt());};
+      void update(String sss){update(sss.toInt());};
       void update( float newValue) {
         Serial.println("Updating "+id+" Value: " + String(newValue));
       value = newValue;
@@ -302,7 +302,7 @@ class RelayOutput: public DigitalOutput {
 class Gauge: public Output {
   public:
   bool firstRun = true;
-    Gauge(String s, ElementsHtml* e=0){ name=s;id=s;parent=e;}
+    Gauge(String sss, ElementsHtml* e=0){ name=sss;id=sss;parent=e;}
     String getHtml(){ return "<script src='gauge.min.js'></script><script src='gaugeScript.js'></script><canvas id='"+id+"' heigth='60' width='100'></canvas>";  }
     String postCallBack(ElementsHtml* e,String postValue ) { if(parent) return parent->postCallBack(this,postValue);else return ""; }
     void update(int v){value=v;update();}

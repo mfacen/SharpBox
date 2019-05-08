@@ -156,7 +156,7 @@ class Logger: public Commands {
                   //pause->setInterval(interval);
                   logData();
                 }
-                label->update("Tmr: "+String(pause->value)+ " "+String(comboBox->value) );
+                label->update("Tmr: "+String(pause->value));
               }
     void startTimer(){pause->run();}
     void setInterval ( int _interval) { interval = _interval ;pause->setInterval(interval); edtInterval->update(String(interval)); }
@@ -243,9 +243,9 @@ class CommandsComposite: public Commands {
     }
   }  String getHtml(){}
   void addCommand( Commands* c) {commands [ command_count ] = c; command_count++; }
-  //private:
+  
+  ///private:
       int command_count = 0;
-
   Commands* commands[20];
 };
 
@@ -295,7 +295,7 @@ class ActiveControl:public Commands {
     
     };
     
-  String getHtml(){String s; s+= "<div class='";s+=name;s+="' id='";s+=id;s+="'><h4>";s+=name;s+="</h4> If ";s+= inputLeft->getHtml();s+="  ";s+= op ;
+  String getHtml(){ String s= "<div class='";s+=name;s+="' id='";s+=id;s+="'><h4>";s+=name;s+="</h4> If ";s+= inputLeft->getHtml();s+="  ";s+= op ;
                           s+= "  "; s+= inputRight->getHtml(); s+=  "  Then  " ; s+= output->name ;s+= " =  "; s+=inputEdit->getHtml(); s+= "</div>"; return s;}
   void update(){
     inputEdit->update();
@@ -376,7 +376,7 @@ class KeypadControl: public Commands {
     edit = new EditBox (name+"edt","","text",this);
     label = new Label (name+"lbl","Locked",this);
    }
-   String getHtml(){ String s= "<div><h4>";s+=name;s+="</h4>";s+=edit->getHtml();s+=label->getHtml();s+="</div>"; }
+   String getHtml(){ String s= "<div><h4>";s+=name;s+="</h4>";s+=edit->getHtml();s+=label->getHtml();s+="</div>"; return s; }
      bool run(){
     //update();
      return state;

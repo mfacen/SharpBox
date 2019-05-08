@@ -12,6 +12,7 @@
 
 #include <vector>
 #include <map>
+#include <FixedString.h>
 
  // El problema es que solo estan registrados en Page los parientes de los componentes entonces no los encuentra cuando el PostRequest busca el id, no figura porque esta solo
  // el ID del pariente en page.listOf Elements[]
@@ -65,9 +66,10 @@ class ElementsHtml{
   static std::vector <ElementsHtml*> allHTMLElements;
   static void pushElement(ElementsHtml* e){allHTMLElements.push_back(e); }
   static void deleteElement(ElementsHtml* e){}   //  Todavia no he implementado esto
-  static char html [1000];
-  static void htmlAdd(const char* s){ strncat(html,s,1000);} // Copy char* s at the end of html, max lenght 2000.
-  static char* htmlGet(){ return html;} // Copy char* s at the end of html, max lenght 2000.
+  // static char html [1000];
+  // static void htmlAdd(const char* s){ strncat(html,s,1000);} // Copy char* s at the end of html, max lenght 2000.
+  // static char* htmlGet(){ return html;} // Copy char* s at the end of html, max lenght 2000.
+  //static String s;
 };
 
 class CompositeHtml: public ElementsHtml {
@@ -82,8 +84,8 @@ class CompositeHtml: public ElementsHtml {
 
 JavaQueue ElementsHtml::javaQueue;                  // Los miembros STATIC necesitan esta inicializacion, si no no funcionan... ???
 std::vector <ElementsHtml*> ElementsHtml::allHTMLElements;
-char ElementsHtml::html[1000];
-
+//char ElementsHtml::html[1000];
+//String ElementsHtml::s="                                                                                                                                                                                              ";
 #include "output.h"
 
 #include "input.h"
@@ -104,7 +106,7 @@ String name;
     id = n;
     label = new Label(name+"lbl","0");
     } // MALDITA SEA NO HACER ESTO !!!!!!!!!!!     Serial.println("Created Program "+name);}
-  Commands* listOfCommands[20];
+  Commands* listOfCommands[30];
    int commandCount = 0;
    int runIndex =  0;
    Label* label;
@@ -113,7 +115,7 @@ String name;
     commandCount++;
   }
   void deleteCommand(int index){
-    for ( int i=index; i<49; i++)  listOfCommands[i]=listOfCommands[i+1];
+    for ( int i=index; i<29; i++)  listOfCommands[i]=listOfCommands[i+1];
     commandCount--;
   }
   void run() {
@@ -175,32 +177,46 @@ public:
    }
    String getHtml(){
     String htmlStr;
+          SPIFFS.remove("/index.html");
+      File htmlFile = SPIFFS.open( "/index.html" , "w");
+      htmlFile.seek(0, SeekSet);
+
     //htmlStr.reserve(5000);        /////    Reserva espacio en la memoria para evitar fragmentacion.
     htmlStr+="<html><head> <link rel='stylesheet' type='text/css' href='style1.css'></head><body>\n";
-        htmlStr+=getJavaScript();
+          htmlFile.write((uint8_t *)htmlStr.c_str(), htmlStr.length());
 
-    htmlStr+="<h1>";htmlStr+=title+"</h1><h3>";htmlStr+=subTitle;htmlStr+="</h3><nav><a href='edit.html'>Upload </a><a href='dataLog.csv'>dataLog</a><a href='delete?file=/dataLog.csv'>delete</a>"
-            "<a href='settings'>Preferencias </a><a href='list?dir=/'>Directory</a></nav>\n";
+        htmlStr=getJavaScript();
+      htmlFile.write((uint8_t *)htmlStr.c_str(), htmlStr.length());
 
-    for ( int i=0; i<elementCount; i++) {  if (strings[i]) {htmlStr+=strings[i];} htmlStr+=listOfElements[i]->getHtml();htmlStr+="\n";}
-      if (strings[elementCount]) htmlStr+=strings[elementCount];
+    htmlStr="<h1>";htmlStr+=title+"</h1><h3>";htmlStr+=subTitle;
+          htmlFile.write((uint8_t *)htmlStr.c_str(), htmlStr.length());
+htmlStr=F("</h3><nav><a href='edit.html'>Upload </a><a href='dataLog.csv'>dataLog</a><a href='delete?file=/dataLog.csv'>delete</a>"
+            "<a href='settings'>Preferencias </a><a href='list?dir=/'>Directory</a></nav>\n");
+      htmlFile.write((uint8_t *)htmlStr.c_str(), htmlStr.length());
+//
+    for ( int i=0; i<elementCount; i++) {htmlStr="";  if (strings[i]) {htmlStr=strings[i];} htmlStr+=listOfElements[i]->getHtml();htmlStr+="\n";
+      Serial.println(listOfElements[i]->name+" "+htmlStr);
+          htmlFile.write((uint8_t *)htmlStr.c_str(), htmlStr.length());
+}
+     // if (strings[elementCount]) htmlStr+=strings[elementCount];
 
       
-htmlStr+="<br><span id='errorLabel'></span><br>\n<button type = 'button' dataValue='primus,2323' onclick='btnClick(this)' id='switchToStation'>Connectar WIFI</button><br>";
+htmlStr=F("<br><span id='errorLabel'></span><br>\n<button type = 'button' dataValue='primus,2323' onclick='btnClick(this)' id='switchToStation'>Connectar WIFI</button><br>");
+      htmlFile.write((uint8_t *)htmlStr.c_str(), htmlStr.length());
 
   FSInfo fs_info;
   SPIFFS.info(fs_info);
   float fileTotalKB = (float)fs_info.totalBytes / 1024.0;
   float fileUsedKB = (float)fs_info.usedBytes / 1024.0;
-htmlStr+="Total KB: ";htmlStr+=String(fileTotalKB);htmlStr+="Kb / Used: ";htmlStr+=String(fileUsedKB);
-  
-htmlStr+= "</body></html>";    
-  Serial.println(htmlStr);  // Atencion no usar Serial en Constructor !!!
-//  ElementsHtml::htmlAdd(htmlStr.c_str());
-      SPIFFS.remove("/index.html");
-      File htmlFile = SPIFFS.open( "/index.html" , "w");
-      htmlFile.seek(0, SeekSet);
+htmlStr="Total KB: ";htmlStr+=String(fileTotalKB);htmlStr+="Kb / Used: ";htmlStr+=String(fileUsedKB);
+        htmlFile.write((uint8_t *)htmlStr.c_str(), htmlStr.length());
+
+htmlStr= "</body></html>";  
       htmlFile.write((uint8_t *)htmlStr.c_str(), htmlStr.length());
+
+  //Serial.println(htmlStr);  // Atencion no usar Serial en Constructor !!!
+//  ElementsHtml::htmlAdd(htmlStr.c_str());
+     // htmlFile.write((uint8_t *)htmlStr.c_str(), htmlStr.length());
       htmlFile.close();
     return "";//htmlStr;
 

@@ -38,15 +38,15 @@ class Button: public Input {
       //return ("console.log('postCallBack of " + name+" parent: "+parent->name+"'); ");
       return "";
     } 
-  // String getHtml() {  String s;s += "<button "; s+= style ; s+=" type='button' width='40' id='";s+=id; s+= "' value ='"; s+= text; s+= "' onclick=\"btnClickText('"; s+= id;s+= "',this.value)\" >";
-         //             s+=text; s+= "</button>\n"; return s;  }
-   String getHtml() {  String s= "<button id='"+id+"'></button> ";javaQueue.add("btn('"+id+"','"+text+"');\n"); return s;}
+  String getHtml() {String  s = "<button "; s+= style ; s+=" type='button' width='40' id='";s+=id; s+= "' value ='"; s+= text; s+= "' onclick=\"btnClickText('"; s+= id;s+= "',this.value)\" >";
+                      s+=text; s+= "</button>\n"; return s;  }
+   //String getHtml() {  FixedString<100> s= "<button id='";s.append(id.c_str());s.append("'></button> ");javaQueue.add("btn('"+id+"','"+text+"');\n"); return s.c_str();}
 
-void addHtml() {
-    htmlAdd("<button "); htmlAdd(style.c_str()); htmlAdd(" type='button' width='40' id='"); htmlAdd( id.c_str()); htmlAdd ("' value ='"); htmlAdd(text.c_str());
-    htmlAdd("' onclick=\"btnClickText('");
-    htmlAdd(id.c_str()); htmlAdd("',this.value)\" >");htmlAdd(text.c_str()); htmlAdd ("</button>\n");
-}
+// void addHtml() {
+//     htmlAdd("<button "); htmlAdd(style.c_str()); htmlAdd(" type='button' width='40' id='"); htmlAdd( id.c_str()); htmlAdd ("' value ='"); htmlAdd(text.c_str());
+//     htmlAdd("' onclick=\"btnClickText('");
+//     htmlAdd(id.c_str()); htmlAdd("',this.value)\" >");htmlAdd(text.c_str()); htmlAdd ("</button>\n");
+// }
     void update(String sss) {
            String s= "var a=document.getElementById('";s+= id;s+= "'); a.value='";s+=sss;s+="'; a.textContent='";s+= sss ;s+= "';"; javaQueue.add(s);
 
@@ -75,11 +75,11 @@ class ComboBox: public Input {
       }
 
    
-    String getHtml() {String html = "<select "; html+=style;html+=" id='";html+= id ; html+= "' onchange=\"btnClickText('";html+=id;html+="', this.selectedIndex)\">\n";
+    String getHtml() {String s = "<select "; s+=style;s+=" id='";s+= id ; s+= "' onchange=\"btnClickText('";s+=id;s+="', this.selectedIndex)\">\n";
           for(int i = 0; i < fieldsCount ; i++) {
-              html+="<option value='";html+=fields[i];html+="'>";html+=fields[i];html+="</option>";
+              s+="<option value='";s+=fields[i];s+="'>";s+=fields[i];s+="</option>";
           }
-              html+="</select>";return  html;}
+              s+="</select>";return  s;}
     void update() {
         if (value!=lastValue){
             text = fields[selected];
@@ -134,7 +134,7 @@ class Dsb18B20: public Input {
     }
     //~Dsb18B20(ElementsHtml::deleteElement(this));
 
-    String getHtml() { String s= " <div ";s+=style;s+="><h4>";s+= name ;s+= "</h4>";s+=descriptor;s+="<br>";s+=label->getHtml() ;s+= "</div>"; return s;  }
+    String getHtml() {String  s= " <div ";s+=style;s+="><h4>";s+= name ;s+= "</h4>";s+=descriptor;s+="<br>";s+=label->getHtml() ;s+= "</div>"; return s;  }
     
     void update() {
       if  (!tempRequested)  {
@@ -227,7 +227,7 @@ class AnalogIn: public Input {
       
     }
 
-    String getHtml() {  return " <div "+style+" id='"+id+"'><h4>" + name + "</h4>"+descriptor+"<br>"+ label->getHtml() + unit + "</div>";
+    String getHtml() {  String s= " <div ";s+=style;s+=" id='"; s+= id ; s+= "'><h4>" ;s+= name ;s+= "</h4>";s+=descriptor;s+="<br>";s+= label->getHtml() ;s+= unit ;s+= "</div>"; return s;
     }
 //    class Label;
 //class Output;
@@ -263,7 +263,7 @@ class DigitalIn: public Input {
       
     }
 
-    String getHtml() {String s;s=" <div ";s+=style;s+=" id='";s+=id;s+="'><h6>" ;s+= name ;s+= "</h6>";s+= label->getHtml() ;s+= img->getHtml() ;s+= "</div>"; return s;}
+    String getHtml() {String s=" <div ";s+=style;s+=" id='";s+=id;s+="'><h6>" ;s+= name ;s+= "</h6>";s+= label->getHtml() ;s+= img->getHtml() ;s+= "</div>"; return s;}
 
     void update() {
       value = digitalRead(pin);
@@ -298,7 +298,7 @@ class EditBox: public Input {
 
     }
 
-    String getHtml() {String s=  "<input size='4' ";s=s+style;s=s+" type='" ;s=s+ type; s=s+ "' id='"; s=s+ id ;s=s+ "' value='";s=s+text;
+    String getHtml() { String s=  "<input size='4' ";s=s+style;s=s+" type='" ;s=s+ type; s=s+ "' id='"; s=s+ id ;s=s+ "' value='";s=s+text;
                               s=s+"' onchange=\"btnClickText('";s=s+id;s=s+"',(this.value))\">"; return(s);}
     String postCallBack(ElementsHtml* e,String postValue) {
 
@@ -331,7 +331,7 @@ class EditBox: public Input {
     void update() {
       if (text && ( text!=lastValue)) { value = text.toFloat(); lastValue = text;
 
-        String s="document.getElementById('"; s+= id ;s+= "').value='" ;s+= text ;s+= "';";javaQueue.add(s);
+         String s="document.getElementById('"; s+= id ;s+= "').value='" ;s+= text ;s+= "';";javaQueue.add(s);
                   //Serial.println("EditBox->Update()");
 
       }
@@ -370,13 +370,13 @@ class KeyPad: public Input  {  // Aqui lo he cambiado !!!!!!!!!!!!!!!!!!!!!!!!!!
 
     }
     String getHtml() {
-      String h="<div "; h+=style;h+=" id='";h+=id;h+="'><h4>" ;h+= name ; "</h4>\n\t";
+      String s="<div "; s+=style;s+=" id='";s+=id;s+="'><h4>" ;s+= name ; "</h4>\n\t";
             for (int i = 0; i < 11; i++ ) {
-              h+= buttons[i]->getHtml(); 
-              if ((i==2)||(i==5)||(i==8)) h+="<br>";
+              s+= buttons[i]->getHtml(); 
+              if ((i==2)||(i==5)||(i==8)) s+="<br>";
             }
-            h+=edt->getHtml();h+=edtLabel->getHtml();h+="</div>"; 
-            return h;
+            s+=edt->getHtml();s+=edtLabel->getHtml();s+="</div>"; 
+            return s;
     }
     String postCallBack(ElementsHtml* e,String postValue) {
       if (postValue == "delete")edt->deleteChar();
