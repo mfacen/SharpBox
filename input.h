@@ -85,7 +85,7 @@ class ComboBox: public Input {
             text = fields[selected];
             //value = selected;
             lastValue=value;
-             String s="document.getElementById('";s+=id ;s+= "').selectedIndex=" ;s+= String(selected);s+=";";javaQueue.add(s );//+ "'; console.log('"+name+" update value="+String(value)+"');");
+             String s=docIdStr;s+=id ;s+= "').selectedIndex=" ;s+= String(selected);s+=";";javaQueue.add(s );//+ "'; console.log('"+name+" update value="+String(value)+"');");
 
           }
 
@@ -96,7 +96,7 @@ class ComboBox: public Input {
                   value = selected;
                   update();
                   if (parent) parent->postCallBack(this,postValue);
-                  return "";//"document.getElementById('" + id + "').innerHTML='" + text + "';";
+                  return "";//docIdStr + id + "').innerHTML='" + text + "';";
     }
     private:
       int fieldsCount;
@@ -191,7 +191,7 @@ class Dht11: public Input {
         lastTemperatureRequest = millis();
       }
 
-      javaQueue.add( "document.getElementById('" + id + "').innerHtml='Temperature:" + String(value) + "';");
+      javaQueue.add( docIdStr + id + "').innerHtml='Temperature:" + String(value) + "';");
 
     }
 
@@ -306,13 +306,13 @@ class EditBox: public Input {
                    //     if (text.toFloat()) value = text.toFloat();
                   update();
                   if (parent) parent->postCallBack(this,postValue);
-                  //return "document.getElementById('" + id + "').innerHTML='" + text + "';";
+                  //return docIdStr + id + "').innerHTML='" + text + "';";
                                     Serial.println("EditBox->postCallBack()");
                   return "";
     }
 
     void disable (){
-            javaQueue.add("document.getElementById('" + id + "').setAttribute('disabled','disabled');");
+            javaQueue.add(docIdStr + id + "').setAttribute('disabled','disabled');");
     }
     void appendText (String t) {
       text += t;
@@ -331,7 +331,7 @@ class EditBox: public Input {
     void update() {
       if (text && ( text!=lastValue)) { value = text.toFloat(); lastValue = text;
 
-         String s="document.getElementById('"; s+= id ;s+= "').value='" ;s+= text ;s+= "';";javaQueue.add(s);
+         String s=docIdStr; s+= id ;s+= "').value='" ;s+= text ;s+= "';";javaQueue.add(s);
                   //Serial.println("EditBox->Update()");
 
       }

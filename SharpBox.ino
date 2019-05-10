@@ -98,7 +98,6 @@ bool webSocketConnected = false;
   //ComboBox comboBox3 ( "combo3",2,f);
   AnalogIn analogIn1 ( A0,"analog1");
   DigitalIn digitalIn1 ( D1,"digital1");
-  //Logger logger1("logger1", "/dataLog.csv" );
   DigitalOutput digitalOut1 ( D1,"digiOut1","digiout1");
   RelayOutput   relay1 (RELAY_1_PIN,"Relay 1 110VAC","relay1");
   RelayOutput   relay2 (RELAY_2_PIN,"Relay 2 110VAC","relay2");
@@ -116,7 +115,7 @@ bool webSocketConnected = false;
 KeypadControl keypadControl1("keyPadCtrl1");
 
   ActiveControl control1 ("control1" , &digitalIn1 ,"=",  &edit2  , &relay1 , &analogIn1 );
- // ActiveControl control2 ("control2" , &tempSensor , ">", &edit1 , &relay3 , &edit2 );
+  ActiveControl control2 ("control2" , &tempSensor , ">", &edit1 , &relay3 , &edit2 );
   //ActiveControl control3 ("control3" , &tempSensor , "=", &edit1 , &relay1 , &edit2 );// xq hay problemas en la creacion de esto ?
   Set set1 ("set1",&relay1);
   Set set2 ("set2",&relay2);
@@ -192,8 +191,8 @@ Logger logger ("Logger","/dataLog.csv");
 
       //program1.addCommand(&keypadControl1);
        program1.addCommand(&keypadControl1);
-     //  program1.addCommand(&logger);
-      // program1.addCommand(&control2);
+       program1.addCommand(&logger);
+       program1.addCommand(&control2);
        //pause1.start();
  //      if1.addCommand(&set2);
    //   if1.addCommand(&set3);
@@ -206,22 +205,25 @@ Logger logger ("Logger","/dataLog.csv");
   page.addString("<br>");
  //   page.addElement(&control1);
    //    page.addElement(&keypad1);        // Parece que el Keypad da problemas, numero de elementos ????  El Keypad tambien tiene problemas !!!
-     page.addElement(&relay1);
-    page.addElement(&relay2);
-    page.addElement(&relay3);
-    page.addElement(&tempSensor);
-    page.addElement(&comboBox1);
+ //    page.addElement(&relay1);
+ //   page.addElement(&relay2);
+ //   page.addElement(&relay3);
+//    page.addElement(&tempSensor);
+//    page.addElement(&comboBox1);
    // page.addElement(&graphic1);
-    page.addElement(&lblFreeHeap);
 
     page.addElement(&program1);       // El program es el que esta haciendo randoms problems
 
     //page.addElement(&tempSensor);
-    page.addElement(&logger);
+   // page.addElement(&logger);
     //page.addElement(&keypadControl1);
 //    page.addElement(&set1);
     //page.updateElements();
     //label1.update("newValue");
+      page.addString("<br>");
+
+        page.addElement(&lblFreeHeap);
+
     page.getHtml();
     webSocket.begin();
     webSocket.onEvent(webSocketEvent);
@@ -252,7 +254,7 @@ if (( currentMillis - lastUpdate ) > 1000 ) {   //  now it updates every 5 secon
 
     tempSensor.update();// ElementsHtml::javaQueue.add("console.log('tmpSensorUpdate');");
     //analogIn1.update();
-    logger.update();
+    //logger.update();
                 lblTime.update(timeNow);
 
     lblFreeHeap.update();

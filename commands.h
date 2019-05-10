@@ -35,7 +35,7 @@ public:
     //output->update(comboBox1->value);
     return true;
   }
-  String getHtml(){  String s = "<div class='";s+=name;s+="' ";s+=style;s+=" id='";s+=name;s+="'><h6>";s+=name;s+="</h6>";s+=output->getHtml();
+  String getHtml(){  String s = "<div class='";s+=name;s+="' ";s+=style;s+=" id='";s+=name;s+="'><h4>";s+=name;s+="</h4>";s+=output->getHtml();
                                 s+="<br>"; s+= btnON->getHtml(); s+= btnOFF->getHtml() ; s+= "</div>"; return s; }
   String postCallBack(ElementsHtml* e,String postValue){ if ( e==btnON )  output->update(0); if (e==btnOFF) output->update(1);Serial.println(e->id);return "";}
 void update(){}
@@ -114,12 +114,12 @@ class Pause: public Commands {
    }
   bool run(){  
       if (firstRun){firstRun=false; start();}
-      if  (  (lastTimeCheck - millis()  ) > 1000 ) { lastTimeCheck = millis (); update();if(value==0)value=interval;value-=1; }
-      if (( millis()-lastUpdate ) > interval*1000 ) {firstRun=true;return true;} else return false;
+      if  (  (lastTimeCheck - millis()  ) > 1000 ) { value = ( millis()-lastUpdate ) / 1000 ; lastTimeCheck = millis() ;if(value<=0)value=interval; }
+      if (( millis()-lastUpdate ) > interval*1000 ) {firstRun=true; lastUpdate=millis();return true;} else return false;
   };
   String postCallBack(ElementsHtml* e,String postValue){return "";}
   void start( ) { lastUpdate  = millis();}
-  void update(){} //javaQueue.add("document.getElementById('" + editTime->id + "').setAttribute('innerHTML', '"+String(value)+"');");    }
+  void update(){} //javaQueue.add(docIdStr + editTime->id + "').setAttribute('innerHTML', '"+String(value)+"');");    }
   private:
     unsigned long lastUpdate;
     int interval;
@@ -148,7 +148,7 @@ class Logger: public Commands {
     void addFloat ( String name, float *f ) {
                                                if (indexF<9) {
                                         names[indexF]=name;floatArray[indexF]=f;indexF++;}}
-    bool run(){return logData();}
+    bool run(){ update();return true;}
 
     void update(){
                 if ( (index>0) && ( pause->run() ) )  {
@@ -194,16 +194,16 @@ class Logger: public Commands {
 
     }
       String getHtml(){
-        String str= "<div class='";str+=name;str+="' ";str+= style; str+=" id='"; str+= name ; str+= "'><h6>"; str+= name; str += "</h6>"; str += comboBox->getHtml();
+        String str= "<div class='";str+=name;str+="' ";str+= style; str+=" id='"; str+= name ; str+= "'><h4>"; str+= name; str += "</h4>"; str += comboBox->getHtml();
         str+= edtInterval->getHtml(); str += "<br>Inputs:<br>";
         if (index!=0) {
-         for ( int i=0; i<index; i++ ) { str += inputArray[i]->getName()  + "<br>"; }
+         for ( int i=0; i<index; i++ ) { str += inputArray[i]->getName() ; str+= String(sizeof(inputArray[i])); str+= "<br>"; }
          } 
                  if (indexO!=0) {
-         for ( int i=0; i<indexO; i++ ) { str += outputArray[i]->getName() + "<br>"; }
+         for ( int i=0; i<indexO; i++ ) { str += outputArray[i]->getName(); ; str+=String ( sizeof( outputArray[i])) ; str+= "<br>"; }
          }  
                  if (indexF!=0) {
-         for ( int i=0; i<indexF; i++ ) { str += names[i] + "<br>"; }
+         for ( int i=0; i<indexF; i++ ) { str += names[i] ; str+=  "<br>"; }
          }  
                  str += label->getHtml()+"</div>";
 
@@ -296,7 +296,7 @@ class ActiveControl:public Commands {
     };
     
   String getHtml(){ String s= "<div class='";s+=name;s+="' id='";s+=id;s+="'><h4>";s+=name;s+="</h4> If ";s+= inputLeft->getHtml();s+="  ";s+= op ;
-                          s+= "  "; s+= inputRight->getHtml(); s+=  "  Then  " ; s+= output->name ;s+= " =  "; s+=inputEdit->getHtml(); s+= "</div>"; return s;}
+                          s+= "  "; s+= inputRight->getHtml(); s+=  "<br><center>  Then </center> " ; s+= output->name ;s+= " =  "; s+=inputEdit->getHtml(); s+= "</div>"; return s;}
   void update(){
     inputEdit->update();
     inputLeft->update();
@@ -376,7 +376,7 @@ class KeypadControl: public Commands {
     edit = new EditBox (name+"edt","","text",this);
     label = new Label (name+"lbl","Locked",this);
    }
-   String getHtml(){ String s= "<div><h4>";s+=name;s+="</h4>";s+=edit->getHtml();s+=label->getHtml();s+="</div>"; return s; }
+   String getHtml(){ String s= "<div><h4>";s+=name;s+="</h4><center>";s+=edit->getHtml();s+="</center><br>";s+=label->getHtml();s+="</div>"; return s; }
      bool run(){
     //update();
      return state;

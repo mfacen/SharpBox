@@ -16,7 +16,7 @@
 
  // El problema es que solo estan registrados en Page los parientes de los componentes entonces no los encuentra cuando el PostRequest busca el id, no figura porque esta solo
  // el ID del pariente en page.listOf Elements[]
- 
+ const char docIdStr[] = "document.getElementById('";
  class JavaQueue {
   public:
     JavaQueue(){};
@@ -59,7 +59,7 @@ class ElementsHtml{
   virtual   String postCallBack(ElementsHtml* e,String postValue){}; // es virtual, lo tienen que implementar los hijos       ATENCION CUANDO DICE VTABLE ES QUE HE DEJADO UNA FUNCION SIN DEFINIR
   virtual String getHtml(){};
   static String getJavaQueue(){return javaQueue.get();}
-  void setVisible(bool v) { v? javaQueue.add("document.getElementById('" + this->id + "').style.display='inline';") : javaQueue.add("document.getElementById('" + id + "').style.display='none';");}   //{visible=v;}
+  void setVisible(bool v) { v? javaQueue.add(docIdStr + this->id + "').style.display='inline';") : javaQueue.add(docIdStr + id + "').style.display='none';");}   //{visible=v;}
   void setDisabled (bool v){ v? javaQueue.add("var a=document.getElementById('" + id + "').setAttribute('disabled','disabled');"):javaQueue.add("var a=document.getElementById('" + id + "').removeAttribute('disabled');"); 
     }
   void clearHtml(){javaQueue.add("var a=document.getElementById('" + id + "').innerHTML=''");}
@@ -121,7 +121,8 @@ String name;
   void run() {
     if (  listOfCommands[runIndex]->run() ) runIndex++;
     if (runIndex>=commandCount) runIndex=0;
-    javaQueue.add("document.getElementById('" + label->id + "').innerHTML='" + String(runIndex) +"  current: "+listOfCommands[runIndex]->name+ "';");
+     String s= docIdStr; s=s+ label->id ;s=s+ "').innerHTML='" ;s=s+ String(runIndex) ;s=s+"  current: ";s=s+listOfCommands[runIndex]->name+ "';";
+    javaQueue.add(s);
   }
   
   String getHtml(){

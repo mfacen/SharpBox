@@ -40,7 +40,7 @@ class Label: public Output {
     //void addHtml(){ String s= "<span id='";s+=id;s+= "'>";s+=text;s+="</span>"; htmlAdd(s.c_str()); }
     String postCallBack(ElementsHtml* e,String postValue) { if(parent) return parent->postCallBack(this,postValue); }
     void update ( String newValue ) { text= newValue; update(); }
-    void update(){String s="document.getElementById('"; s+= id ; s+= "').innerHTML='<h5>";s+=text;s+="</h5>';"; javaQueue.add(s); } 
+    void update(){String s=docIdStr; s+= id ; s+= "').innerHTML='";s+=text;s+="';"; javaQueue.add(s); } 
     void update(float newValue){update(String(newValue));}
     void append(String appendValue) { text += appendValue; update();}
 };
@@ -63,7 +63,7 @@ class LabelFreeHeap: public Label {
   void update(){ 
 
   int percentage =  100 - getLargestAvailableBlock() * 100.0 / getTotalAvailableMemory();
-   String s="document.getElementById('";s+= id ;s+= "').innerHTML='V: ";s+=String(ESP.getFreeHeap(),DEC);s+=" Frag: ";s+=String(percentage);s+="%';";javaQueue.add(s);// for size_t
+   String s=docIdStr;s+= id ;s+= "').innerHTML='Heap: ";s+=String(ESP.getFreeHeap(),DEC);s+=" Frag: ";s+=String(percentage);s+="%';";javaQueue.add(s);// for size_t
 }
 };
 class TimeLabel: public Label{
@@ -92,10 +92,10 @@ class Table: public Output {
     String getHtml(){ String s= "<div id='";s+=id;s+="div'><h5>";s+=text;s+="</h5><table id='";s+=id;s+= "'><tr><td></td><td></td></tr></table></div>"; return s;  }
     //void addHtml(){ String s= "<div id='";s+=id;s+="div'><h5>";s+=text;s+="</h5><table id='";s+=id;s+= "'><tr><td></td><td></td></tr></table></div>"; htmlAdd( s.c_str());  }
     String postCallBack(ElementsHtml* e,String postValue) { if(parent) return parent->postCallBack(this,postValue); }
-    //void update ( String newValue ) { text= newValue; javaQueue.add("document.getElementById('" + id + "').innerHTML='<h5>"+text+"</h5>';");}
+    //void update ( String newValue ) { text= newValue; javaQueue.add(docIdStr + id + "').innerHTML='<h5>"+text+"</h5>';");}
     void setTitle (String sss){text=sss;}
-    void addRow ( String newRow ) { javaQueue.add("document.getElementById('" + id + "').insertRow().insertCell(0).innerHTML='"+newRow+"';");}
-   // void makeTable(String csv){ javaQueue.add("document.getElementById('" + id + "') = makeTable(csv);"); }
+    void addRow ( String newRow ) { javaQueue.add(docIdStr + id + "').insertRow().insertCell(0).innerHTML='"+newRow+"';");}
+   // void makeTable(String csv){ javaQueue.add(docIdStr + id + "') = makeTable(csv);"); }
     void makeTable(String csv) { 
       
       String content = "<table id='tableDir'><thead><tr><th>Peso (Kg)</th><th>Distancia (cm)</th></tr></thead>";
@@ -118,11 +118,11 @@ class Table: public Output {
      }while((next_index!=-1)&&(next_index<maxIndex));
 
       content += "</table>";
-       javaQueue.add("document.getElementById('" + id + "div').innerHTML=\""+content+"\";");  // Atencion si Content ya contiene semicolons simples no puedo usarlo aqui !!!
+       javaQueue.add(docIdStr + id + "div').innerHTML=\""+content+"\";");  // Atencion si Content ya contiene semicolons simples no puedo usarlo aqui !!!
     }
     void changeCell ( String newText , int indexRow , int indexColumn ) {
-      javaQueue.add("var createdText=document.createTextNode('"+newText+"');"
-      "document.getElementById('" + id + "').getElementsByTagName('tbody')[0].getElementsByTagName('tr')["+String(indexRow)+"].getElementsByTagName('td')["+String(indexColumn)+"].childNodes[0]=createdText;");//    insertRow().insertCell("+String(indexY)+").innerHTML='"+newText+"';");
+      javaQueue.add("var createdText=document.createTextNode('"+newText+"');"+
+      docIdStr + id + "').getElementsByTagName('tbody')[0].getElementsByTagName('tr')["+String(indexRow)+"].getElementsByTagName('td')["+String(indexColumn)+"].childNodes[0]=createdText;");//    insertRow().insertCell("+String(indexY)+").innerHTML='"+newText+"';");
     }
     void update(){ } 
        void update( float newValue) {value=newValue;update();}
@@ -146,7 +146,7 @@ class Image: public Output {
     }
     String getHtml(){ String s="<img heigth='"; s+=String(heigth); s+= "' width='"; s+=String(width);s+="' id='";s+=id;s+= "' src='";s+=url;s+="'>";return s;  }
     String postCallBack(ElementsHtml* e,String postValue ) { if(parent) return parent->postCallBack(this,postValue); }
-    void update ( String newValue ) { url= newValue;String s="document.getElementById('";s+= id;s+= "').src='";s+=url;s+="';"; javaQueue.add(s);}
+    void update ( String newValue ) { url= newValue;String s=docIdStr;s+= id;s+= "').src='";s+=url;s+="';"; javaQueue.add(s);}
     void update(float f){ } 
     void update(){}
     void setWidth(int w){width=w;}
@@ -259,7 +259,7 @@ class PWM
         digitalWrite(pin, LOW);
         invertedLogic?stateStr="ON":stateStr = "OFF";
       }
-            //javaQueue.add("document.getElementById('" + label->id + "').innerHTML='"+stateStr+"';");
+            //javaQueue.add(docIdStr + label->id + "').innerHTML='"+stateStr+"';");
             img->update( stateStr=="OFF"?"power-button.jpg":"power-buttonON.jpg" );
             label->update(stateStr);
        }
@@ -274,7 +274,7 @@ class PWM
         }
       }
     String getState(){  return stateStr; }
-    String getHtml(){ return "<div><h6>"+name+"</h6>"+label->getHtml()+img->getHtml()+"</div>";  }
+    String getHtml(){ String s= "<div><h6>"; s+=name; s+="</h6>"; s+=label->getHtml();s+="<br>";s+=img->getHtml();s+="</div>"; return s; }
     String postCallBack(ElementsHtml* e,String postValue ) {  return "";      }
     private:
       int pin;
@@ -338,7 +338,7 @@ class Meter: public Output {
     String postCallBack(ElementsHtml* e,String postValue) { if(parent) return parent->postCallBack(this,postValue);else return ""; }
     //void update ( String newValue ) { update(newValue.toInt());}
     void update(){
-      javaQueue.add("document.getElementById('" + id + "Meter').value="+String(value)+";");
+      javaQueue.add(docIdStr + id + "Meter').value="+String(value)+";");
       lblValue->update(String(value)+" kg");
     } 
     void update(float newValue){value=newValue;update();}
@@ -368,7 +368,7 @@ class Slider: public Output {
     String getHtml(){ return "<div id='"+id+"'><h5>"+name+"</h5><input type='range' id='"+id+ "Meter' min='"+String(_min)+"' max='"+String(_max)+"' onchange='btnClick(this.value)'>"+unit+label->getHtml()+"</div>";  }
     String postCallBack(ElementsHtml* e,String postValue) { if(parent) return parent->postCallBack(this,postValue); value = postValue.toFloat(); return ""; }
     //void update ( String newValue ) { update(newValue.toInt());}
-    void update(){ javaQueue.add("document.getElementById('" + id + "Meter').value="+String((int)value)+";"); label->update(value); } 
+    void update(){ javaQueue.add(docIdStr + id + "Meter').value="+String((int)value)+";"); label->update(value); } 
     void update(float newValue){value=newValue;update();}
 
    private:

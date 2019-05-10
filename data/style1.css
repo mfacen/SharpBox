@@ -19,7 +19,8 @@ h3, nav a, nav {
 	padding: 3
 }
 div, canvas {
-	display: inline-block;
+	display: table-cell;
+	vertical-align: top;
 	margin-right: auto;
 	margin-left: auto;
 	margin-top: 5px;
