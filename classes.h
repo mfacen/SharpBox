@@ -158,7 +158,7 @@ htmlStr=F("<br><span id='errorLabel'></span><br>\n<button type = 'button' dataVa
   SPIFFS.info(fs_info);
   float fileTotalKB = (float)fs_info.totalBytes / 1024.0;
   float fileUsedKB = (float)fs_info.usedBytes / 1024.0;
-htmlStr="Total KB: ";htmlStr+=String(fileTotalKB);htmlStr+="Kb / Used: ";htmlStr+=String(fileUsedKB);
+htmlStr="Total KB: ";htmlStr+=String(fileTotalKB);htmlStr+="Kb / Used: ";htmlStr+=String(fileUsedKB);htmlStr+=" Page Size: ";htmlStr+=String(sizeof(this));
         htmlFile.write((uint8_t *)htmlStr.c_str(), htmlStr.length());
 
 htmlStr= "</body></html>";  

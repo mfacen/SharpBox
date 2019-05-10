@@ -164,7 +164,7 @@ class Pause: public Commands {
     Pause(String s , int i ){
       name=s;interval=i;
       value=i;
-      editTime  = new EditBox (name+"edtBox",String(interval),"text",this);
+      editTime  = new EditBox (name+"edtBox",String(interval),"number",this);
 //      addChild(editTime);
       }
 
@@ -179,7 +179,7 @@ class Pause: public Commands {
       if (( millis()-lastUpdate ) > interval*1000 ) {firstRun=true; lastUpdate=millis();return true;} else return false;
   };
   String postCallBack(ElementsHtml* e,String postValue){return "";}
-  void start( ) { lastUpdate  = millis();}
+  void start( ) { lastUpdate  = millis();value = interval;}
   void update(){} //javaQueue.add(docIdStr + editTime->id + "').setAttribute('innerHTML', '"+String(value)+"');");    }
   private:
     unsigned long lastUpdate;
@@ -295,35 +295,20 @@ EditBox* edtInterval;
 
 
 
-class CommandsComposite: public Commands {
-  public:
-
-  bool run(){
-    for ( int i=0; i<command_count; i++) {
-      commands[i]->run();
-    }
-  }  String getHtml(){}
-  void addCommand( Commands* c) {commands [ command_count ] = c; command_count++; }
-  
-  ///private:
-      int command_count = 0;
-  Commands* commands[20];
-};
-
 
 
 // ########################################
 //  Command IF
 // ########################################
-class IfCommand: public CommandsComposite {
+class IfCommand: public Commands {
   public:
   IfCommand(String s, Input* inLL, Input* inRR ){name=s;id=s;inR=inRR;inL=inLL; }//   ERROR ERROR ERROR ERROR ERROR  Serial.print("Created IfCommand "+name); };
 
   String getHtml(){
     String html = "<div class='"+name+"'><h4>"+name+"</h4>"+inL->getHtml()+"  > " + inR->getHtml()+"<br>";
-    for ( int i=0; i<command_count; i++) {
-      html+=commands[i]->getHtml();
-    }
+    // for ( int i=0; i<command_count; i++) {
+    //   html+=commands[i]->getHtml();
+    // }
     return html;
   }
      bool run(){}
@@ -367,16 +352,19 @@ class ActiveControl:public Commands {
       if ( inputLeft->value > inputRight->value ) {
           output->update(  inputEdit->value );
       }
+      else output->update( !inputEdit->value);
     }
         if (op=="=") {
       if ( inputLeft->value == inputRight->value ) {
           output->update(  inputEdit->value );
       }
+      else output->update( !inputEdit->value);
     }
     if (op=="<") {
       if ( inputLeft->value < inputRight->value ) {
           output->update(  inputEdit->value );
       }
+      else output->update( !inputEdit->value);
     }
   }
   bool run(){
@@ -434,7 +422,7 @@ class KeypadControl: public Commands {
    KeypadControl( String n ){
     name = n;
     id = n;
-    edit = new EditBox (name+"edt","","text",this);
+    edit = new EditBox (name+"edt","","password",this);
     label = new Label (name+"lbl","Locked",this);
    }
    String getHtml(){ String s= "<div><h4>";s+=name;s+="</h4><center>";s+=edit->getHtml();s+="</center><br>";s+=label->getHtml();s+="</div>"; return s; }
@@ -450,3 +438,38 @@ void update(){};
     bool state;
 };
 
+
+// ########################################
+//  Command TimeAlarms
+// ########################################
+class TimeAlarms: public Commands {
+  public:
+  //KeyPad* keypad;
+   TimeAlarms( String n , Commands* _program ){
+    name = n;
+    id = n;
+    program = _program;
+    editHour = new EditBox (name+"edtH","","number",this);
+    editMinute = new EditBox (name+"edtM","","number",this);
+    label = new Label (name+"lbl","Locked",this);
+   }
+   void setAlarm ( int _hour, int _minute, int _second ){
+    hours = _hour; minutes = _minute; seconds = _second;
+    // Alarm.alarmRepeat(hour,minute,second, alarmTrigered);
+   }
+   String getHtml(){ String s= "<div><h4>";s+=name;s+="</h4><center>";s+=editHour->getHtml();s+=":";s+=editMinute->getHtml();s+="</center><br>";s+=label->getHtml();s+= program->getHtml();s+="</div>"; return s; }
+     bool run(){ if ((minutes==minute()) && (hours==hour())) state = true;
+      if  (state) {bool aaa = (program->run()); state = aaa; return aaa;} else return false; }
+   // static void alarmTrigered(){state=true;}
+    //bool run(){return true;}
+    String postCallBack(ElementsHtml* e,String postValue){ if (e==editHour) hours = editHour->value; if (e==editMinute) minutes=editMinute->value; setAlarm(hours,minutes,seconds); return "";};
+void update(){};
+  private:
+    EditBox* editHour;
+    EditBox* editMinute;
+    Label* label; 
+    Commands * program;
+    int hours = 0, minutes=0, seconds=0;
+   bool state;
+};
+//bool TimeAlarms::state = false;

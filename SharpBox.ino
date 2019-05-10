@@ -109,6 +109,9 @@ bool webSocketConnected = false;
  // KeyPadCommand keypadCom("keyPadCom1");
   EditBox edit1 ("edit1","edit1","text");
   EditBox edit2 ("edit2","edit2","text");
+  EditBox edit3 ("edit3","edit3","text");
+  EditBox edit4 ("edit4","edit4","text");
+  EditBox edit5 ("edit5","edit5","text");
   Label label1 ("label1","this is Label1");
   Label label2 ("label2","this is Label2");
    // Graphic graphic1("graphic1");
@@ -116,7 +119,7 @@ KeypadControl keypadControl1("keyPadCtrl1");
 
   ActiveControl control1 ("control1" , &digitalIn1 ,"=",  &edit2  , &relay1 , &analogIn1 );
   ActiveControl control2 ("control2" , &tempSensor , ">", &edit1 , &relay3 , &edit2 );
-  ActiveControl control3 ("control3" , &tempSensor , "=", &edit1 , &relay1 , &edit2 );// xq hay problemas en la creacion de esto ?
+  ActiveControl control3 ("control3" , &tempSensor , "=", &edit3 , &relay1 , &edit4 );// xq hay problemas en la creacion de esto ?
   Set set1 ("set1",&relay1);
   Set set2 ("set2",&relay2);
   //Set set3 ("set3",&relay2);
@@ -127,6 +130,7 @@ KeypadControl keypadControl1("keyPadCtrl1");
   LabelFreeHeap lblFreeHeap("lblHeap","");
   TimeLabel lblTime("lblTime","Label Time");
 Logger logger ("Logger","/dataLog.csv");
+TimeAlarms timeAlarm ( "Alarm",&program2);
 //  IfCommand if1("If numero 1",&edit1,&edit2);
 ///////////////////////////////////////////////////////////////////////////
 ////                                                               ////////
@@ -187,11 +191,13 @@ Logger logger ("Logger","/dataLog.csv");
    
          program1.addCommand(&set1);
        program1.addCommand(&set2);
+        program1.addCommand(&timeAlarm);
 
       //program1.addCommand(&keypadControl1);
        program1.addCommand(&keypadControl1);
        program1.addCommand(&logger);
        program1.addCommand(&control2);
+       
        //pause1.start();
  //      if1.addCommand(&set2);
    //   if1.addCommand(&set3);
@@ -199,7 +205,6 @@ Logger logger ("Logger","/dataLog.csv");
         program2.addCommand(&control1);
         program2.addCommand(&pause1);
         program2.addCommand(&control3);
-        program1.addCommand(&program2);
 
 //       pause1.start();
 
@@ -265,7 +270,7 @@ if (( currentMillis - lastUpdate ) > 1000 ) {   //  now it updates every 5 secon
     //control1.update();
     program1.run();
     lastUpdate = currentMillis;
-     Serial.println("Heap Left: "+String(ESP.getFreeHeap(),DEC));//+" :Frag: " +String(ESP.getHeapFragmentation(),DEC)+"   Max-SIze = "+ String(ESP.getMaxFreeBlockSize()));
+     Serial.println("Heap Left: "+String(ESP.getFreeHeap(),DEC) + " : "+ hour() + ":"+minute()+" - "+month()+"/"+year());//+" :Frag: " +String(ESP.getHeapFragmentation(),DEC)+"   Max-SIze = "+ String(ESP.getMaxFreeBlockSize()));
      String ss= page.getJavaQueue();            // Get the JavaScript Queue from page
      //Serial.println(ss);
      if (ss!="" && webSocketConnected) webSocket.broadcastTXT(ss);   //  WebSoket necesita una variable, no puedo poner page.getJavaQueue directamente
@@ -421,6 +426,7 @@ void handleBtnClick() {                             //////////////   HANDLE BUTT
           if (buttonName == "Time") {
             timeUNIX = buttonValue.toInt();
             lastNTPResponse = millis();
+            setTime(timeUNIX);
         }
   reply="console.log('fake handleBtnClick reply');";
   server.send(200, "text/plain", reply );

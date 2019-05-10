@@ -298,7 +298,7 @@ class EditBox: public Input {
 
     }
 
-    String getHtml() { String s=  "<input size='4' ";s=s+style;s=s+" type='" ;s=s+ type; s=s+ "' id='"; s=s+ id ;s=s+ "' value='";s=s+text;
+    String getHtml() { String s=  "<input size='4' width='6em";s=s+style;s=s+" type='" ;s=s+ type; s=s+ "' id='"; s=s+ id ;s=s+ "' value='";s=s+text;
                               s=s+"' onchange=\"btnClickText('";s=s+id;s=s+"',(this.value))\">"; return(s);}
     String postCallBack(ElementsHtml* e,String postValue) {
 
