@@ -116,14 +116,14 @@ KeypadControl keypadControl1("keyPadCtrl1");
 
   ActiveControl control1 ("control1" , &digitalIn1 ,"=",  &edit2  , &relay1 , &analogIn1 );
   ActiveControl control2 ("control2" , &tempSensor , ">", &edit1 , &relay3 , &edit2 );
-  //ActiveControl control3 ("control3" , &tempSensor , "=", &edit1 , &relay1 , &edit2 );// xq hay problemas en la creacion de esto ?
+  ActiveControl control3 ("control3" , &tempSensor , "=", &edit1 , &relay1 , &edit2 );// xq hay problemas en la creacion de esto ?
   Set set1 ("set1",&relay1);
   Set set2 ("set2",&relay2);
   //Set set3 ("set3",&relay2);
  // KeyPad keypad2 ("keypad2");   //     POR ALGUNA RAZON ESTO LO TRABA Y NO DA NINGUN HTML DE SALIDA
   Program program1 ("program1");
-  //Program program2 ("program2");
-  //Pause pause1 ("pause1",1);
+  Program program2 ("program2");
+  Pause pause1 ("pause1",1);
   LabelFreeHeap lblFreeHeap("lblHeap","");
   TimeLabel lblTime("lblTime","Label Time");
 Logger logger ("Logger","/dataLog.csv");
@@ -187,7 +187,6 @@ Logger logger ("Logger","/dataLog.csv");
    
          program1.addCommand(&set1);
        program1.addCommand(&set2);
-              program1.addCommand(&control1);
 
       //program1.addCommand(&keypadControl1);
        program1.addCommand(&keypadControl1);
@@ -196,7 +195,12 @@ Logger logger ("Logger","/dataLog.csv");
        //pause1.start();
  //      if1.addCommand(&set2);
    //   if1.addCommand(&set3);
- //      program1.addCommand(&if1);    //  esto esta produciendo error
+      // program2.addCommand(&if1);    //  esto esta produciendo error
+        program2.addCommand(&control1);
+        program2.addCommand(&pause1);
+        program2.addCommand(&control3);
+        program1.addCommand(&program2);
+
 //       pause1.start();
 
        logger.addOutput(&lblTime);
@@ -207,7 +211,7 @@ Logger logger ("Logger","/dataLog.csv");
    //    page.addElement(&keypad1);        // Parece que el Keypad da problemas, numero de elementos ????  El Keypad tambien tiene problemas !!!
  //    page.addElement(&relay1);
  //   page.addElement(&relay2);
- //   page.addElement(&relay3);
+    page.addElement(&relay3);
 //    page.addElement(&tempSensor);
 //    page.addElement(&comboBox1);
    // page.addElement(&graphic1);

@@ -1,14 +1,75 @@
 // ########################################
 //  Commands
 // ########################################
-class Program;
-;
+
 class Commands: public ElementsHtml{
   public:
   bool executing=false;
   virtual bool run(){};
   //String getHtml(){};
 };
+
+
+
+
+// ########################################
+//  Program es un Command Composite
+// ########################################
+
+
+class Program: public Commands {
+public:
+//String name;
+  Program ( String n ){
+    name=n;
+    id = n;
+    label = new Label(name+"lbl","0");
+    } // MALDITA SEA NO HACER ESTO !!!!!!!!!!!     Serial.println("Created Program "+name);}
+  Commands* listOfCommands[30];
+   int commandCount = 0;
+   int runIndex =  0;
+   Label* label;
+  void addCommand (Commands* com){
+    listOfCommands[commandCount] = com;
+    commandCount++;
+  }
+  void deleteCommand(int index){
+    for ( int i=index; i<29; i++)  listOfCommands[i]=listOfCommands[i+1];
+    commandCount--;
+  }
+  bool run() {
+    if (  listOfCommands[runIndex]->run() ) runIndex++;   //////  Atencion checar por null pointer si no hay ningun commando !!!!
+        if (runIndex>=commandCount) {runIndex=0; return true;}
+     String s= docIdStr; s=s+ label->id ;s=s+ "').innerHTML='" ;s=s+ String(runIndex) ;s=s+"  current: ";s=s+listOfCommands[runIndex]->name+ "';";
+    javaQueue.add(s);
+    return false;
+  }
+  
+  String getHtml(){
+    String html;
+    html+="<div id='"; html+=id;html+="'><h4>";html+=name;html+="</h4> CommandCount = ";html+=label->getHtml();html+="<br>";
+    for ( int i=0; i<commandCount; i++) {   html+=listOfCommands[i]->getHtml()+"\n"; }
+    html+= "</div>";
+    return html;
+  }
+  void update(){}//{    for ( int i=0; i<commandCount; i++) {  listOfCommands[i]->update(); } }
+
+    
+  
+};
+
+//class CompositeProgram: public Program {
+//  public:
+//    void addCommand(Commands* e) { childs.push_back(e);}
+//    String getHtml() {for (int i = 0; i<childs.size(); i++) { }  }  // iterate through the childs
+//  private:
+//    std::vector <Commands*> childs;
+//};
+
+// ########################################
+//  Page
+// ########################################
+
 
 // #######################################
 //  Command   SET
