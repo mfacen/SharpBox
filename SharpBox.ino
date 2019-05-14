@@ -105,20 +105,21 @@ bool webSocketConnected = false;
   Dsb18B20 tempSensor ( TEMP_SENSOR_PIN ,"Temp_Probe");   // habria que crearlo solo si encontro el sensor
   //Dht11 dht1( D5,"dht1");
   Button button1("btn1","button1");
-   KeyPad keypad1 ("keypad1");
+ //  KeyPad keypad1 ("keypad1");
  // KeyPadCommand keypadCom("keyPadCom1");
   EditBox edit1 ("edit1","edit1","text");
   EditBox edit2 ("edit2","edit2","text");
   EditBox edit3 ("edit3","edit3","text");
   EditBox edit4 ("edit4","edit4","text");
   EditBox edit5 ("edit5","edit5","text");
+  EditBox checkbox ("chk","checkbox","checkbox");
   Label label1 ("label1","this is Label1");
   Label label2 ("label2","this is Label2");
    // Graphic graphic1("graphic1");
 KeypadControl keypadControl1("keyPadCtrl1");
 
   ActiveControl control1 ("control1" , &digitalIn1 ,"=",  &edit2  , &relay1 , &analogIn1 );
-  ActiveControl control2 ("control2" , &tempSensor , ">", &edit1 , &relay3 , &edit2 );
+  ActiveControl control2 ("control2" , &tempSensor , ">", &edit1 , &relay3 , &edit5 );
   ActiveControl control3 ("control3" , &tempSensor , "=", &edit3 , &relay1 , &edit4 );// xq hay problemas en la creacion de esto ?
   Set set1 ("set1",&relay1);
   Set set2 ("set2",&relay2);
@@ -197,7 +198,7 @@ TimeAlarms timeAlarm ( "Alarm",&program2);
        program1.addCommand(&keypadControl1);
        program1.addCommand(&logger);
        program1.addCommand(&control2);
-       
+
        //pause1.start();
  //      if1.addCommand(&set2);
    //   if1.addCommand(&set3);
@@ -208,7 +209,7 @@ TimeAlarms timeAlarm ( "Alarm",&program2);
 
 //       pause1.start();
 
-       logger.addOutput(&lblTime);
+       logger.addInput(&relay1);
        logger.addInput(&tempSensor);
   page.addElement(&lblTime);
   page.addString("<br>");
@@ -233,7 +234,7 @@ TimeAlarms timeAlarm ( "Alarm",&program2);
 
         page.addElement(&lblFreeHeap);
 
-    page.getHtml();
+    //page.getHtml();
     webSocket.begin();
     webSocket.onEvent(webSocketEvent);
     //page.getHtml();
@@ -253,33 +254,30 @@ unsigned long lastUpdate;
 
 void loop() {
   unsigned long currentMillis = millis();
+  if (( currentMillis - lastUpdate ) > 1000 ) {   //  now it updates every 5 seconds
+    Serial.println("Time: "+String(currentMillis/1000));
+                timeNow = timeUNIX + ( (currentMillis - lastNTPResponse) / 1000 );
 
+      //tempSensor.update();// ElementsHtml::javaQueue.add("console.log('tmpSensorUpdate');");
+      //analogIn1.update();
+      //logger.update();
+      lblTime.update(timeNow);
 
+      lblFreeHeap.update();
+      //control1.update();
+      program1.run();
+      lastUpdate = currentMillis;
+       Serial.println("Heap Left: "+String(ESP.getFreeHeap(),DEC) + " : "+ hour() + ":"+minute()+" - "+month()+"/"+year());//+" :Frag: " +String(ESP.getHeapFragmentation(),DEC)+"   Max-SIze = "+ String(ESP.getMaxFreeBlockSize()));
+       String ss= page.getJavaQueue();            // Get the JavaScript Queue from page
+       //Serial.println(ss);
+       if (ss!="" && webSocketConnected) webSocket.broadcastTXT(ss);   //  WebSoket necesita una variable, no puedo poner page.getJavaQueue directamente
+       if (ss!="" && !webSocketConnected) ElementsHtml::javaQueue.add(ss);
+  }
 
-  
-if (( currentMillis - lastUpdate ) > 1000 ) {   //  now it updates every 5 seconds
-  Serial.println("Time: "+String(currentMillis/1000));
-              timeNow = timeUNIX + ( (currentMillis - lastNTPResponse) / 1000 );
-
-    tempSensor.update();// ElementsHtml::javaQueue.add("console.log('tmpSensorUpdate');");
-    //analogIn1.update();
-    //logger.update();
-                lblTime.update(timeNow);
-
-    lblFreeHeap.update();
-    //control1.update();
-    program1.run();
-    lastUpdate = currentMillis;
-     Serial.println("Heap Left: "+String(ESP.getFreeHeap(),DEC) + " : "+ hour() + ":"+minute()+" - "+month()+"/"+year());//+" :Frag: " +String(ESP.getHeapFragmentation(),DEC)+"   Max-SIze = "+ String(ESP.getMaxFreeBlockSize()));
-     String ss= page.getJavaQueue();            // Get the JavaScript Queue from page
-     //Serial.println(ss);
-     if (ss!="" && webSocketConnected) webSocket.broadcastTXT(ss);   //  WebSoket necesita una variable, no puedo poner page.getJavaQueue directamente
-   
-}
-    webSocket.loop();
-    server.handleClient();
-   ArduinoOTA.handle();                        // listen for OTA events
-yield();
+  webSocket.loop();
+  server.handleClient();
+  ArduinoOTA.handle();                        // listen for OTA events
+  yield();
 }
 
 
@@ -416,7 +414,7 @@ void handleBtnClick() {                             //////////////   HANDLE BUTT
            }
       }
   for (int i=0; i<ElementsHtml::allHTMLElements.size(); i++){
-        //Serial.println(ElementsHtml::allHTMLElements[i]->id);
+        Serial.println(ElementsHtml::allHTMLElements[i]->id);
           if (ElementsHtml::allHTMLElements[i]->id==(buttonName) )  {
                         Serial.println("sent post call back to: " + buttonName);
                         reply=ElementsHtml::allHTMLElements[i]->postCallBack(ElementsHtml::allHTMLElements[i],buttonValue);
@@ -426,7 +424,7 @@ void handleBtnClick() {                             //////////////   HANDLE BUTT
           if (buttonName == "Time") {
             timeUNIX = buttonValue.toInt();
             lastNTPResponse = millis();
-            setTime(timeUNIX);
+            setTime(timeUNIX-300*60);
         }
   reply="console.log('fake handleBtnClick reply');";
   server.send(200, "text/plain", reply );
@@ -468,7 +466,7 @@ void handleFileUpload() { // upload a new file to the SPIFFS
       if (SPIFFS.exists(pathWithGz))                     // version of that file must be deleted (if it exists)
         SPIFFS.remove(pathWithGz);
     }
-    Serial.print("handleFileUpload Name: "); Serial.println(path);
+    //Serial.print("handleFileUpload Name: "); Serial.println(path);
     fsUploadFile = SPIFFS.open(path, "w");               // Open the file for writing in SPIFFS (create if it doesn't exist)
     path = String();
   } else if (upload.status == UPLOAD_FILE_WRITE) {
@@ -477,7 +475,7 @@ void handleFileUpload() { // upload a new file to the SPIFFS
   } else if (upload.status == UPLOAD_FILE_END) {
     if (fsUploadFile) {                                   // If the file was successfully created
       fsUploadFile.close();                               // Close the file again
-      Serial.print("handleFileUpload Size: "); Serial.println(upload.totalSize);
+      //Serial.print("handleFileUpload Size: "); Serial.println(upload.totalSize);
       server.sendHeader("Location", "/success.html");     // Redirect the client to the success page
       server.send(303);
     } else {

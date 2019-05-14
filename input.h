@@ -6,7 +6,6 @@ class Input : public ElementsHtml {
 
   public:
 
-    float value=0;
     float factor=1;
     int minValue=0;
     int maxValue=0;
@@ -38,17 +37,17 @@ class Button: public Input {
       //return ("console.log('postCallBack of " + name+" parent: "+parent->name+"'); ");
       return "";
     } 
-  String getHtml() {String  s = "<button "; s+= style ; s+=" type='button' width='40' id='";s+=id; s+= "' value ='"; s+= text; s+= "' onclick=\"btnClickText('"; s+= id;s+= "',this.value)\" >";
-                      s+=text; s+= "</button>\n"; return s;  }
-   //String getHtml() {  FixedString<100> s= "<button id='";s.append(id.c_str());s.append("'></button> ");javaQueue.add("btn('"+id+"','"+text+"');\n"); return s.c_str();}
+  //String getHtml() {String  s = "<button "; s+= style ; s+=" type='button' width='40' id='";s+=id; s+= "' value ='"; s+= text; s+= "' onclick=\"btnClickText('"; s+= id;s+= "',this.value)\" >";
+  //                    s+=text; s+= "</button>\n"; return s;  }
+   String getHtml() { String s= "<button id='";s+=id;s+="'></button> ";javaQueue.add("btn('"+id+"','"+text+"');\n"); return s;}
 
 // void addHtml() {
-//     htmlAdd("<button "); htmlAdd(style.c_str()); htmlAdd(" type='button' width='40' id='"); htmlAdd( id.c_str()); htmlAdd ("' value ='"); htmlAdd(text.c_str());
+//     htmlAdd("<button "); htmlAdd(style.c_str()); htmlAdd(" type='buttn' width='40' id='"); htmlAdd( id.c_str()); htmlAdd ("' value ='"); htmlAdd(text.c_str());
 //     htmlAdd("' onclick=\"btnClickText('");
 //     htmlAdd(id.c_str()); htmlAdd("',this.value)\" >");htmlAdd(text.c_str()); htmlAdd ("</button>\n");
 // }
     void update(String sss) {
-           String s= "var a=document.getElementById('";s+= id;s+= "'); a.value='";s+=sss;s+="'; a.textContent='";s+= sss ;s+= "';"; javaQueue.add(s);
+           String s= "var a=";s=+docIdStr;s+= id;s+= "'); a.value='";s+=sss;s+="'; a.textContent='";s+= sss ;s+= "';"; javaQueue.add(s);
 
       };
 };
@@ -145,7 +144,7 @@ class Dsb18B20: public Input {
       if ( ( millis() - lastTemperatureRequest > intervalTemperature ) && tempRequested ) {
         value = tempSensors->getTempCByIndex(0); // Get the temperature from the sensor
         tempRequested=false;
-              label->update(String(value));
+        label->update(String(value));
       }
       //value = tempSensors->getTempCByIndex(0);
     }
@@ -298,8 +297,10 @@ class EditBox: public Input {
 
     }
 
-    String getHtml() { String s=  "<input size='4' width='6em";s=s+style;s=s+" type='" ;s=s+ type; s=s+ "' id='"; s=s+ id ;s=s+ "' value='";s=s+text;
-                              s=s+"' onchange=\"btnClickText('";s=s+id;s=s+"',(this.value))\">"; return(s);}
+    String getHtml() { String s=  F("<input ");s+=style;s+=F(" type='") ;s+= type; s+=F( "' id='"); s+= id ;s+= F("' value='");s+=text;
+                              s+=F("' onchange=\"btnClickText('");s+=id; if (type=="checkbox") s+=F("',(this.checked))\">");
+                                      else s=s+F("',(this.value))\">");
+                                       return(s);}
     String postCallBack(ElementsHtml* e,String postValue) {
 
                   text = postValue;
@@ -307,7 +308,7 @@ class EditBox: public Input {
                   update();
                   if (parent) parent->postCallBack(this,postValue);
                   //return docIdStr + id + "').innerHTML='" + text + "';";
-                                    Serial.println("EditBox->postCallBack()");
+                                    //Serial.println("EditBox->postCallBack()");
                   return "";
     }
 
@@ -329,7 +330,7 @@ class EditBox: public Input {
       update();
     }
     void update() {
-      if (text && ( text!=lastValue)) { value = text.toFloat(); lastValue = text;
+      if (text && ( text!=lastValue)) { value = text.toFloat(); if (text=="false") value=0;if (text=="true") value=1; lastValue = text;
 
          String s=docIdStr; s+= id ;s+= "').value='" ;s+= text ;s+= "';";javaQueue.add(s);
                   //Serial.println("EditBox->Update()");

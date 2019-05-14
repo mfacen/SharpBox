@@ -43,7 +43,7 @@ button {
 canvas {
 }
 
-input[type=text] {
+input {
 	width: 5em;
 	background-color: black;
 	color: beige;

@@ -8,7 +8,7 @@
   public:
   
   String stateStr;
-  float value=0;
+  //float value=0;
   int minValue;
   int maxValue;
   String unit;
@@ -24,10 +24,10 @@
 //  LABEL
 // ########################################
 #include <umm_malloc/umm_malloc.h> // for computing memory fragmentation
+      String text="Output:Label";
 
 class Label: public Output {
   public:
-  String text="Output::Label";
     Label ( String n , String t, ElementsHtml* e = 0 ){
       name = n;
       id = n;
@@ -36,13 +36,16 @@ class Label: public Output {
              pushElement(this);          // Los elementos basicos se registran solos en el AllHTMLElemens !!
 
     }
-    String getHtml(){String  s= "<span id='";s+=id;s+= "'>";s+=text;s+="</span>"; return s; }
+    String getHtml(){String  s= F("<span id='");s+=id;s+= "'>";s+=text;s+="</span>"; return s; }
     //void addHtml(){ String s= "<span id='";s+=id;s+= "'>";s+=text;s+="</span>"; htmlAdd(s.c_str()); }
     String postCallBack(ElementsHtml* e,String postValue) { if(parent) return parent->postCallBack(this,postValue); }
-    void update ( String newValue ) { text= newValue; update(); }
-    void update(){String s=docIdStr; s+= id ; s+= "').innerHTML='";s+=text;s+="';"; javaQueue.add(s); } 
+    void update ( String newValue ) { if (newValue!=text) {text= newValue; update();} }
+    void update(){ if (lastText!=text) {String s=docIdStr; s+= id ; s+= F("').innerHTML='");s+=text;s+="';"; javaQueue.add(s); lastText=text;} } 
     void update(float newValue){update(String(newValue));}
     void append(String appendValue) { text += appendValue; update();}
+
+  private:
+      String lastText = "";
 };
 
 const size_t block_size = 8;
@@ -63,7 +66,7 @@ class LabelFreeHeap: public Label {
   void update(){ 
 
   int percentage =  100 - getLargestAvailableBlock() * 100.0 / getTotalAvailableMemory();
-   String s=docIdStr;s+= id ;s+= "').innerHTML='Heap: ";s+=String(ESP.getFreeHeap(),DEC);s+=" Frag: ";s+=String(percentage);s+="%';";javaQueue.add(s);// for size_t
+   String s=docIdStr;s+= id ;s+= F("').innerHTML='Heap: ");s+=String(ESP.getFreeHeap(),DEC);s+=F(" Frag: ");s+=String(percentage);s+="%';";javaQueue.add(s);// for size_t
 }
 };
 class TimeLabel: public Label{
@@ -71,7 +74,7 @@ public:
       using Label::Label;
         String getHtml(){ String s= "<span id='"; s+=id;s+= "'>";s+=text;s+="</span>"; return s;  }
        // void addHtml(){ String s= "<span id='"; s+=id;s+= "'>";s+=text;s+="</span>"; htmlAdd( s.c_str()) ;  }
-  void update( long t ) { tt=t;value=t; String s="var now = new Date(";s+=String(t);s+="*1000); document.getElementById('";s+= id; s+= "').innerHTML=now.toString();"; javaQueue.add(s); }
+  void update( long t ) { tt=t;value=t; String s=F("var now = new Date(");s+=String(t);s+="*1000); ";s+=docIdStr;s+= id; s+= F("').innerHTML=now.toString();"); javaQueue.add(s); }
 
 private:
   long tt;
@@ -89,16 +92,16 @@ class Table: public Output {
              pushElement(this);          // Los elementos basicos se registran solos en el AllHTMLElemens !!
 
     }
-    String getHtml(){ String s= "<div id='";s+=id;s+="div'><h5>";s+=text;s+="</h5><table id='";s+=id;s+= "'><tr><td></td><td></td></tr></table></div>"; return s;  }
+    String getHtml(){ String s= "<div id='";s+=id;s+="div'><h5>";s+=text;s+="</h5><table id='";s+=id;s+= F("'><tr><td></td><td></td></tr></table></div>"); return s;  }
     //void addHtml(){ String s= "<div id='";s+=id;s+="div'><h5>";s+=text;s+="</h5><table id='";s+=id;s+= "'><tr><td></td><td></td></tr></table></div>"; htmlAdd( s.c_str());  }
     String postCallBack(ElementsHtml* e,String postValue) { if(parent) return parent->postCallBack(this,postValue); }
     //void update ( String newValue ) { text= newValue; javaQueue.add(docIdStr + id + "').innerHTML='<h5>"+text+"</h5>';");}
     void setTitle (String sss){text=sss;}
-    void addRow ( String newRow ) { javaQueue.add(docIdStr + id + "').insertRow().insertCell(0).innerHTML='"+newRow+"';");}
+    void addRow ( String newRow ) { javaQueue.add(docIdStr + id + F("').insertRow().insertCell(0).innerHTML='")+newRow+"';");}
    // void makeTable(String csv){ javaQueue.add(docIdStr + id + "') = makeTable(csv);"); }
     void makeTable(String csv) { 
       
-      String content = "<table id='tableDir'><thead><tr><th>Peso (Kg)</th><th>Distancia (cm)</th></tr></thead>";
+      String content = F("<table id='tableDir'><thead><tr><th>Peso (Kg)</th><th>Distancia (cm)</th></tr></thead>");
       int maxIndex = csv.length() - 1;
     int index=0;
     int next_index;
@@ -107,7 +110,7 @@ class Table: public Output {
  
         next_index=csv.indexOf(',',index);
         data_word=csv.substring(index, next_index);
-        content += "<tr><td onclick='clickedCell(this)'>" + data_word  +"</td>";
+        content += F("<tr><td onclick='clickedCell(this)'>") ;content+= data_word  +"</td>";
         index=next_index+1;
         next_index=csv.indexOf(',',index);
         data_word=csv.substring(index, next_index);
@@ -121,8 +124,8 @@ class Table: public Output {
        javaQueue.add(docIdStr + id + "div').innerHTML=\""+content+"\";");  // Atencion si Content ya contiene semicolons simples no puedo usarlo aqui !!!
     }
     void changeCell ( String newText , int indexRow , int indexColumn ) {
-      javaQueue.add("var createdText=document.createTextNode('"+newText+"');"+
-      docIdStr + id + "').getElementsByTagName('tbody')[0].getElementsByTagName('tr')["+String(indexRow)+"].getElementsByTagName('td')["+String(indexColumn)+"].childNodes[0]=createdText;");//    insertRow().insertCell("+String(indexY)+").innerHTML='"+newText+"';");
+      String s=F("var createdText=document.createTextNode('");s=s+newText;s=s+"');";s+= docIdStr; s+= id ;s+= F("').getElementsByTagName('tbody')[0].getElementsByTagName('tr')[");
+                      s+=String(indexRow);s+=F("].getElementsByTagName('td')[");s+=String(indexColumn);s+=F("].childNodes[0]=createdText;"); javaQueue.add(s);//    insertRow().insertCell("+String(indexY)+").innerHTML='"+newText+"';");
     }
     void update(){ } 
        void update( float newValue) {value=newValue;update();}
@@ -144,7 +147,7 @@ class Image: public Output {
       parent = e;
       pushElement(this);          // Los elementos basicos se registran solos en el AllHTMLElemens !!
     }
-    String getHtml(){ String s="<img heigth='"; s+=String(heigth); s+= "' width='"; s+=String(width);s+="' id='";s+=id;s+= "' src='";s+=url;s+="'>";return s;  }
+    String getHtml(){ String s=F("<img heigth='"); s+=String(heigth); s+= F("' width='"); s+=String(width);s+="' id='";s+=id;s+= "' src='";s+=url;s+="'>";return s;  }
     String postCallBack(ElementsHtml* e,String postValue ) { if(parent) return parent->postCallBack(this,postValue); }
     void update ( String newValue ) { url= newValue;String s=docIdStr;s+= id;s+= "').src='";s+=url;s+="';"; javaQueue.add(s);}
     void update(float f){ } 
@@ -169,20 +172,20 @@ class Graphic: public Output {
     String postCallBack(ElementsHtml* e,String postValue ) { if(parent) return parent->postCallBack(this,postValue); }
     void update ( float newValue ) {
           String str;
-          str+="var canvas = document.getElementById('";str+=id;str+="');\n"
+          str+="var canvas = ";str+=docIdStr;str+=id;str+=F("');\n"
           "ctx=canvas.getContext('2d');\n"
           "ctx.strokeStyle = 'blue';\n" 
           "ctx.beginPath();\n"
-          "ctx.arc(xPos*4,canvas.height-2 - ";
+          "ctx.arc(xPos*4,canvas.height-2 - ");
           str += String(newValue*5);
-          str+=", 2, 0 , 2*Math.PI );\n"
+          str+=F(", 2, 0 , 2*Math.PI );\n"
           "ctx.fillStyle = 'blue';\n"
           "ctx.fill();\n"
           "ctx.stroke();\n"
          "ctx.closePath();\n"
          "xPos++; if ( xPos*4>canvas.width ) {  ctx.clearRect(0, 0, canvas.width, canvas.height);   xPos = 0;     generateCanvas();   }"
-         "function generateCanvas(){ var canvas = document.getElementById('"; str+= id; str+= "');  ctx=canvas.getContext('2d');"
-                "  ctx.font = '10px serif';  ctx.fillStyle = 'blue';    ctx.fillText('";str+=name;str+="', 20, 15);    ctx.stroke();} ";
+         "function generateCanvas(){ var canvas = document.getElementById('"); str+= id; str+= F("');  ctx=canvas.getContext('2d');"
+                "  ctx.font = '10px serif';  ctx.fillStyle = 'blue';    ctx.fillText('");str+=name;str+=F("', 20, 15);    ctx.stroke();} ");
           javaQueue.add(str);
           //xPos++; if(xPos==
     }
@@ -234,7 +237,7 @@ class PWM
         name = "" + id;
         minValue = 0;
         maxValue = 1;
-        unit = "apagado/encendido";
+        unit = "on/off";
         descriptor = name;
         pinMode ( pin , OUTPUT );
         stateStr="OFF";
@@ -338,7 +341,7 @@ class Meter: public Output {
     String postCallBack(ElementsHtml* e,String postValue) { if(parent) return parent->postCallBack(this,postValue);else return ""; }
     //void update ( String newValue ) { update(newValue.toInt());}
     void update(){
-      javaQueue.add(docIdStr + id + "Meter').value="+String(value)+";");
+      String s=docIdStr; s+=id; s+= "Meter').value="; s+=String(value)+";"; javaQueue.add(s);
       lblValue->update(String(value)+" kg");
     } 
     void update(float newValue){value=newValue;update();}
@@ -368,7 +371,7 @@ class Slider: public Output {
     String getHtml(){ return "<div id='"+id+"'><h5>"+name+"</h5><input type='range' id='"+id+ "Meter' min='"+String(_min)+"' max='"+String(_max)+"' onchange='btnClick(this.value)'>"+unit+label->getHtml()+"</div>";  }
     String postCallBack(ElementsHtml* e,String postValue) { if(parent) return parent->postCallBack(this,postValue); value = postValue.toFloat(); return ""; }
     //void update ( String newValue ) { update(newValue.toInt());}
-    void update(){ javaQueue.add(docIdStr + id + "Meter').value="+String((int)value)+";"); label->update(value); } 
+    void update(){ String s=docIdStr; s+= id ; s+="Meter').value="; s+=String((int)value);s+=";";javaQueue.add(s); label->update(value); } 
     void update(float newValue){value=newValue;update();}
 
    private:

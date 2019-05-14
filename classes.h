@@ -42,6 +42,7 @@ class ElementsHtml{
   String name;
   String id;
   String descriptor;
+  float value=0;
   String style="";
   bool visible=true;
   //String html;
@@ -52,20 +53,20 @@ class ElementsHtml{
     void setId(String i){id=i;}
     void setName(String n){name=n;}
     void setStyle(String s){style=s;}
- static  JavaQueue javaQueue;
- 
- //void setWrapper(String before, String after){wrapper = new Wrapper(before,after);}
- virtual void update(){};
-  virtual   String postCallBack(ElementsHtml* e,String postValue){}; // es virtual, lo tienen que implementar los hijos       ATENCION CUANDO DICE VTABLE ES QUE HE DEJADO UNA FUNCION SIN DEFINIR
-  virtual String getHtml(){};
-  static String getJavaQueue(){return javaQueue.get();}
-  void setVisible(bool v) { v? javaQueue.add(docIdStr + this->id + "').style.display='inline';") : javaQueue.add(docIdStr + id + "').style.display='none';");}   //{visible=v;}
-  void setDisabled (bool v){ v? javaQueue.add("var a=document.getElementById('" + id + "').setAttribute('disabled','disabled');"):javaQueue.add("var a=document.getElementById('" + id + "').removeAttribute('disabled');"); 
+    void setVisible(bool v) { v? javaQueue.add(docIdStr + this->id + "').style.display='inline';") : javaQueue.add(docIdStr + id + "').style.display='none';");}   //{visible=v;}
+    void setDisabled (bool v){ v? javaQueue.add("var a=document.getElementById('" + id + "').setAttribute('disabled','disabled');"):javaQueue.add("var a=document.getElementById('" + id + "').removeAttribute('disabled');"); 
     }
-  void clearHtml(){javaQueue.add("var a=document.getElementById('" + id + "').innerHTML=''");}
-  static std::vector <ElementsHtml*> allHTMLElements;
-  static void pushElement(ElementsHtml* e){allHTMLElements.push_back(e); }
-  static void deleteElement(ElementsHtml* e){}   //  Todavia no he implementado esto
+    void clearHtml(){javaQueue.add("var a=document.getElementById('" + id + "').innerHTML=''");}
+
+    virtual   String postCallBack(ElementsHtml* e,String postValue){}; // es virtual, lo tienen que implementar los hijos       ATENCION CUANDO DICE VTABLE ES QUE HE DEJADO UNA FUNCION SIN DEFINIR
+    virtual String getHtml(){};
+    virtual void update(){};
+    static  JavaQueue javaQueue;
+    static String getJavaQueue(){return javaQueue.get();}
+ 
+    static std::vector <ElementsHtml*> allHTMLElements;
+    static void pushElement(ElementsHtml* e){allHTMLElements.push_back(e); }
+    static void deleteElement(ElementsHtml* e){}   //  Todavia no he implementado esto
   // static char html [1000];
   // static void htmlAdd(const char* s){ strncat(html,s,1000);} // Copy char* s at the end of html, max lenght 2000.
   // static char* htmlGet(){ return html;} // Copy char* s at the end of html, max lenght 2000.
@@ -145,7 +146,7 @@ htmlStr=F("</h3><nav><a href='edit.html'>Upload </a><a href='dataLog.csv'>dataLo
       htmlFile.write((uint8_t *)htmlStr.c_str(), htmlStr.length());
 //
     for ( int i=0; i<elementCount; i++) {htmlStr="";  if (strings[i]) {htmlStr=strings[i];} htmlStr+=listOfElements[i]->getHtml();htmlStr+="\n";
-      Serial.println(listOfElements[i]->name+" "+htmlStr);
+      Serial.println(listOfElements[i]->name+" : HtmlStringSize: "+String(htmlStr.length()));
           htmlFile.write((uint8_t *)htmlStr.c_str(), htmlStr.length());
 }
      // if (strings[elementCount]) htmlStr+=strings[elementCount];

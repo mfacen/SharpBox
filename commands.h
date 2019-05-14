@@ -204,8 +204,8 @@ class Logger: public Commands {
          interval = i;
     }
 
-    void addInput ( Input *i ) { if (index<9) {inputArray[index]=i;index++;}}
-    void addOutput ( Output *o ) { if (indexO<9) {outputArray[indexO]=o;indexO++;}}
+    void addInput ( ElementsHtml *i ) { if (index<9) {inputArray[index]=i;index++;}}
+    //void addOutput ( Output *o ) { if (indexO<9) {outputArray[indexO]=o;indexO++;}}
     void addFloat ( String name, float *f ) {
                                                if (indexF<9) {
                                         names[indexF]=name;floatArray[indexF]=f;indexF++;}}
@@ -233,11 +233,11 @@ class Logger: public Commands {
          tempLog.println(inputArray[i]->getName()+" , "+String(inputArray[i]->value));
         }
       }
-      if (indexO>0){
-        for ( int i=0; i<indexO; i++ ) {
-         tempLog.println(outputArray[i]->getName()+" , "+String(outputArray[i]->value));
-        }
-      }
+      // if (indexO>0){
+      //   for ( int i=0; i<indexO; i++ ) {
+      //    tempLog.println(outputArray[i]->getName()+" , "+String(outputArray[i]->value));
+      //   }
+      //}
       if (indexF>0){
         for ( int i=0; i<indexF; i++ ) {
           float temp = *floatArray[i];
@@ -260,9 +260,9 @@ class Logger: public Commands {
         if (index!=0) {
          for ( int i=0; i<index; i++ ) { str += inputArray[i]->getName() ; str+= String(sizeof(inputArray[i])); str+= "<br>"; }
          } 
-                 if (indexO!=0) {
-         for ( int i=0; i<indexO; i++ ) { str += outputArray[i]->getName(); ; str+=String ( sizeof( outputArray[i])) ; str+= "<br>"; }
-         }  
+         //         if (indexO!=0) {
+         // for ( int i=0; i<indexO; i++ ) { str += outputArray[i]->getName(); ; str+=String ( sizeof( outputArray[i])) ; str+= "<br>"; }
+         // }  
                  if (indexF!=0) {
          for ( int i=0; i<indexF; i++ ) { str += names[i] ; str+=  "<br>"; }
          }  
@@ -274,8 +274,8 @@ class Logger: public Commands {
   String postCallBack(ElementsHtml* e,String postValue){ if (e==edtInterval) interval = edtInterval->value;pause->setInterval(interval); return "";}
 
   private:
-    Input* inputArray[10];
-    Output* outputArray[10];
+    ElementsHtml* inputArray[10];
+    //Output* outputArray[10];
     float * floatArray[10];
      String names [10];
 
