@@ -204,7 +204,7 @@ class Logger: public Commands {
          interval = i;
     }
 
-    void addInput ( ElementsHtml *i ) { if (index<9) {inputArray[index]=i;index++;}}
+    void addInput ( ElementsHtml *i ) { if (index<=9) {inputArray[index]=i;index++;}}
     //void addOutput ( Output *o ) { if (indexO<9) {outputArray[indexO]=o;indexO++;}}
     void addFloat ( String name, float *f ) {
                                                if (indexF<9) {
@@ -226,25 +226,29 @@ class Logger: public Commands {
             bool r=false;
 
       if (comboBox->value != 0){
+        bool first = true;
+        if (SPIFFS.exists(fileName)){first = false;}
       File tempLog ;
+
       tempLog = SPIFFS.open(fileName , "a"); // Write the time and the temperature to the csv file
+      if (first) {
+       tempLog.print("Time,"); for ( int i=0; i<index; i++ ) { tempLog.print(inputArray[i]->name); if (i!=index-1) tempLog.print(","); } tempLog.println(""); 
+      }
+      tempLog.print(String(now())+",");
       if (index>0){
         for ( int i=0; i<index; i++ ) {
-         tempLog.println(inputArray[i]->getName()+" , "+String(inputArray[i]->value));
+         tempLog.print(String(inputArray[i]->value));
+          if (i!=index-1) tempLog.print(",");
         }
       }
-      // if (indexO>0){
-      //   for ( int i=0; i<indexO; i++ ) {
-      //    tempLog.println(outputArray[i]->getName()+" , "+String(outputArray[i]->value));
-      //   }
-      //}
+
       if (indexF>0){
         for ( int i=0; i<indexF; i++ ) {
           float temp = *floatArray[i];
          tempLog.println(names[i]+" , "+String(temp));
         }
       }
-
+            tempLog.print("\n");
             tempLog.close();
             #ifndef debug
             Serial.println("Data Logged");
@@ -257,9 +261,11 @@ class Logger: public Commands {
       String getHtml(){
         String str= "<div class='";str+=name;str+="' ";str+= style; str+=" id='"; str+= name ; str+= "'><h4>"; str+= name; str += "</h4>"; str += comboBox->getHtml();
         str+= edtInterval->getHtml(); str += "<br>Inputs:<br>";
-        if (index!=0) {
-         for ( int i=0; i<index; i++ ) { str += inputArray[i]->getName() ; str+= String(sizeof(inputArray[i])); str+= "<br>"; }
+        if (index!=0) { 
+          str+="<ul>";
+         for ( int i=0; i<index; i++ ) { str+="<li>";str += inputArray[i]->name ; str+= "</li>"; }
          } 
+        str+="</ul>";
          //         if (indexO!=0) {
          // for ( int i=0; i<indexO; i++ ) { str += outputArray[i]->getName(); ; str+=String ( sizeof( outputArray[i])) ; str+= "<br>"; }
          // }  

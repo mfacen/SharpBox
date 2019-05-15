@@ -117,7 +117,7 @@ bool webSocketConnected = false;
   Label label2 ("label2","this is Label2");
    // Graphic graphic1("graphic1");
 KeypadControl keypadControl1("keyPadCtrl1");
-
+Gauge gauge ("Prueba");
   ActiveControl control1 ("control1" , &digitalIn1 ,"=",  &edit2  , &relay1 , &analogIn1 );
   ActiveControl control2 ("control2" , &tempSensor , ">", &edit1 , &relay3 , &edit5 );
   ActiveControl control3 ("control3" , &tempSensor , "=", &edit3 , &relay1 , &edit4 );// xq hay problemas en la creacion de esto ?
@@ -126,12 +126,12 @@ KeypadControl keypadControl1("keyPadCtrl1");
   //Set set3 ("set3",&relay2);
  // KeyPad keypad2 ("keypad2");   //     POR ALGUNA RAZON ESTO LO TRABA Y NO DA NINGUN HTML DE SALIDA
   Program program1 ("program1");
-  Program program2 ("program2");
+ // Program program2 ("program2");
   Pause pause1 ("pause1",1);
   LabelFreeHeap lblFreeHeap("lblHeap","");
   TimeLabel lblTime("lblTime","Label Time");
 Logger logger ("Logger","/dataLog.csv");
-TimeAlarms timeAlarm ( "Alarm",&program2);
+//TimeAlarms timeAlarm ( "Alarm",&program2);
 //  IfCommand if1("If numero 1",&edit1,&edit2);
 ///////////////////////////////////////////////////////////////////////////
 ////                                                               ////////
@@ -192,7 +192,7 @@ TimeAlarms timeAlarm ( "Alarm",&program2);
    
          program1.addCommand(&set1);
        program1.addCommand(&set2);
-        program1.addCommand(&timeAlarm);
+       // program1.addCommand(&timeAlarm);
 
       //program1.addCommand(&keypadControl1);
        program1.addCommand(&keypadControl1);
@@ -203,14 +203,15 @@ TimeAlarms timeAlarm ( "Alarm",&program2);
  //      if1.addCommand(&set2);
    //   if1.addCommand(&set3);
       // program2.addCommand(&if1);    //  esto esta produciendo error
-        program2.addCommand(&control1);
-        program2.addCommand(&pause1);
-        program2.addCommand(&control3);
+  //      program2.addCommand(&control1);
+  //      program2.addCommand(&pause1);
+  //      program2.addCommand(&control3);
 
 //       pause1.start();
 
        logger.addInput(&relay1);
        logger.addInput(&tempSensor);
+       logger.addInput(&analogIn1);
   page.addElement(&lblTime);
   page.addString("<br>");
  //   page.addElement(&control1);
@@ -218,8 +219,8 @@ TimeAlarms timeAlarm ( "Alarm",&program2);
  //    page.addElement(&relay1);
  //   page.addElement(&relay2);
     page.addElement(&relay3);
-//    page.addElement(&tempSensor);
-//    page.addElement(&comboBox1);
+   // page.addElement(&tempSensor);
+    page.addElement(&gauge);
    // page.addElement(&graphic1);
 
     page.addElement(&program1);       // El program es el que esta haciendo randoms problems
@@ -237,7 +238,7 @@ TimeAlarms timeAlarm ( "Alarm",&program2);
     //page.getHtml();
     webSocket.begin();
     webSocket.onEvent(webSocketEvent);
-    //page.getHtml();
+    page.getHtml();
    // Serial.print("html:");
    // Serial.println(ElementsHtml::html);
 }
@@ -258,7 +259,7 @@ void loop() {
     Serial.println("Time: "+String(currentMillis/1000));
                 timeNow = timeUNIX + ( (currentMillis - lastNTPResponse) / 1000 );
 
-      //tempSensor.update();// ElementsHtml::javaQueue.add("console.log('tmpSensorUpdate');");
+      tempSensor.update();// ElementsHtml::javaQueue.add("console.log('tmpSensorUpdate');");
       //analogIn1.update();
       //logger.update();
       lblTime.update(timeNow);
@@ -266,12 +267,13 @@ void loop() {
       lblFreeHeap.update();
       //control1.update();
       program1.run();
+      gauge.update(tempSensor.value);
       lastUpdate = currentMillis;
        Serial.println("Heap Left: "+String(ESP.getFreeHeap(),DEC) + " : "+ hour() + ":"+minute()+" - "+month()+"/"+year());//+" :Frag: " +String(ESP.getHeapFragmentation(),DEC)+"   Max-SIze = "+ String(ESP.getMaxFreeBlockSize()));
        String ss= page.getJavaQueue();            // Get the JavaScript Queue from page
        //Serial.println(ss);
        if (ss!="" && webSocketConnected) webSocket.broadcastTXT(ss);   //  WebSoket necesita una variable, no puedo poner page.getJavaQueue directamente
-       if (ss!="" && !webSocketConnected) ElementsHtml::javaQueue.add(ss);
+       //if (ss!="" && !webSocketConnected) ElementsHtml::javaQueue.add(ss);
   }
 
   webSocket.loop();

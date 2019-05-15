@@ -13,7 +13,7 @@
   int maxValue;
   String unit;
   bool invertedLogic = true;
-   virtual void update( float newValue)=0;
+   virtual void update( float newValue){};
   String getHtml(){}
       //void toogle(){ value? value=0:value=1;}
 
@@ -39,13 +39,13 @@ class Label: public Output {
     String getHtml(){String  s= F("<span id='");s+=id;s+= "'>";s+=text;s+="</span>"; return s; }
     //void addHtml(){ String s= "<span id='";s+=id;s+= "'>";s+=text;s+="</span>"; htmlAdd(s.c_str()); }
     String postCallBack(ElementsHtml* e,String postValue) { if(parent) return parent->postCallBack(this,postValue); }
-    void update ( String newValue ) { if (newValue!=text) {text= newValue; update();} }
+    void update ( String newValue ) {  {text= newValue; update();} }
     void update(){ if (lastText!=text) {String s=docIdStr; s+= id ; s+= F("').innerHTML='");s+=text;s+="';"; javaQueue.add(s); lastText=text;} } 
     void update(float newValue){update(String(newValue));}
     void append(String appendValue) { text += appendValue; update();}
 
   private:
-      String lastText = "";
+      String lastText = "&^%$";
 };
 
 const size_t block_size = 8;
@@ -65,17 +65,29 @@ class LabelFreeHeap: public Label {
   using Label::Label;
   void update(){ 
 
-  int percentage =  100 - getLargestAvailableBlock() * 100.0 / getTotalAvailableMemory();
-   String s=docIdStr;s+= id ;s+= F("').innerHTML='Heap: ");s+=String(ESP.getFreeHeap(),DEC);s+=F(" Frag: ");s+=String(percentage);s+="%';";javaQueue.add(s);// for size_t
-}
+    int percentage =  100 - getLargestAvailableBlock() * 100.0 / getTotalAvailableMemory();
+     String s=docIdStr;s+= id ;s+= F("').innerHTML='Heap: ");s+=String(ESP.getFreeHeap(),DEC);s+=F(" Frag: ");s+=String(percentage);s+="%';";javaQueue.add(s);// for size_t
+  }
 };
-class TimeLabel: public Label{
+
+class TimeLabel: public Output {
 public:
-      using Label::Label;
+      TimeLabel ( String n , String t, ElementsHtml* e = 0 ){
+      name = n;
+      id = n;
+      text = t;
+      parent = e;
+      pushElement(this);          // Los elementos basicos se registran solos en el AllHTMLElemens !!
+      String s="var now = new Date(); btnClickText('";s+=id;s+="',now.getTime()/1000);";
+      javaQueue.addOnLoad(s);
+    }
+    String postCallBack(ElementsHtml* e,String postValue) { if(parent) return parent->postCallBack(this,postValue); }
+
         String getHtml(){ String s= "<span id='"; s+=id;s+= "'>";s+=text;s+="</span>"; return s;  }
        // void addHtml(){ String s= "<span id='"; s+=id;s+= "'>";s+=text;s+="</span>"; htmlAdd( s.c_str()) ;  }
-  void update( long t ) { tt=t;value=t; String s=F("var now = new Date(");s+=String(t);s+="*1000); ";s+=docIdStr;s+= id; s+= F("').innerHTML=now.toString();"); javaQueue.add(s); }
-
+  void update( uint32_t t ) { tt=t;value=t; String s=F("var now = new Date(");s+=String(t);s+="*1000); ";s+=docIdStr;s+= id; s+= F("').innerHTML=now.toString();"); javaQueue.add(s); }
+  void update(){}
+  void update(float t){}
 private:
   long tt;
 };
@@ -305,16 +317,24 @@ class RelayOutput: public DigitalOutput {
 class Gauge: public Output {
   public:
   bool firstRun = true;
-    Gauge(String sss, ElementsHtml* e=0){ name=sss;id=sss;parent=e;}
-    String getHtml(){ return "<script src='gauge.min.js'></script><script src='gaugeScript.js'></script><canvas id='"+id+"' heigth='60' width='100'></canvas>";  }
+    Gauge(String sss, ElementsHtml* e=0){ name=sss;id=sss;if(parent)parent=e;value =0;label=new Label("lbl"+id,"x");
+    String s="var target = document.getElementById('";s+=id;s+="');window.";s+=id;s+=" = new Gauge(target).setOptions(opts);"; s+="window.Prueba.setMaxValue(40);"; // set max gauge value
+    s+= "window.Prueba.setMinValue(0);";   javaQueue.addOnLoad(s);}
+
+    String getHtml(){ String s= "<script src='gauge.min.js'></script><script src='gaugeScript.js'></script> <div><h4>";s+=name+"</h4><canvas id='";
+                                s+=id;s+="' height='90' width='140'></canvas><br><center>";s+=label->getHtml();s+="</div>";return(s);  }
+
     String postCallBack(ElementsHtml* e,String postValue ) { if(parent) return parent->postCallBack(this,postValue);else return ""; }
     void update(int v){value=v;update();}
        void update( float newValue) {value=newValue;update();}
     void update(){
       String str; if (firstRun) {str+="initiateGauge();"; firstRun=0;}
-      str+= "injectedID='"+name; ///+"';ODgauge.set("+String(value)+");";
+      str="window.";str+= id+".set("+String(value)+");";
       javaQueue.add(str);
+      label->update(value);
     }
+  private:
+    Label* label;
 };
 
 

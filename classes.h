@@ -21,8 +21,11 @@
   public:
     JavaQueue(){};
     String queue="";
+    String onLoad="";
     void add (String q){queue+=q;queue+="\n";}
+    void addOnLoad(String s){onLoad+=s;onLoad+="\n";}
     String get(){String temp=queue;queue="";return temp;}
+    String getOnLoad(){String s="<script>";s+=onLoad;s+="</script>";return s;}
 };
 
 class AverageModule {
@@ -58,7 +61,7 @@ class ElementsHtml{
     }
     void clearHtml(){javaQueue.add("var a=document.getElementById('" + id + "').innerHTML=''");}
 
-    virtual   String postCallBack(ElementsHtml* e,String postValue){}; // es virtual, lo tienen que implementar los hijos       ATENCION CUANDO DICE VTABLE ES QUE HE DEJADO UNA FUNCION SIN DEFINIR
+    virtual   String postCallBack(ElementsHtml* e,String postValue){ if(parent) return parent->postCallBack(this,postValue);else return ""; }
     virtual String getHtml(){};
     virtual void update(){};
     static  JavaQueue javaQueue;
@@ -139,6 +142,7 @@ public:
         htmlStr=getJavaScript();
       htmlFile.write((uint8_t *)htmlStr.c_str(), htmlStr.length());
 
+
     htmlStr="<h1>";htmlStr+=title+"</h1><h3>";htmlStr+=subTitle;
           htmlFile.write((uint8_t *)htmlStr.c_str(), htmlStr.length());
 htmlStr=F("</h3><nav><a href='edit.html'>Upload </a><a href='dataLog.csv'>dataLog</a><a href='delete?file=/dataLog.csv'>delete</a>"
@@ -146,7 +150,7 @@ htmlStr=F("</h3><nav><a href='edit.html'>Upload </a><a href='dataLog.csv'>dataLo
       htmlFile.write((uint8_t *)htmlStr.c_str(), htmlStr.length());
 //
     for ( int i=0; i<elementCount; i++) {htmlStr="";  if (strings[i]) {htmlStr=strings[i];} htmlStr+=listOfElements[i]->getHtml();htmlStr+="\n";
-      Serial.println(listOfElements[i]->name+" : HtmlStringSize: "+String(htmlStr.length()));
+      //Serial.println(listOfElements[i]->name+" : HtmlStringSize: "+ String (  htmlStr.length() ) );
           htmlFile.write((uint8_t *)htmlStr.c_str(), htmlStr.length());
 }
      // if (strings[elementCount]) htmlStr+=strings[elementCount];
@@ -161,6 +165,9 @@ htmlStr=F("<br><span id='errorLabel'></span><br>\n<button type = 'button' dataVa
   float fileUsedKB = (float)fs_info.usedBytes / 1024.0;
 htmlStr="Total KB: ";htmlStr+=String(fileTotalKB);htmlStr+="Kb / Used: ";htmlStr+=String(fileUsedKB);htmlStr+=" Page Size: ";htmlStr+=String(sizeof(this));
         htmlFile.write((uint8_t *)htmlStr.c_str(), htmlStr.length());
+
+       htmlStr=ElementsHtml::javaQueue.getOnLoad();
+      htmlFile.write((uint8_t *)htmlStr.c_str(), htmlStr.length());
 
 htmlStr= "</body></html>";  
       htmlFile.write((uint8_t *)htmlStr.c_str(), htmlStr.length());
