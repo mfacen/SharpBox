@@ -318,10 +318,11 @@ class Gauge: public Output {
   public:
   bool firstRun = true;
     Gauge(String sss, ElementsHtml* e=0){ name=sss;id=sss;if(parent)parent=e;value =0;label=new Label("lbl"+id,"x");
-    String s="var target = document.getElementById('";s+=id;s+="');window.";s+=id;s+=" = new Gauge(target).setOptions(opts);"; s+="window.Prueba.setMaxValue(40);"; // set max gauge value
+    String s="var i=document.createElement('script');i.src='gauge.min.js';var j=document.createElement('script');j.src='gaugeScript.js';";
+    s+="var target = document.getElementById('";s+=id;s+="');window.";s+=id;s+=" = new Gauge(target).setOptions(opts);"; s+="window.Prueba.setMaxValue(40);"; // set max gauge value
     s+= "window.Prueba.setMinValue(0);";   javaQueue.addOnLoad(s);}
 
-    String getHtml(){ String s= "<script src='gauge.min.js'></script><script src='gaugeScript.js'></script> <div><h4>";s+=name+"</h4><canvas id='";
+    String getHtml(){ String s="<div><h4>";s+=name+"</h4><canvas id='";
                                 s+=id;s+="' height='90' width='140'></canvas><br><center>";s+=label->getHtml();s+="</div>";return(s);  }
 
     String postCallBack(ElementsHtml* e,String postValue ) { if(parent) return parent->postCallBack(this,postValue);else return ""; }

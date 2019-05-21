@@ -37,4 +37,4 @@ staticZones: [
 	};
 
 
-  function setGauge ( value ){ ODgauge.set(value)}
+  //function setGauge ( value ){ ODgauge.set(value)}

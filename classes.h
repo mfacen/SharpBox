@@ -146,7 +146,7 @@ public:
     htmlStr="<h1>";htmlStr+=title+"</h1><h3>";htmlStr+=subTitle;
           htmlFile.write((uint8_t *)htmlStr.c_str(), htmlStr.length());
 htmlStr=F("</h3><nav><a href='edit.html'>Upload </a><a href='dataLog.csv'>dataLog</a><a href='delete?file=/dataLog.csv'>delete</a>"
-            "<a href='settings'>Preferencias </a><a href='list?dir=/'>Directory</a></nav>\n");
+            "<a href='settings'>Preferencias </a><a href='list?dir=/'>Directory</a><a href='graphic.html'>graphic</a></nav>\n");
       htmlFile.write((uint8_t *)htmlStr.c_str(), htmlStr.length());
 //
     for ( int i=0; i<elementCount; i++) {htmlStr="";  if (strings[i]) {htmlStr=strings[i];} htmlStr+=listOfElements[i]->getHtml();htmlStr+="\n";

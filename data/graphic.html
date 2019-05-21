@@ -9,10 +9,10 @@
     <link rel="manifest" href="/manifest.json">
     <meta name="theme-color" content="#00878f">
     <meta content='width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0' name='viewport'>
-    //<script  src="Chart.min.js"></script>
+        <script src="moment.min.js"></script>
 
-    <script src="graphic.js"></script>
-    <script src="moment.min.js"></script>
+    <script  src="Chart.min.js"></script>
+
 </head>
 
 <body>
@@ -20,8 +20,15 @@
     <center>
    
        
-             
-                <canvas id="canvasGraphic" width="300" height="301" padding="50">No canvas in your browser...sorry...</canvas>
+             <div width='70%' height='50%'>
+                <canvas id="canvasGraphic" padding="50">No canvas in your browser...sorry...</canvas>
+             </div>
+             <div id='buttons'>
+             	<button onclick=btnClickedPlus()>+</button>
+             	<button onclick=btnClickedMinus()>-</button>
+             	<button onclick=btnClickedZoomIn()>>></button>
+             	<button onclick=btnClickedZoomOut()><<</button>
+             </div>
        			<script>
        						var timeFormat = 'MM/DD/YYYY HH:mm';
        								var color = Chart.helpers.color;
@@ -31,23 +38,28 @@
 			type: 'line',
 			data: {
 				labels: [ // Date Objects
-					 11111111, 11111114,11111113
+					
 				],
 				datasets: [{
-					label: 'My First dataset',
-					//backgroundColor: color("red").alpha(0.5).rgbString(),
-					//borderColor: color(,
+					label: 'Relay',
+					backgroundColor: color("blue").alpha(0.5).rgbString(),
+					borderColor: color("green").alpha(1).rgbString(),
 					fill: false,
 					data: [
-						15,12,13
 					],
-				}, {
-					label: 'My Second dataset',
-					//backgroundColor: color(window.chartColors.blue).alpha(0.5).rgbString(),
-					//borderColor: window.chartColors.blue,
+				},{
+					label: 'Temp',
+					backgroundColor: color("red").alpha(0.5).rgbString(),
+					borderColor: color("cyan").alpha(1).rgbString(),
 					fill: false,
 					data: [
-						14,8,21
+					],
+				},{
+					label: 'Ana in',
+					backgroundColor: color("magenta").alpha(0.5).rgbString(),
+					borderColor: color("black").alpha(1).rgbString(),
+					fill: false,
+					data: [
 					],
 				}]
 			},
@@ -58,15 +70,21 @@
 				scales: {
 					xAxes: [{
 						type: 'time',
+						//distribution: 'linear',
+						display: 'true',
 						time: {
 							parser: timeFormat,
-							// round: 'day'
-							tooltipFormat: 'll HH:mm'
+							// unit: 'day',
+							tooltipFormat: 'll HH:mm',
+							//min: new Date("2019-05-20")
 						},
 						scaleLabel: {
 							display: true,
 							labelString: 'Date'
-						}
+						},
+						offset: true,
+						scaleBeginAtZero: false
+
 					}],
 					yAxes: [{
 						scaleLabel: {
@@ -80,13 +98,13 @@
 
 var myChart;
 
-var datos = parseCSV("time,relay,temp,analog\n11111111,0,20,7\n11111122,0,21,7.5\n11111133,0,22.5,8\n");
+//var datos = parseCSV("time,relay,temp,analog\n11111111,0,20,7\n11111122,0,21,7.5\n11111133,0,22.5,8\n");
 
 
 window.onload = function() {
 			var ctx = document.getElementById('canvasGraphic').getContext('2d');
 			window.myChart = new Chart(ctx, config);
-
+			data=loadCSV();
 		};
 
 
@@ -95,6 +113,8 @@ function loadCSV() {
 	xmlhttp.onreadystatechange = function() {
 		if (this.readyState == 4 && ( this.status == 200  || this.status == 404 ) ) {
 			dataArray = parseCSV(this.responseText);
+						window.myChart.update();
+
 			return dataArray;
 
 		}
@@ -106,15 +126,41 @@ function loadCSV() {
 
 function parseCSV(string) {
 	var array = [];
+			var data1 = [];
+			var data2 = [];
+			var data3 = [];
+			var data0 = [];
+
 	var lines = string.split("\n");
-	for (var i = 0; i < lines.length; i++) {
+
+	for (var i = 1; i < lines.length; i++) {
 		var data = lines[i].split(",");
+				data0.push(new Date(data[0]*1000+60*60*5*1000)); // add 5 hours for time zone, this should be automatic
+				data1.push(data[1]);
+				data2.push(data[2]);
+				data3.push(data[3]);
 		array.push(data);
 	}
-	return array;
+				config.data.datasets[0].data =(data1);
+				config.data.datasets[1].data =(data2);
+				config.data.datasets[2].data = (data3);
+				config.data.labels=data0;
+				config.options.scales.xAxes[0].time.min = data0[1];
+				//console.log(data0);
+					return array;
+
 }
 
 
+ 
+ function btnClickedPlus(){config.options.scales.xAxes[0].time.min = moment(config.options.scales.xAxes[0].time.min).add( 1,"hours");window.myChart.update(); }
+ function btnClickedMinus(){config.options.scales.xAxes[0].time.min = moment(config.options.scales.xAxes[0].time.min).subtract( 1,"hours");window.myChart.update(); }
+ function btnClickedZoomIn(){config.options.scales.xAxes[0].time.min = moment(config.options.scales.xAxes[0].time.min).add( 1,"hours");
+ 							config.options.scales.xAxes[0].time.max = moment(config.options.scales.xAxes[0].time.max).add( 1,"hours");
+							 window.myChart.update(); }
+ function btnClickedZoomOut(){config.options.scales.xAxes[0].time.min = moment(config.options.scales.xAxes[0].time.min).subtract( 1,"hours");
+ 							config.options.scales.xAxes[0].time.max = moment(config.options.scales.xAxes[0].time.max).subtract( 1,"hours");
+							 window.myChart.update(); }
 </script>
 
     </center>

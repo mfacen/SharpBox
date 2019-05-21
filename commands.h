@@ -40,14 +40,14 @@ public:
   bool run() {
     if (  listOfCommands[runIndex]->run() ) runIndex++;   //////  Atencion checar por null pointer si no hay ningun commando !!!!
         if (runIndex>=commandCount) {runIndex=0; return true;}
-     String s= docIdStr; s=s+ label->id ;s=s+ "').innerHTML='" ;s=s+ String(runIndex) ;s=s+"  current: ";s=s+listOfCommands[runIndex]->name+ "';";
+     String s= docIdStr; s=s+ label->id ;s=s+ "').innerHTML='" ;s=s+listOfCommands[runIndex]->name+ "';";
     javaQueue.add(s);
     return false;
   }
   
   String getHtml(){
     String html;
-    html+="<div id='"; html+=id;html+="'><h4>";html+=name;html+="</h4> CommandCount = ";html+=label->getHtml();html+="<br>";
+    html+="<div id='"; html+=id;html+="'><h4>";html+=name;html+="</h4>Executing = ";html+=label->getHtml();html+="<br>";
     for ( int i=0; i<commandCount; i++) {   html+=listOfCommands[i]->getHtml()+"\n"; }
     html+= "</div>";
     return html;
@@ -232,13 +232,13 @@ class Logger: public Commands {
 
       tempLog = SPIFFS.open(fileName , "a"); // Write the time and the temperature to the csv file
       if (first) {
-       tempLog.print("Time,"); for ( int i=0; i<index; i++ ) { tempLog.print(inputArray[i]->name); if (i!=index-1) tempLog.print(","); } tempLog.println(""); 
+       tempLog.print("Time,\t"); for ( int i=0; i<index; i++ ) { tempLog.print(inputArray[i]->name); if (i!=index-1) tempLog.print(",\t"); } tempLog.println(""); 
       }
-      tempLog.print(String(now())+",");
+      tempLog.print(String(now())+",\t");
       if (index>0){
         for ( int i=0; i<index; i++ ) {
          tempLog.print(String(inputArray[i]->value));
-          if (i!=index-1) tempLog.print(",");
+          if (i!=index-1) tempLog.print(",\t");
         }
       }
 
