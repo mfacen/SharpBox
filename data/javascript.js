@@ -41,6 +41,10 @@ window.onload = function(){
     var now = new Date();
     btnClickText("Time",now.getTime()/1000);
 
+
+      var ctx = document.getElementById('chart').getContext('2d');
+      window.myChart = new Chart(ctx, config);
+
 // var target = document.getElementById("Prueba"); // your canvas element
 //  window.ODgauge = new Gauge(target).setOptions(opts); //   si le pongo windows se convierte en global.
 // window.ODgauge.setMaxValue(30); // set max gauge value

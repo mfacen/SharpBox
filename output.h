@@ -209,6 +209,31 @@ class Graphic: public Output {
     //int xPos=0;
 };
 
+// ########################################
+//  Chart
+// ########################################
+class Chart: public Output {
+  public:
+    Chart (String ss, ElementsHtml* e=0){ name=ss;id=ss;parent=e;}
+    String getHtml(){ String s="<canvas id='"+id+"' heigth='130'></canvas>"; 
+                      String ss="var i=document.createElement('script');i.src='chart.js';";
+                      ss+="var j=document.createElement('script');j.src='Chart-min.js';";
+                      ss+="var k=document.createElement('script');k.src='moment.min.js';";
+                       javaQueue.addOnLoad(ss); return(s);   }
+    String postCallBack(ElementsHtml* e,String postValue ) { if(parent) return parent->postCallBack(this,postValue); }
+    void update ( float newValue ) {
+          String str = "addChartData('"; str+= String(newValue);str+="');";
+          
+          javaQueue.add(str);
+          //xPos++; if(xPos==
+    }
+    void update(String sss){update(sss.toFloat());}  
+    void update(){ } 
+      // void update( float newValue) {value=newValue;update();}
+
+  private:
+    //int xPos=0;
+};
 
           
 // ########################################
@@ -318,9 +343,9 @@ class Gauge: public Output {
   public:
   bool firstRun = true;
     Gauge(String sss, ElementsHtml* e=0){ name=sss;id=sss;if(parent)parent=e;value =0;label=new Label("lbl"+id,"x");
-    String s="var i=document.createElement('script');i.src='gauge.min.js';var j=document.createElement('script');j.src='gaugeScript.js';";
-    s+="var target = document.getElementById('";s+=id;s+="');window.";s+=id;s+=" = new Gauge(target).setOptions(opts);"; s+="window.Prueba.setMaxValue(40);"; // set max gauge value
-    s+= "window.Prueba.setMinValue(0);";   javaQueue.addOnLoad(s);}
+    String s="var i=document.createElement('script');i.src='gauge.min.js';\nvar j=document.createElement('script');j.src='gaugeScript.js';\n";
+    s+="var target = document.getElementById('";s+=id;s+="');window.";s+=id;s+=" = new Gauge(target).setOptions(opts);\n"; s+="window.Prueba.setMaxValue(40);\n"; // set max gauge value
+    s+= "window.Prueba.setMinValue(0);\n";   javaQueue.addOnLoad(s);}
 
     String getHtml(){ String s="<div><h4>";s+=name+"</h4><canvas id='";
                                 s+=id;s+="' height='90' width='140'></canvas><br><center>";s+=label->getHtml();s+="</div>";return(s);  }

@@ -153,14 +153,20 @@ function parseCSV(string) {
 
 
  
- function btnClickedPlus(){config.options.scales.xAxes[0].time.min = moment(config.options.scales.xAxes[0].time.min).add( 1,"hours");window.myChart.update(); }
- function btnClickedMinus(){config.options.scales.xAxes[0].time.min = moment(config.options.scales.xAxes[0].time.min).subtract( 1,"hours");window.myChart.update(); }
+ function btnClickedPlus(){config.options.scales.xAxes[0].time.min = moment(config.options.scales.xAxes[0].time.min).add( 1,"hours");
+						config.options.scales.xAxes[0].time.max = moment(config.options.scales.xAxes[0].time.max).subtract( 1,"hours");
+						window.myChart.update(); }
+ function btnClickedMinus(){config.options.scales.xAxes[0].time.min = moment(config.options.scales.xAxes[0].time.min).subtract( 1,"hours");
+  							config.options.scales.xAxes[0].time.max = moment(config.options.scales.xAxes[0].time.max).add( 1,"hours");
+							window.myChart.update(); }
  function btnClickedZoomIn(){config.options.scales.xAxes[0].time.min = moment(config.options.scales.xAxes[0].time.min).add( 1,"hours");
  							config.options.scales.xAxes[0].time.max = moment(config.options.scales.xAxes[0].time.max).add( 1,"hours");
 							 window.myChart.update(); }
  function btnClickedZoomOut(){config.options.scales.xAxes[0].time.min = moment(config.options.scales.xAxes[0].time.min).subtract( 1,"hours");
  							config.options.scales.xAxes[0].time.max = moment(config.options.scales.xAxes[0].time.max).subtract( 1,"hours");
 							 window.myChart.update(); }
+
+ 
 </script>
 
     </center>

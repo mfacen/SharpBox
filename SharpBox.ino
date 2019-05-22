@@ -127,6 +127,7 @@ Gauge gauge ("Prueba");
  // KeyPad keypad2 ("keypad2");   //     POR ALGUNA RAZON ESTO LO TRABA Y NO DA NINGUN HTML DE SALIDA
   Program program1 ("program1");
  // Program program2 ("program2");
+  Chart chart ("chart");
   Pause pause1 ("pause1",1);
   LabelFreeHeap lblFreeHeap("lblHeap","");
   TimeLabel lblTime("lblTime","Label Time");
@@ -212,7 +213,9 @@ Logger logger ("Logger","/dataLog.csv");
        logger.addInput(&relay1);
        logger.addInput(&tempSensor);
        logger.addInput(&analogIn1);
+       
   page.addElement(&lblTime);
+  page.addElement(&chart);
   page.addString("<br>");
  //   page.addElement(&control1);
    //    page.addElement(&keypad1);        // Parece que el Keypad da problemas, numero de elementos ????  El Keypad tambien tiene problemas !!!
@@ -265,7 +268,7 @@ void loop() {
       lblTime.update(timeNow);
 
       lblFreeHeap.update();
-      //control1.update();
+      chart.update(tempSensor.value);
       program1.run();
       gauge.update(tempSensor.value);
       lastUpdate = currentMillis;
