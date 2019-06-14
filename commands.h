@@ -232,20 +232,23 @@ class Logger: public Commands {
 
       tempLog = SPIFFS.open(fileName , "a"); // Write the time and the temperature to the csv file
       if (first) {
-       tempLog.print("Time,\t"); for ( int i=0; i<index; i++ ) { tempLog.print(inputArray[i]->name); if (i!=index-1) tempLog.print(",\t"); } tempLog.println(""); 
+       tempLog.print("Time,\t"); for ( int i=0; i<index; i++ ) { tempLog.print(inputArray[i]->name); if ( (i!=index-1) || ( indexF!=0) ) tempLog.print(",\t"); }
+       for ( int i=0; i<indexF; i++) { tempLog.print(names[i]); if ( i!=indexF-1) { tempLog.print(",\t") ; }  } 
+        tempLog.println(""); 
       }
       tempLog.print(String(now())+",\t");
       if (index>0){
         for ( int i=0; i<index; i++ ) {
          tempLog.print(String(inputArray[i]->value));
-          if (i!=index-1) tempLog.print(",\t");
+          if ( (i!=index-1) || ( indexF!=0 ) )  tempLog.print(",\t");
         }
       }
 
       if (indexF>0){
         for ( int i=0; i<indexF; i++ ) {
           float temp = *floatArray[i];
-         tempLog.println(names[i]+" , "+String(temp));
+         tempLog.print(String(temp));
+         if ( indexF-1!=i) tempLog.print(",\t");
         }
       }
             tempLog.print("\n");
@@ -265,13 +268,14 @@ class Logger: public Commands {
           str+="<ul>";
          for ( int i=0; i<index; i++ ) { str+="<li>";str += inputArray[i]->name ; str+= "</li>"; }
          } 
-        str+="</ul>";
          //         if (indexO!=0) {
          // for ( int i=0; i<indexO; i++ ) { str += outputArray[i]->getName(); ; str+=String ( sizeof( outputArray[i])) ; str+= "<br>"; }
          // }  
                  if (indexF!=0) {
-         for ( int i=0; i<indexF; i++ ) { str += names[i] ; str+=  "<br>"; }
+         for ( int i=0; i<indexF; i++ ) { str +="<li>" + names[i] ; str+=  "</li>"; }
          }  
+               str+="</ul>";
+
                  str += label->getHtml()+"</div>";
 
          return str;

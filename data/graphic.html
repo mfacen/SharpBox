@@ -26,8 +26,8 @@
              <div id='buttons'>
              	<button onclick=btnClickedPlus()>+</button>
              	<button onclick=btnClickedMinus()>-</button>
-             	<button onclick=btnClickedZoomIn()>>></button>
-             	<button onclick=btnClickedZoomOut()><<</button>
+             	<button onclick=btnClickedForward()>>></button>
+             	<button onclick=btnClickedBackward()><<</button>
              </div>
        			<script>
        						var timeFormat = 'MM/DD/YYYY HH:mm';
@@ -55,6 +55,13 @@
 					data: [
 					],
 				},{
+					label: 'Temp',
+					backgroundColor: color("red").alpha(0.5).rgbString(),
+					borderColor: color("cyan").alpha(1).rgbString(),
+					fill: false,
+					data: [
+					],
+				},{
 					label: 'Ana in',
 					backgroundColor: color("magenta").alpha(0.5).rgbString(),
 					borderColor: color("black").alpha(1).rgbString(),
@@ -65,7 +72,12 @@
 			},
 			options: {
 				title: {
-					text: 'Chart.js Time Scale'
+					text: 'Time Scale Graphic',
+					display: true,
+					fontSize: 16
+				},
+				layout: {
+					padding: 50
 				},
 				scales: {
 					xAxes: [{
@@ -126,26 +138,34 @@ function loadCSV() {
 
 function parseCSV(string) {
 	var array = [];
-			var data1 = [];
-			var data2 = [];
-			var data3 = [];
-			var data0 = [];
-
+	var items = [];
+	var colors=['blue','green','cyan','red','magenta','black','purple','orange'];
 	var lines = string.split("\n");
-
+	var titles = lines[0].split(",");
+	 for ( var i=1; i<titles.length; i++) { 
+	 	config.data.datasets[i-1] = [];
+	 	config.data.datasets[i-1].data=[];
+	 	config.data.datasets[i-1].backgroundColor=color(colors[i]).alpha(0.5).rgbString();
+		config.data.datasets[i-1].borderColor=" color('green').alpha(1).rgbString()";
+		config.data.datasets[i-1].datafill= false;
+	 	config.data.datasets[i-1].label = titles[i];
+	 	}
+	//config.data.labels = titles;
 	for (var i = 1; i < lines.length; i++) {
 		var data = lines[i].split(",");
-				data0.push(new Date(data[0]*1000+60*60*5*1000)); // add 5 hours for time zone, this should be automatic
-				data1.push(data[1]);
-				data2.push(data[2]);
-				data3.push(data[3]);
-		array.push(data);
+		config.data.labels.push(new Date(data[0]*1000));//+60*60*5*1000)); // add 5 hours for time zone, this should be automatic
+		for ( var j=1; j<data.length; j++ ) {
+				config.data.datasets[j-1].data.push(data[j]);
+			}
+			//console.log(config.data.datasets[0].data);
+				//array.push(items[i]);
+				
 	}
-				config.data.datasets[0].data =(data1);
-				config.data.datasets[1].data =(data2);
-				config.data.datasets[2].data = (data3);
-				config.data.labels=data0;
-				config.options.scales.xAxes[0].time.min = data0[1];
+				// config.data.datasets[0].data =(data1);
+				// config.data.datasets[1].data =(data2);
+				// config.data.datasets[2].data = (data3);
+			//	config.data.labels=data0;
+				config.options.scales.xAxes[0].time.min = config.data.labels[0];
 				//console.log(data0);
 					return array;
 
@@ -153,19 +173,29 @@ function parseCSV(string) {
 
 
  
- function btnClickedPlus(){config.options.scales.xAxes[0].time.min = moment(config.options.scales.xAxes[0].time.min).add( 1,"hours");
-						config.options.scales.xAxes[0].time.max = moment(config.options.scales.xAxes[0].time.max).subtract( 1,"hours");
+ function btnClickedPlus(){
+ 						var span = calculateDataSpan(); console.log(span);
+ 						config.options.scales.xAxes[0].time.min = moment(config.options.scales.xAxes[0].time.min).add(( span/10));
+						config.options.scales.xAxes[0].time.max = moment(config.options.scales.xAxes[0].time.max).subtract(( span/10));
 						window.myChart.update(); }
- function btnClickedMinus(){config.options.scales.xAxes[0].time.min = moment(config.options.scales.xAxes[0].time.min).subtract( 1,"hours");
-  							config.options.scales.xAxes[0].time.max = moment(config.options.scales.xAxes[0].time.max).add( 1,"hours");
+ function btnClickedMinus(){
+ 	 						var span = calculateDataSpan(); console.log(span);
+ 							config.options.scales.xAxes[0].time.min = moment(config.options.scales.xAxes[0].time.min).subtract( span/10);
+  							config.options.scales.xAxes[0].time.max = moment(config.options.scales.xAxes[0].time.max).add( span/10);
 							window.myChart.update(); }
- function btnClickedZoomIn(){config.options.scales.xAxes[0].time.min = moment(config.options.scales.xAxes[0].time.min).add( 1,"hours");
- 							config.options.scales.xAxes[0].time.max = moment(config.options.scales.xAxes[0].time.max).add( 1,"hours");
+ function btnClickedForward(){
+ 	 						var span = calculateDataSpan(); console.log(span);
+ 							config.options.scales.xAxes[0].time.min = moment(config.options.scales.xAxes[0].time.min).add( span/10);
+ 							config.options.scales.xAxes[0].time.max = moment(config.options.scales.xAxes[0].time.max).add( span/10);
 							 window.myChart.update(); }
- function btnClickedZoomOut(){config.options.scales.xAxes[0].time.min = moment(config.options.scales.xAxes[0].time.min).subtract( 1,"hours");
- 							config.options.scales.xAxes[0].time.max = moment(config.options.scales.xAxes[0].time.max).subtract( 1,"hours");
+ function btnClickedBackward(){
+ 	 						var span = calculateDataSpan(); console.log(span);
+ 							config.options.scales.xAxes[0].time.min = moment(config.options.scales.xAxes[0].time.min).subtract( span/10);
+ 							config.options.scales.xAxes[0].time.max = moment(config.options.scales.xAxes[0].time.max).subtract( span/10);
 							 window.myChart.update(); }
-
+function calculateDataSpan(){
+	return moment(config.options.scales.xAxes[0].time.max) - moment(config.options.scales.xAxes[0].time.min);
+}
  
 </script>
 

@@ -22,6 +22,7 @@ class Input : public ElementsHtml {
 
 class Button: public Input {
   public:
+  
     Button(String n , String t, ElementsHtml* e = 0  ) {
       name = n;
       id = n;
@@ -320,7 +321,7 @@ class EditBox: public Input {
       update();
     }
     void update (String t) {
-                  Serial.println("EditBox->Update(String)");
+                  Serial.println("EditBox->Update(String)" + id +","+t);
 
       text = t;
       update();

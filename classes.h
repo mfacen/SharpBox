@@ -134,9 +134,9 @@ public:
           SPIFFS.remove("/index.html");
       File htmlFile = SPIFFS.open( "/index.html" , "w");
       htmlFile.seek(0, SeekSet);
-
     //htmlStr.reserve(5000);        /////    Reserva espacio en la memoria para evitar fragmentacion.
-    htmlStr+="<html><head> <link rel='stylesheet' type='text/css' href='style1.css'></head><body>\n";
+    htmlStr+="<html><head> <link rel='stylesheet' type='text/css' href='style1.css'><script src='Chart.min.js'></script><script src='moment.min.js'></script>";
+    htmlStr+= "<meta name ='viewport' content='width=device-width, initial-scale=1.0'></head><body>\n";
           htmlFile.write((uint8_t *)htmlStr.c_str(), htmlStr.length());
 
         htmlStr=getJavaScript();
@@ -149,7 +149,7 @@ htmlStr=F("</h3><nav><a href='edit.html'>Upload </a><a href='dataLog.csv'>dataLo
             "<a href='settings'>Preferencias </a><a href='list?dir=/'>Directory</a><a href='graphic.html'>graphic</a></nav>\n");
       htmlFile.write((uint8_t *)htmlStr.c_str(), htmlStr.length());
 //
-    for ( int i=0; i<elementCount; i++) {htmlStr="";  if (strings[i]) {htmlStr=strings[i];} htmlStr+=listOfElements[i]->getHtml();htmlStr+="\n";
+    for ( int i=0; i<elementCount; i++) {htmlStr="";Serial.println(listOfElements[i]->id);  if (strings[i]) {htmlStr=strings[i];} htmlStr+=listOfElements[i]->getHtml();htmlStr+="\n";
       //Serial.println(listOfElements[i]->name+" : HtmlStringSize: "+ String (  htmlStr.length() ) );
           htmlFile.write((uint8_t *)htmlStr.c_str(), htmlStr.length());
 }

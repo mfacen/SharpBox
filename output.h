@@ -24,10 +24,11 @@
 //  LABEL
 // ########################################
 #include <umm_malloc/umm_malloc.h> // for computing memory fragmentation
-      String text="Output:Label";
 
 class Label: public Output {
   public:
+          String text="Output:Label";
+
     Label ( String n , String t, ElementsHtml* e = 0 ){
       name = n;
       id = n;
@@ -46,6 +47,7 @@ class Label: public Output {
 
   private:
       String lastText = "&^%$";
+
 };
 
 const size_t block_size = 8;
@@ -71,6 +73,8 @@ class LabelFreeHeap: public Label {
 };
 
 class TimeLabel: public Output {
+        String text="Output:Label";
+
 public:
       TimeLabel ( String n , String t, ElementsHtml* e = 0 ){
       name = n;
@@ -216,13 +220,13 @@ class Chart: public Output {
   public:
     Chart (String ss, ElementsHtml* e=0){ name=ss;id=ss;parent=e;}
     String getHtml(){ String s="<canvas id='"+id+"' heigth='130'></canvas>"; 
-                      String ss="var i=document.createElement('script');i.src='chart.js';";
-                      ss+="var j=document.createElement('script');j.src='Chart-min.js';";
-                      ss+="var k=document.createElement('script');k.src='moment.min.js';";
+                      String ss="var i=document.createElement('script');i.src='/chart.js';";
+                      ss+="var j=document.createElement('script');j.src='/Chart-min.js';";
+                      ss+="var k=document.createElement('script');k.src='/moment.min.js';";
                        javaQueue.addOnLoad(ss); return(s);   }
     String postCallBack(ElementsHtml* e,String postValue ) { if(parent) return parent->postCallBack(this,postValue); }
     void update ( float newValue ) {
-          String str = "addChartData('"; str+= String(newValue);str+="');";
+          String str = "addChartData("; str+= String(newValue);str+=");";
           
           javaQueue.add(str);
           //xPos++; if(xPos==
