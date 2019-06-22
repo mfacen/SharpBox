@@ -38,12 +38,12 @@ class Button: public Input {
       //return ("console.log('postCallBack of " + name+" parent: "+parent->name+"'); ");
       return "";
     } 
-  String getHtml() {String  s = "<button "; s+= style ; s+=" type='button' width='40' id='";s+=id; s+= "' value ='"; s+= text; s+= "' onclick=\"btnClickText('"; s+= id;s+= "',this.value)\" >";
-                      s+=text; s+= "</button>\n"; return s;  }
-  //String getHtml() { String s= "<button id='";s+=id;s+="'></button> ";javaQueue.add("btn('"+id+"','"+text+"');\n"); return s;}
+  //String getHtml() {String  s = "<button "; s+= style ; s+=" type='button' width='40' id='";s+=id; s+= "' value ='"; s+= text; s+= "' onclick=\"btnClickText('"; s+= id;s+= "',this.value)\" >";
+   //                   s+=text; s+= "</button>\n"; return s;  }
+  String getHtml() { String s= "<button id='";s+=id;s+="'></button> ";javaQueue.addOnLoad("btn('"+id+"','"+text+"');\n"); return s;}
 
 // void addHtml() {
-//     htmlAdd("<button "); htmlAdd(style.c_str()); htmlAdd(" type='buttn' width='40' id='"); htmlAdd( id.c_str()); htmlAdd ("' value ='"); htmlAdd(text.c_str());
+//     htmlAdd("<button "); htmlAdd(style.c_str()); htmlAdd(" type='button' width='40' id='"); htmlAdd( id.c_str()); htmlAdd ("' value ='"); htmlAdd(text.c_str());
 //     htmlAdd("' onclick=\"btnClickText('");
 //     htmlAdd(id.c_str()); htmlAdd("',this.value)\" >");htmlAdd(text.c_str()); htmlAdd ("</button>\n");
 // }
@@ -212,7 +212,6 @@ class Dht11: public Input {
 class AnalogIn: public Input {
     public:
     int pin;
-    Label* label;
     AnalogIn ( int _pin , String  _name , String _unit = "anLevel" , float _factor=1 ) {
       pin = _pin;
       name = _name;
@@ -229,16 +228,23 @@ class AnalogIn: public Input {
 
     String getHtml() {  String s= " <div ";s+=style;s+=" id='"; s+= id ; s+= "'><h4>" ;s+= name ;s+= "</h4>";s+=descriptor;s+="<br>";s+= label->getHtml() ;s+= unit ;s+= "</div>"; return s;
     }
+    void setFactor(float f){ factor = f;    }
+    void setZero(int z){ zero = z;    }
 //    class Label;
 //class Output;
 //Label::getHtml();
     void update() {
-      value = analogRead(pin) * factor;
+      getReading();
       label->update(String(value));
     }
 
     String postCallBack(ElementsHtml* e,String postValue) {update(); return "";}
-
+    float getReading() { value = (analogRead(pin)-zero) * factor;    // Zero es porque siempre marca un poquito el analog in
+            if (value<0) value == 0;
+    }
+private:
+      Label* label;
+      int zero =0;
 };
 
 // ########################################

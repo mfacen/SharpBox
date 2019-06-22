@@ -4,6 +4,7 @@
 <head>
     <title>ESP8266 Humidity Logger</title>
     <link href='https://fonts.googleapis.com/css?family=Roboto:300' rel='stylesheet' type='text/css'>
+    <link rel="stylesheet" type="text/css" href="style.css">
     <link rel="icon" type="image/png" sizes="144x144" href="/favicon-144x144.png">
     <link rel="icon" type="image/png" sizes="96x96" href="/favicon.ico">
     <link rel="manifest" href="/manifest.json">
@@ -16,7 +17,17 @@
 </head>
 
 <body>
- 
+ 	<header>
+		<img src="Jellyfish_Neon_azul_small.jpg" alt="JellyFish Logo" width="400" id="logo">
+		<nav class="center">
+			<a href="index.html">Inicio</a>
+			<a href="calibration.html">Calibracion</a>
+			<a href="settings">Preferencias</a>
+			<a href="graphic.html">Grafico</a>
+			<a href="estimaciones.html">Biometrias</a>
+
+		</nav>
+	</header>
     <center>
    
        
@@ -72,7 +83,7 @@
 			},
 			options: {
 				title: {
-					text: 'Time Scale Graphic',
+					text: 'Datos Historicos',
 					display: true,
 					fontSize: 16
 				},
@@ -139,7 +150,7 @@ function loadCSV() {
 function parseCSV(string) {
 	var array = [];
 	var items = [];
-	var colors=['blue','green','cyan','red','magenta','black','purple','orange'];
+	var colors=['blue','green','cyan','red','magenta','gray','purple','orange'];
 	var lines = string.split("\n");
 	var titles = lines[0].split(",");
 	 for ( var i=1; i<titles.length; i++) { 

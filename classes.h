@@ -113,7 +113,7 @@ public:
    Page(String stitle, String sSubTitle){title = stitle; subTitle= sSubTitle;}
   void addElement (ElementsHtml* el){
     listOfElements[elementCount] = el;
-    elementCount++;
+    elementCount++; if (elementCount==50){elementCount=49;Serial.println("Page elementCount limit reached 50");}
   }
   void addString( String s ) { strings[elementCount] = s;}
   void deleteElement(int index){
@@ -167,7 +167,7 @@ htmlStr="Total KB: ";htmlStr+=String(fileTotalKB);htmlStr+="Kb / Used: ";htmlStr
         htmlFile.write((uint8_t *)htmlStr.c_str(), htmlStr.length());
 
        htmlStr=ElementsHtml::javaQueue.getOnLoad();
-      htmlFile.write((uint8_t *)htmlStr.c_str(), htmlStr.length());
+      if (htmlStr) htmlFile.write((uint8_t *)htmlStr.c_str(), htmlStr.length());
 
 htmlStr= "</body></html>";  
       htmlFile.write((uint8_t *)htmlStr.c_str(), htmlStr.length());

@@ -117,7 +117,15 @@ bool webSocketConnected = false;
   Label label2 ("label2","this is Label2");
    // Graphic graphic1("graphic1");
 KeypadControl keypadControl1("keyPadCtrl1");
-//Gauge gauge ("Prueba");
+
+
+//ATENCION AQUI HAY UN ERROR
+//Gauge gauge ("Prueba");                       ///   !!!!!!!!!!!!!!!!!!!!!!!!!!!!  !!! POr alguna razon si quito esto hay   !!     RUNTIME ERROR !!!!!!!
+
+
+
+
+
   ActiveControl control1 ("control1" , &digitalIn1 ,"=",  &edit2  , &relay1 , &analogIn1 );
   ActiveControl control2 ("control2" , &tempSensor , ">", &edit1 , &relay3 , &edit5 );
   ActiveControl control3 ("control3" , &tempSensor , "=", &edit3 , &relay1 , &edit4 );// xq hay problemas en la creacion de esto ?
@@ -125,14 +133,13 @@ KeypadControl keypadControl1("keyPadCtrl1");
   Set set2 ("set2",&relay2);
   //Set set3 ("set3",&relay2);
  // KeyPad keypad2 ("keypad2");   //     POR ALGUNA RAZON ESTO LO TRABA Y NO DA NINGUN HTML DE SALIDA
-//  Program program1 ("program1");
+  Program program1 ("program1");
  // Program program2 ("program2");
-  //Button btn("oo","ee");
   //Chart chart ("chart");
   Pause pause1 ("pause1",1);
   LabelFreeHeap lblFreeHeap("lblHeap","");
   TimeLabel lblTime("lblTime","Label Time");
-//Logger logger ("Logger","/dataLog.csv");
+Logger logger ("Logger","/dataLog.csv");
 //TimeAlarms timeAlarm ( "Alarm",&program2);
 //  IfCommand if1("If numero 1",&edit1,&edit2);
 ///////////////////////////////////////////////////////////////////////////
@@ -192,15 +199,14 @@ KeypadControl keypadControl1("keyPadCtrl1");
 
 //edit1.appendText("mamamam");
    
-//         program1.addCommand(&set1);
-
-//       program1.addCommand(&set2);
+         program1.addCommand(&set1);
+       program1.addCommand(&set2);
        // program1.addCommand(&timeAlarm);
 
       //program1.addCommand(&keypadControl1);
- //      program1.addCommand(&keypadControl1);
-      // program1.addCommand(&logger);
-  //     program1.addCommand(&control2);
+       program1.addCommand(&keypadControl1);
+       program1.addCommand(&logger);
+       program1.addCommand(&control2);
 
        //pause1.start();
  //      if1.addCommand(&set2);
@@ -212,12 +218,12 @@ KeypadControl keypadControl1("keyPadCtrl1");
 
 //       pause1.start();
 
-   //    logger.addInput(&relay1);
-    //   logger.addInput(&tempSensor);
-    //   logger.addInput(&analogIn1);
+       logger.addInput(&relay1);
+       logger.addInput(&tempSensor);
+       logger.addInput(&analogIn1);
        
   page.addElement(&lblTime);
- // page.addElement(&chart);
+  //page.addElement(&chart);
   page.addString("<br>");
  //   page.addElement(&control1);
    //    page.addElement(&keypad1);        // Parece que el Keypad da problemas, numero de elementos ????  El Keypad tambien tiene problemas !!!
@@ -225,10 +231,10 @@ KeypadControl keypadControl1("keyPadCtrl1");
  //   page.addElement(&relay2);
     page.addElement(&relay3);
    // page.addElement(&tempSensor);
-   // page.addElement(&gauge);
+    //page.addElement(&gauge);
    // page.addElement(&graphic1);
 
-    //page.addElement(&program1);       // El program es el que esta haciendo randoms problems
+    page.addElement(&program1);       // El program es el que esta haciendo randoms problems
 
     //page.addElement(&tempSensor);
    // page.addElement(&logger);
@@ -246,7 +252,6 @@ KeypadControl keypadControl1("keyPadCtrl1");
     page.getHtml();
    // Serial.print("html:");
    // Serial.println(ElementsHtml::html);
-
 }
 
 
@@ -265,14 +270,14 @@ void loop() {
     Serial.println("Time: "+String(currentMillis/1000));
                 timeNow = timeUNIX + ( (currentMillis - lastNTPResponse) / 1000 );
 
-      //tempSensor.update();// ElementsHtml::javaQueue.add("console.log('tmpSensorUpdate');");
+      tempSensor.update();// ElementsHtml::javaQueue.add("console.log('tmpSensorUpdate');");
       //analogIn1.update();
       //logger.update();
       lblTime.update(timeNow);
 
       lblFreeHeap.update();
-      //chart.update(tempSensor.value);
-      //program1.run();
+     // chart.update(tempSensor.value);
+      program1.run();
       //gauge.update(tempSensor.value);
       lastUpdate = currentMillis;
        Serial.println("Heap Left: "+String(ESP.getFreeHeap(),DEC) + " : "+ hour() + ":"+minute()+" - "+month()+"/"+year());//+" :Frag: " +String(ESP.getHeapFragmentation(),DEC)+"   Max-SIze = "+ String(ESP.getMaxFreeBlockSize()));

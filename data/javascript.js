@@ -59,9 +59,10 @@ window.onload = function(){
 function btn(id,text){
    var s = "<button type='button' width='40' id='";s+=id; s+= "' value ='"; s+= text; s+= "' onclick=\"btnClickText('"; s+= id;s+= "',this.value)\" >";
                       s+=text; s+= "</button>\n";
+  var el = document.createElement(s);
   console.log("Btn()sub id:"+id+" :  text: "+text);
 
-  document.getElementById(id).outerHtml=s;
+  document.getElementById(id)=el;
 }
 
 

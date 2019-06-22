@@ -349,7 +349,7 @@ class Gauge: public Output {
     Gauge(String sss, ElementsHtml* e=0){ name=sss;id=sss;if(parent)parent=e;value =0;label=new Label("lbl"+id,"x");
     String s="var i=document.createElement('script');i.src='gauge.min.js';\nvar j=document.createElement('script');j.src='gaugeScript.js';\n";
     s+="var target = document.getElementById('";s+=id;s+="');window.";s+=id;s+=" = new Gauge(target).setOptions(opts);\n"; s+="window.Prueba.setMaxValue(40);\n"; // set max gauge value
-    s+= "window.Prueba.setMinValue(0);\n";   javaQueue.addOnLoad(s);}
+    s+= "window.Prueba.setMinValue(0);\n";   javaQueue.addOnLoad("");}
 
     String getHtml(){ String s="<div><h4>";s+=name+"</h4><canvas id='";
                                 s+=id;s+="' height='90' width='140'></canvas><br><center>";s+=label->getHtml();s+="</div>";return(s);  }
