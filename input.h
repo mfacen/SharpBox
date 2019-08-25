@@ -38,9 +38,9 @@ class Button: public Input {
       //return ("console.log('postCallBack of " + name+" parent: "+parent->name+"'); ");
       return "";
     } 
-  //String getHtml() {String  s = "<button "; s+= style ; s+=" type='button' width='40' id='";s+=id; s+= "' value ='"; s+= text; s+= "' onclick=\"btnClickText('"; s+= id;s+= "',this.value)\" >";
-   //                   s+=text; s+= "</button>\n"; return s;  }
-  String getHtml() { String s= "<button id='";s+=id;s+="'></button> ";javaQueue.addOnLoad("btn('"+id+"','"+text+"');\n"); return s;}
+  String getHtml() {String  s = "<button "; s+= style ; s+=" type='button' width='40' id='";s+=id; s+= "' value ='"; s+= text; s+= "' onclick=\"btnClickText('"; s+= id;s+= "',this.value)\" >";
+                      s+=text; s+= "</button>\n"; return s;  }
+  //String getHtml() { String s= "<button id='";s+=id;s+="'></button> ";javaQueue.addOnLoad("btn('"+id+"','"+text+"');\n"); return s;}
 
 // void addHtml() {
 //     htmlAdd("<button "); htmlAdd(style.c_str()); htmlAdd(" type='button' width='40' id='"); htmlAdd( id.c_str()); htmlAdd ("' value ='"); htmlAdd(text.c_str());

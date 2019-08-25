@@ -41,7 +41,9 @@ class Label: public Output {
     //void addHtml(){ String s= "<span id='";s+=id;s+= "'>";s+=text;s+="</span>"; htmlAdd(s.c_str()); }
     String postCallBack(ElementsHtml* e,String postValue) { if(parent) return parent->postCallBack(this,postValue); }
     void update ( String newValue ) {  {text= newValue; update();} }
-    void update(){ if (lastText!=text) {String s=docIdStr; s+= id ; s+= F("').innerHTML='");s+=text;s+="';"; javaQueue.add(s); lastText=text;} } 
+    void update()//{ if (lastText!=text)
+               {String s=docIdStr; s+= id ; s+= F("').innerHTML='");s+=text;s+="';"; javaQueue.add(s); lastText=text;}
+                 //} 
     void update(float newValue){update(String(newValue));}
     void append(String appendValue) { text += appendValue; update();}
 
@@ -170,13 +172,17 @@ class Image: public Output {
     void update(){}
     void setWidth(int w){width=w;}
     void setHeigth(int h){heigth=h;}
-  private:
+  protected:
     String url = "";
     int width = 40;
     int heigth = 40;
 
 };
 
+class wifiIcon: public Image {
+    String getHtml(){ String s=F("<img heigth='"); s+=String(heigth); s+= F("' width='"); s+=String(width);s+="' id='";s+=id;s+= "' src='/images/wifi_signal_0.png'>";return s;  }
+
+};
 // ########################################
 //  Graphic
 // ########################################
@@ -288,7 +294,7 @@ class PWM
         invertedLogic = inverted;
          };
       void setPWM ( PWM * _pwm) { pwm = _pwm; }
-      void setLevel ( int l) { pwm->setLevel(l);}
+      void setPwmLevel ( int l) { pwm->setLevel(l);}
       void update(){};
       void update(String sss){update(sss.toInt());};
       void update( float newValue) {
